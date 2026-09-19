@@ -115,5 +115,7 @@ Algorithms*, chapter 2.
 ## Related measures
 
 [`crate::entropy::hartley_entropy`] measures observed support and upper-bounds
-empirical Shannon entropy. General Rényi entropy, block entropy, and entropy-rate
-estimators remain future work; the latter two address sequence dependence.
+empirical Shannon entropy. [`crate::entropy::renyi_entropy`] generalizes Shannon
+through an order parameter, with exact order one delegating to this function.
+Block entropy and entropy-rate estimators remain future work and address sequence
+dependence.

@@ -8,7 +8,7 @@
   the Fourth Berkeley Symposium on Mathematical Statistics and Probability,
   volume 1, 547–561.
   [Paper](https://static.renyi.hu/renyi_cikkek/1961_on_measures_of_entropy_and_information.pdf).
-  Defines the entropy family whose limit at order zero gives log support.
+  Defines the implemented Rényi family, including Shannon and log-support limits.
 - Claude E. Shannon (1948), *A Mathematical Theory of Communication*, Bell
   System Technical Journal 27, 379–423 and 623–656. Part I, section 6,
   “Choice, Uncertainty and Entropy.”
@@ -26,3 +26,6 @@ third-party entropy library. Empty-sequence behavior is a project convention.
 See [Shannon's reference notes](references/shannon.md) and
 [Hartley's reference notes](references/hartley.md), with their corresponding
 [Shannon](entropy/shannon.md) and [Hartley](entropy/hartley.md) metric pages.
+
+See [Rényi reference notes](references/renyi.md) and its
+[metric page](entropy/renyi.md) for the definition, limits, and numerical sources.

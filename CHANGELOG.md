@@ -1,6 +1,18 @@
 # Changelog
 
-## Unreleased — Shannon and Hartley foundation
+## Unreleased — empirical entropy foundation
+
+- Add GitHub Actions CI for formatting, linting, builds, debug/release tests,
+  reference fixtures, documentation, runnable examples, and benchmark compilation.
+  Document its purpose, toolchain, automatic discovery, and validation limits.
+
+- Add allocation-free Rényi entropy for byte slices and reusable distributions,
+  accepting nonnegative orders and positive infinity, with explicit errors for
+  negative/NaN orders. Reuse Hartley at zero and Shannon at one.
+- Stabilize calculations near order one and for very large orders; retain small
+  count complements near probability one without changing existing Shannon.
+- Add educational documentation, a comparison example, 345 independent Decimal
+  fixtures, canonical/property tests, allocation checks, and a benchmark baseline.
 
 - Rename the project and Rust crate to `celandine`, including imports,
   documentation, examples, benchmarks, and the project plan.

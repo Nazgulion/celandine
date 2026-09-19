@@ -2,7 +2,8 @@
 
 use celandine::distribution::{ByteHistogram, Distribution};
 use celandine::entropy::{
-    hartley_entropy, hartley_entropy_distribution, shannon, shannon_distribution,
+    hartley_entropy, hartley_entropy_distribution, renyi_entropy, renyi_entropy_distribution,
+    shannon, shannon_distribution,
 };
 use std::alloc::{GlobalAlloc, Layout, System};
 use std::hint::black_box;
@@ -57,10 +58,25 @@ fn main() {
         black_box(shannon(black_box(&data)));
         black_box(hartley_entropy_distribution(black_box(&d)));
         black_box(hartley_entropy(black_box(&data)));
+        for alpha in [
+            0.0,
+            0.5,
+            1.0 - 1e-8,
+            1.0,
+            1.0 + 1e-8,
+            2.0,
+            f64::MAX,
+            f64::INFINITY,
+        ] {
+            black_box(renyi_entropy_distribution(black_box(&d), black_box(alpha))).unwrap();
+            black_box(renyi_entropy(black_box(&data), black_box(alpha))).unwrap();
+        }
+        assert!(black_box(renyi_entropy(black_box(&data), f64::NAN)).is_err());
+        assert!(black_box(renyi_entropy_distribution(black_box(&d), -1.0)).is_err());
         let after = ALLOCATIONS.load(Ordering::Relaxed);
         assert_eq!(after - before, 0, "allocations for {size} bytes");
     }
     println!(
-        "Allocation checks passed: zero allocations for histogram, distribution, Shannon, and Hartley (0 B–10 MiB)."
+        "Allocation checks passed: zero allocations for histogram, distribution, Shannon, Hartley, and Rényi (0 B–10 MiB)."
     );
 }

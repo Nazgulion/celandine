@@ -13,7 +13,7 @@ Rényi (1961), *On Measures of Entropy and Information*, gives the entropy famil
 `H_alpha = log2(sum(p_i^alpha)) / (1 - alpha)`. For a finite probability law,
 taking `alpha -> 0+` over its positive probabilities yields `H0 = log2(k)`.
 Each positive term tends to one; zero terms remain zero. This derivation avoids
-an ambiguous evaluation of `0^0`. General Rényi entropy is not implemented here.
+an ambiguous evaluation of `0^0`. The [Rényi API](../entropy/renyi.md) delegates to Hartley at exact order zero.
 Cover and Thomas, second edition, chapter 2, treats Shannon's log-support bound.
 
 ## Implementation convention

@@ -76,8 +76,8 @@ is enough for the implemented single-symbol entropies, but does not represent
 dependence between positions.
 
 An empty sample has no empirical probability law. The API exposes an empty
-state with zero counts, zero support, and zero probability queries; both
-entropies return zero by convention. `is_empty` distinguishes this from a
+state with zero counts, zero support, and zero probability queries; the implemented
+entropies return zero by convention (Rényi requires a valid order). `is_empty` distinguishes this from a
 nonempty constant sample. Arbitrary probability vectors are not accepted or
 silently normalized. Counts are exact; conversion to `f64` and division can
 round. Importing counts rejects integer overflow.

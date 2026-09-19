@@ -124,5 +124,6 @@ second edition, chapter 2.
 Shannon entropy weights symbols by their observed probabilities. Hartley equals
 the limit of Rényi entropy as its order approaches zero from above: on positive
 probabilities each `p^alpha` tends to one, while absent symbols contribute zero.
-General Rényi entropy is not implemented yet. Neither this function nor Shannon
-models dependence between consecutive symbols.
+[`crate::entropy::renyi_entropy`] evaluates this family and delegates to Hartley
+at exact order zero. These functions do not model dependence between consecutive
+symbols.
