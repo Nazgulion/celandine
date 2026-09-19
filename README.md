@@ -1,5 +1,9 @@
 # celandine
 
+<p align="center">
+  <img src="pictures/celandine_001.png" alt="Yellow celandine flower with green leaves" width="240">
+</p>
+
 Entropy, information, complexity, and distance for finite sequences.
 
 The library implements **empirical Shannon, Hartley, and Rényi entropy over
