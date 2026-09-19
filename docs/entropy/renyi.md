@@ -115,4 +115,5 @@ for maximum scaling and accurate logarithms of small corrections.
 
 Hartley and Shannon are the orders zero and one. Collision entropy is order two;
 min-entropy is the infinite-order limit. They can be evaluated through this API;
-dedicated collision/min-entropy entry points remain a later milestone.
+[`crate::entropy::collision_entropy`] exposes order two directly. A dedicated
+min-entropy entry point remains a later milestone.

@@ -6,8 +6,8 @@
 
 Entropy, information, complexity, and distance for finite sequences.
 
-The library implements **empirical Shannon, Hartley, and Rényi entropy over
-bytes** and their distribution foundation. It is one Rust library crate, with no runtime
+The library implements **empirical Shannon, Hartley, Rényi, and collision entropy
+over bytes** and their distribution foundation. It is one Rust library crate, with no runtime
 dependencies, no heap allocations on the byte path, and no unsafe library code.
 The broader project plan describes future work, not currently available APIs.
 
@@ -20,12 +20,13 @@ The broader project plan describes future work, not currently available APIs.
 | [Shannon entropy](docs/entropy/shannon.md) | Averages symbol surprise, weighted by frequency. | Distinguishes balanced from uneven frequencies on the same support. |
 | [Hartley entropy](docs/entropy/hartley.md) | Takes the logarithm of the observed support size. | Measures the number of possibilities and bounds Shannon entropy from above. |
 | [Rényi entropy](docs/entropy/renyi.md) | Varies the emphasis on rare versus frequent symbols using an order parameter. | Shows how diversity changes across orders, unifying Hartley and Shannon. |
+| [Collision entropy](docs/entropy/collision.md) | Takes the negative logarithm of the probability that two independent draws match. | Measures concentration and gives Rényi order two a dedicated API. |
 | [Validation workflow](CONTRIBUTING.md) | Checks known answers, properties, independent references, and allocations. | Detects mathematical mistakes and regressions. |
 | [Continuous integration](.github/workflows/ci.yml) | Runs validation on pushes and pull requests. | Makes regressions visible automatically as the project grows. |
 | [Benchmarks](docs/benchmarks.md) | Measure latency and throughput on fixed workloads. | Establish evidence for performance changes. |
 
 Start with [counts and probabilities](docs/distribution.md), then read the
-Shannon, Hartley, and Rényi pages. Each metric page includes a short history,
+Shannon, Hartley, Rényi, and collision pages. Each metric page includes a short history,
 explains the formula's symbols, and works through a small example before the references.
 
 ## Public API
@@ -33,6 +34,7 @@ explains the formula's symbols, and works through a small example before the ref
 ```rust
 use celandine::distribution::{ByteHistogram, Distribution};
 use celandine::entropy::{
+    collision_entropy, collision_entropy_distribution,
     hartley_entropy, hartley_entropy_distribution, renyi_entropy,
     renyi_entropy_distribution, shannon, shannon_distribution,
 };
@@ -53,6 +55,8 @@ assert_eq!(hartley_entropy_distribution(&distribution), 1.0);
 assert_eq!(renyi_entropy_distribution(&distribution, 2.0), Ok(1.0));
 assert!((renyi_entropy(b"AAAB", 2.0).unwrap() - 0.6780719051126377).abs() < 1e-12);
 assert!(renyi_entropy(b"AB", -1.0).is_err());
+assert_eq!(collision_entropy_distribution(&distribution), 1.0);
+assert!((collision_entropy(b"AAAB") - 0.6780719051126377).abs() < 1e-12);
 ```
 
 Use `Distribution::from_bytes(data)` when a separate histogram step is not
@@ -77,12 +81,20 @@ nonincreasing in order. Both APIs return `Result<f64, InvalidRenyiOrder>`:
 negative or NaN orders are rejected even for empty input. Near-one and very
 large orders use stable evaluation formulas without heap allocations.
 
+Collision entropy is Rényi order two with a direct `f64` API:
+`H2 = -log2(sum(p_i^2))`. The sum is the probability that two independent draws
+with replacement give the same symbol. `AAAB` has matching probability `10/16`
+and entropy `0.678072` bits per symbol. It measures frequency concentration and
+ignores position; it does not count adjacent matches or assume the observed
+sequence was generated independently.
+
 ## Try it on sample data
 
 ```sh
 cargo run --locked --example shannon
 cargo run --locked --example hartley
 cargo run --locked --example renyi
+cargo run --locked --example collision
 ```
 
 Edit the samples in [examples/shannon.rs](examples/shannon.rs) and rerun to see
@@ -100,6 +112,11 @@ orders 0, 0.5, 1, 2, and infinity. For `AAAB`, results decrease from 1.000000 at
 zero to 0.678072 at two and 0.415037 at infinity. Edit its samples and orders to
 explore the effect of frequency balance.
 
+The [collision example](examples/collision.rs) prints the matching probability
+and compares collision, Shannon, and Hartley entropy. Empty input has no matching
+probability; the example labels that explicitly while showing the zero-entropy
+convention. Edit its samples and rerun to explore frequency concentration.
+
 ## Documentation
 
 - [Mathematical conventions](docs/mathematical-conventions.md)
@@ -107,12 +124,15 @@ explore the effect of frequency balance.
 - [Shannon definition and interpretation](docs/entropy/shannon.md)
 - [Hartley definition and interpretation](docs/entropy/hartley.md)
 - [Rényi definition and interpretation](docs/entropy/renyi.md)
+- [Collision definition and interpretation](docs/entropy/collision.md)
 - [Numerical behavior](docs/numerical-behavior.md)
 - [Bibliography](docs/references.md), [Shannon reference notes](docs/references/shannon.md),
   [Hartley reference notes](docs/references/hartley.md),
-  and [Rényi reference notes](docs/references/renyi.md)
+  [Rényi reference notes](docs/references/renyi.md),
+  and [collision reference notes](docs/references/collision.md)
 - [Shannon benchmark baseline](docs/benchmarks.md), [Hartley baseline](docs/benchmarks/hartley.md),
-  and [Rényi baseline](docs/benchmarks/renyi.md)
+  [Rényi baseline](docs/benchmarks/renyi.md),
+  and [collision baseline](docs/benchmarks/collision.md)
 - [Authoritative project plan](finite_sequence_information_complexity_project_plan.md)
 
 ## Development
@@ -141,9 +161,11 @@ cargo doc --locked --no-deps
 python3 scripts/reference_shannon.py --check
 python3 scripts/reference_hartley.py --check
 python3 scripts/reference_renyi.py --check
+python3 scripts/reference_collision.py --check
 cargo bench --locked --bench shannon
 cargo bench --locked --bench hartley
 cargo bench --locked --bench renyi
+cargo bench --locked --bench collision
 ```
 
 Property tests use a fixed seed and 256 cases per property for reproducible
@@ -154,8 +176,10 @@ all 257 possible byte-support sizes with 80-digit logarithms. Rust tests compare
 with the committed fixtures to `1e-12` bits absolute tolerance. Rényi adds 345
 fixtures from 120-digit direct calculations (with bounded limiting values for
 the largest orders), including adjacent orders around one and extreme counts.
+Collision adds 45 exact-rational reference fixtures and properties based on
+explicit pair enumeration and exact integer complements at extreme counts.
 
 This is a foundation milestone, not the complete v0.1 roadmap. Publishing is
 disabled until licensing, the supported toolchain policy, and the public API
-have been reviewed. Dedicated collision/min-entropy APIs, other entropy families,
+have been reviewed. A dedicated min-entropy API, other entropy families,
 a CLI, and bindings remain future work.

@@ -1,6 +1,6 @@
 # Mathematical conventions
 
-The library implements empirical, single-symbol Shannon, Hartley, and Rényi
+The library implements empirical, single-symbol Shannon, Hartley, Rényi, and collision
 entropy for finite byte sequences. The project plan is the architectural specification;
 later metrics and sequence transformations remain future work.
 
@@ -35,7 +35,7 @@ sum can differ slightly from one.
 An empty histogram/distribution has sample size zero, support size zero, and
 returns zero for each probability query. This is an **empty empirical state**,
 not a normalized probability distribution: there is no empirical law when no
-observations exist. Shannon, Hartley, and Rényi with a valid order return positive
+observations exist. Shannon, Hartley, collision, and Rényi with a valid order return positive
 `0.0` for this state by API convention. This does not define a probability law on an
 empty sample or assert that `log2(0)` is zero. Callers needing to distinguish
 missing data must check `sample_size()` or `is_empty()` first.
@@ -117,3 +117,26 @@ Mathematically, entropy is nonincreasing in order and lies between zero and
 for every order. No near-one interval is replaced with Shannon: only exact order
 one delegates. The numerical formulas are detailed in `numerical-behavior.md`.
 Negative-order entropy and arbitrary probability-vector input remain out of scope.
+
+## Collision entropy
+
+`collision_entropy(data)` and `collision_entropy_distribution(distribution)`
+return `f64` in bits per symbol. They evaluate Rényi entropy at the fixed valid
+order two: `H2 = -log2(sum_i p_i^2)`. No parameter validation or `Result` is
+needed at these entry points. Empty input returns positive zero by convention;
+a nonempty constant sequence returns positive zero mathematically.
+
+For a nonempty empirical law, `sum_i p_i^2` is the probability that two independent
+draws with replacement have equal symbols. Equivalently, among all `n*n` ordered
+pairs of sample positions, including pairing a position with itself, exactly
+`sum_i c_i*c_i` have equal symbols. This is not adjacent-pair counting and not
+sampling without replacement. The API returns entropy, not the matching probability.
+The draws are a mathematical interpretation of the empirical law, not an
+assumption that the original observations were independent.
+
+Collision entropy is exact for the empirical law up to floating-point rounding;
+it is a plug-in estimate when used to infer a source quantity. No correction for
+finite-sample bias or unseen symbols is applied. For nonempty input,
+`0 <= H2 <= H_Shannon <= H0 <= 8`, with equality throughout for uniform frequencies.
+The implementation shares Rényi's order-two numerical behavior and does not
+recount an existing distribution or allocate memory.

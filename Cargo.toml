@@ -25,5 +25,9 @@ harness = false
 name = "renyi"
 harness = false
 
+[[bench]]
+name = "collision"
+harness = false
+
 [lints.rust]
 missing_docs = "warn"

@@ -13,10 +13,11 @@ Run the small entropy examples:
 cargo run --locked --example shannon
 cargo run --locked --example hartley
 cargo run --locked --example renyi
+cargo run --locked --example collision
 ```
 
-Edit the byte samples in `examples/shannon.rs`, `examples/hartley.rs`, or
-`examples/renyi.rs` and rerun to inspect other inputs. The comparison examples
+Edit the byte samples in `examples/shannon.rs`, `examples/hartley.rs`,
+`examples/renyi.rs`, or `examples/collision.rs` and rerun to inspect other inputs. The comparison examples
 reuse one histogram per sample; Rényi also lets you change the orders.
 Output appears immediately in the terminal. There is no file watcher or live
 interface; each run computes the current samples once. Display formatting is
@@ -39,6 +40,7 @@ cargo test --locked
 python3 scripts/reference_shannon.py --check
 python3 scripts/reference_hartley.py --check
 python3 scripts/reference_renyi.py --check
+python3 scripts/reference_collision.py --check
 ```
 
 `cargo test` checks canonical results, mathematical properties, independent
@@ -139,7 +141,7 @@ Follow the project plan's full documentation structure, adding these elements:
 - **Limits:** distinguish what is measured from what cannot be inferred, and
   retain the existing edge-case, numerical, complexity, and reference sections.
 
-Use the Shannon, Hartley, Rényi, and distribution pages as examples. Reuse the metric
+Use the Shannon, Hartley, Rényi, collision, and distribution pages as examples. Reuse the metric
 text in rustdoc where practical to avoid divergent explanations. Add a brief
 plain-language introduction and formula legend to runnable examples so terminal
 output is understandable on its own. Keep full history and references in the
@@ -154,6 +156,7 @@ For the current entropy implementations:
 cargo bench --locked --bench shannon
 cargo bench --locked --bench hartley
 cargo bench --locked --bench renyi
+cargo bench --locked --bench collision
 cargo test --locked --release --test allocations
 ```
 
@@ -162,9 +165,10 @@ representation, or performance-sensitive code. Establish a baseline before
 optimizing, record machine/toolchain details and measurement settings, and
 compare the same workloads. Preserve baseline results; record new measurements
 separately when evaluating changes. Follow the
-[Shannon benchmark methodology](docs/benchmarks.md) and
-[Hartley baseline](docs/benchmarks/hartley.md), and
-[Rényi baseline](docs/benchmarks/renyi.md).
+[Shannon benchmark methodology](docs/benchmarks.md),
+[Hartley baseline](docs/benchmarks/hartley.md),
+[Rényi baseline](docs/benchmarks/renyi.md), and
+[collision baseline](docs/benchmarks/collision.md).
 
 Performance measurements do not establish mathematical correctness. Continue
 to run correctness tests and check allocation promises. Example and prose-only

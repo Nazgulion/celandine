@@ -100,3 +100,31 @@ Maximum scaling and omission of one largest term follow the numerical approach
 explained by [Higham (2021)](https://nhigham.com/2021/01/05/what-is-the-log-sum-exp-function/).
 The near-one identity and count-complement formulas above follow directly by
 algebra from the empirical definition.
+
+## Collision entropy
+
+The named collision functions delegate to the validated Rényi distribution API
+at the fixed order two. Results therefore match that path bit for bit on the
+same binary/runtime, with the same empty-state extension and rounding contract.
+No second implementation of the entropy formula or new approximation is added.
+The fixed order is always valid; it cannot produce `InvalidRenyiOrder`.
+
+Directly squaring `usize` counts can overflow, and summing rounded probability
+squares can yield exactly one for a nonconstant but extremely imbalanced law.
+Reusing Rényi's maximum scaling and count-complement logarithms preserves tiny
+positive entropy in those cases. This baseline does not introduce an optimized
+order-two power-sum path.
+
+The independent Python reference computes the matching probability as an exact
+`Fraction(sum(c_i*c_i), n*n)` using unbounded integers, then takes its negative
+base-2 logarithm with 120-digit Decimal arithmetic. The 45 fixtures include
+uneven and uniform laws, counts above `2^53`, totals through `2^64-1`, and
+reproducible mixtures of very large and small counts. Cases beyond `usize::MAX`
+are skipped explicitly on narrower targets.
+
+A separate property test enumerates all ordered sample-position pairs, including
+self-pairs. Another computes the distinct-pair numerator `n*n-sum(c_i*c_i)`
+exactly in `u128` for 32/64-bit count tables, then evaluates `-log1p(-q)/ln(2)`
+where `q` is the distinct-pair probability. This checks randomized extreme
+counts with both absolute and relative tolerances, without sharing the production
+Rényi calculation. Run `python3 scripts/reference_collision.py --check`.

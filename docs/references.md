@@ -29,3 +29,6 @@ See [Shannon's reference notes](references/shannon.md) and
 
 See [Rényi reference notes](references/renyi.md) and its
 [metric page](entropy/renyi.md) for the definition, limits, and numerical sources.
+
+[Collision reference notes](references/collision.md) explain the order-two
+specialization and its exact matching-pair verification.

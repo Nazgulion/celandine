@@ -2,6 +2,13 @@
 
 ## Unreleased — empirical entropy foundation
 
+- Add dedicated allocation-free collision entropy for bytes and reusable
+  distributions, sharing the validated Rényi order-two calculation.
+- Explain matching draws with replacement, the formula, historical context,
+  edge cases, and estimation limits in docs and a runnable comparison example.
+- Add exact-rational reference fixtures, pair-count and extreme-count properties,
+  allocation coverage, and a dedicated collision benchmark baseline.
+
 - Add GitHub Actions CI for formatting, linting, builds, debug/release tests,
   reference fixtures, documentation, runnable examples, and benchmark compilation.
   Document its purpose, toolchain, automatic discovery, and validation limits.
