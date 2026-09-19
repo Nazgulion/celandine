@@ -147,3 +147,51 @@ Tests use `1e-12` bits absolute tolerance and `1e-8` relative tolerance on posit
 reference values, plus a first-order check near `usize::MAX`. These are validation
 tolerances, not universal error guarantees. Wider count fixtures are explicitly
 skipped on narrower targets. Run `python3 scripts/reference_min_entropy.py --check`.
+
+## Tsallis entropy
+
+For accepted finite nonnegative orders, validate first. Exact order one delegates
+to Shannon; empty and singleton support return positive zero; order zero returns
+`(support-1)/ln(2)` from integer support. Other orders use `t=q-1` and
+
+```text
+S_q = -sum_i p_i * expm1(t * ln(p_i)) / t / ln(2)
+```
+
+This follows from `sum(p_i)=1` for the exact empirical law. Evaluating a direct
+`1-sum(p_i^q)` would lose precision near one, magnifying rounded mass error by
+`1/t`. Here `expm1` retains each small correction; no probability normalization
+or substitution of nearby orders by one occurs. Positive counts are visited in
+byte order and summed with Kahan compensation. All numerator terms have the
+same sign, avoiding cancellation between different symbols.
+
+For `0<q<0.5` and counts at most half the total, use `p-exp(q*ln(p))`
+for the numerator term instead. When `q` is tiny, evaluating the near-one
+identity as `p*expm1((q-1)*ln(p))` unnecessarily reconstructs a reciprocal of
+a small probability; rounding in the logarithm, exponent, and `q-1` can then
+accumulate across many rare symbols. Direct powers keep the exponent near zero.
+Here `p<=1/2` and `q<1/2` imply `(p^q-p)/p^q >= 1-1/sqrt(2)`, so the
+subtraction is safely separated from zero. Dominant symbols still use `expm1`
+and the exact count-complement logarithm. The threshold selects an evaluation
+formula without changing the requested order. Sixty retained high-precision
+regressions cover this review finding and the transition at 0.5.
+
+When a count exceeds half the total, its logarithm uses
+`ln_1p(-(total-count)/total)`, subtracting exact integers before conversion.
+Elsewhere it uses `ln(count/total)`. This retains a dominant symbol's small
+contribution even when its displayed probability rounds to one. Below order one,
+the exponential argument is bounded by `ln(total)` for accepted orders and
+positive integer counts. Above one, a very negative argument can become negative
+infinity in `f64`; `expm1(-infinity)=-1` is its limiting value. Accumulation occurs
+before division so small per-symbol contributions are not individually lost to
+large-order scaling. At the largest finite order the final entropy of a
+nonconstant law is positive and subnormal on the tested target.
+
+The 532 independent fixtures use direct Decimal powers at 120-digit precision,
+with a documented bound for the two orders at least `1e100`. Scientific output
+preserves tiny values below `1e-300`. General absolute tolerance is `1e-12` in
+Shannon-bit scaling, with `1e-8` relative checks on positive references except
+exact order one. This exception inherits Shannon's existing contract. These
+thresholds are tests, not universal error bounds. Fixtures beyond `usize::MAX`
+are skipped explicitly. Run `python3 scripts/reference_tsallis.py --check`; see
+[reference notes](references/tsallis.md) for the asymptotic bound.

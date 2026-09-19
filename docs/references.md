@@ -35,3 +35,10 @@ specialization and its exact matching-pair verification.
 
 [Min-entropy reference notes](references/min_entropy.md) derive the infinite-order
 limit and explain the maximum-probability interpretation and verification.
+
+- C. Tsallis (1988), *Possible Generalization of Boltzmann–Gibbs Statistics*,
+  Journal of Statistical Physics 52, 479–487.
+  [Original paper DOI](https://doi.org/10.1007/BF01016429).
+  Defines the entropy family with a conventional positive scaling constant.
+  [Tsallis reference notes](references/tsallis.md) explain this library's fixed
+  Shannon-bit scaling, order-one limit, and independent verification.

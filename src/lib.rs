@@ -2,6 +2,7 @@
 //!
 //! Provides allocation-free byte counting, reusable empirical distributions,
 //! and Shannon, Hartley, Rényi, collision, and min-entropy in bits per symbol.
+//! Tsallis entropy uses a fixed scale agreeing with Shannon at order one.
 //! Empty input returns zero by convention. No source model is assumed.
 //!
 //! ```

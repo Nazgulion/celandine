@@ -33,5 +33,9 @@ harness = false
 name = "min_entropy"
 harness = false
 
+[[bench]]
+name = "tsallis"
+harness = false
+
 [lints.rust]
 missing_docs = "warn"

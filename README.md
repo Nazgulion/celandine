@@ -6,9 +6,9 @@
 
 Entropy, information, complexity, and distance for finite sequences.
 
-The library implements **empirical Shannon, Hartley, Rényi, collision, and min-entropy
-over bytes** and their distribution foundation. It is one Rust library crate, with no runtime
-dependencies, no heap allocations on the byte path, and no unsafe library code.
+The library implements **empirical Shannon, Hartley, Rényi, collision, min-entropy,
+and Tsallis entropy over bytes** and their distribution foundation. It is one Rust
+library crate, with no runtime dependencies, no heap allocations on the byte path, and no unsafe library code.
 The broader project plan describes future work, not currently available APIs.
 
 ## What is implemented and why
@@ -22,13 +22,14 @@ The broader project plan describes future work, not currently available APIs.
 | [Rényi entropy](docs/entropy/renyi.md) | Varies the emphasis on rare versus frequent symbols using an order parameter. | Shows how diversity changes across orders, unifying Hartley and Shannon. |
 | [Collision entropy](docs/entropy/collision.md) | Takes the negative logarithm of the probability that two independent draws match. | Measures concentration and gives Rényi order two a dedicated API. |
 | [Min-entropy](docs/entropy/min_entropy.md) | Takes the negative logarithm of the largest probability. | Isolates symbol dominance and gives the infinite-order limit a dedicated API. |
+| [Tsallis entropy](docs/entropy/tsallis.md) | Measures diversity through probability powers with a fixed Shannon-bit scale. | Provides an order-dependent measure with a different composition rule and the Shannon limit at one. |
 | [Validation workflow](CONTRIBUTING.md) | Checks known answers, properties, independent references, and allocations. | Detects mathematical mistakes and regressions. |
 | [Continuous integration](.github/workflows/ci.yml) | Runs validation on pushes and pull requests. | Makes regressions visible automatically as the project grows. |
 | [Benchmarks](docs/benchmarks.md) | Measure latency and throughput on fixed workloads. | Establish evidence for performance changes. |
 
 Start with [counts and probabilities](docs/distribution.md), then read the
-Shannon, Hartley, Rényi, collision, and min-entropy pages. Each metric page includes
-a short history, explains the formula's symbols, and works through a small example
+Shannon, Hartley, Rényi, collision, min-entropy, and Tsallis pages. Each metric page
+includes a short history, explains the formula's symbols, and works through a small example
 before the references.
 
 ## Public API
@@ -40,6 +41,7 @@ use celandine::entropy::{
     hartley_entropy, hartley_entropy_distribution, min_entropy,
     min_entropy_distribution, renyi_entropy,
     renyi_entropy_distribution, shannon, shannon_distribution,
+    tsallis_entropy, tsallis_entropy_distribution,
 };
 
 assert_eq!(shannon(b"ABCD"), 2.0); // bits per symbol
@@ -62,6 +64,8 @@ assert_eq!(collision_entropy_distribution(&distribution), 1.0);
 assert!((collision_entropy(b"AAAB") - 0.6780719051126377).abs() < 1e-12);
 assert_eq!(min_entropy_distribution(&distribution), 1.0);
 assert!((min_entropy(b"AAAB") - 0.4150374992788438).abs() < 1e-12);
+assert_eq!(tsallis_entropy_distribution(&distribution, 1.0), Ok(1.0));
+assert!((tsallis_entropy(b"AAAB", 2.0).unwrap() - 0.375 / std::f64::consts::LN_2).abs() < 1e-12);
 ```
 
 Use `Distribution::from_bytes(data)` when a separate histogram step is not
@@ -99,6 +103,13 @@ For `AAAB`, the largest probability is `3/4` and min-entropy is `0.415037` bits
 per symbol. Keeping that maximum probability fixed leaves min-entropy unchanged,
 even if the remaining frequencies change. It does not infer a source's behavior.
 
+Tsallis uses finite `q>=0` and fixed **Shannon-bit scaling**:
+`S_q = (1-sum(p_i^q))/(q-1)/ln(2)`. At `q=1` it returns Shannon; near one it
+keeps the supplied order using stable evaluation. `AAAB` gives `0.541011` at
+order two. Tsallis can exceed 8 in this scale and is not generally an average
+code length. Both APIs return `Result<f64, InvalidTsallisOrder>`; negative and
+nonfinite orders are rejected even for empty input.
+
 ## Try it on sample data
 
 ```sh
@@ -107,6 +118,7 @@ cargo run --locked --example hartley
 cargo run --locked --example renyi
 cargo run --locked --example collision
 cargo run --locked --example min_entropy
+cargo run --locked --example tsallis
 ```
 
 Edit the samples in [examples/shannon.rs](examples/shannon.rs) and rerun to see
@@ -134,6 +146,11 @@ and compares min-entropy, collision, Shannon, and Hartley using one histogram.
 Its final two samples share the same dominant probability but different remaining
 frequencies, illustrating what min-entropy captures and what it ignores.
 
+The [Tsallis example](examples/tsallis.rs) shows orders 0, 0.5, 1, 2, and 4,
+explains the scaling, and prints additional values just below and above one.
+For uniform `AB`, it prints `1.442695`, `1.000000`, and `0.721348` at orders
+zero, one, and two: uniformity does not make Tsallis constant across orders.
+
 ## Documentation
 
 - [Mathematical conventions](docs/mathematical-conventions.md)
@@ -143,16 +160,19 @@ frequencies, illustrating what min-entropy captures and what it ignores.
 - [Rényi definition and interpretation](docs/entropy/renyi.md)
 - [Collision definition and interpretation](docs/entropy/collision.md)
 - [Min-entropy definition and interpretation](docs/entropy/min_entropy.md)
+- [Tsallis definition and interpretation](docs/entropy/tsallis.md)
 - [Numerical behavior](docs/numerical-behavior.md)
 - [Bibliography](docs/references.md), [Shannon reference notes](docs/references/shannon.md),
   [Hartley reference notes](docs/references/hartley.md),
   [Rényi reference notes](docs/references/renyi.md),
   [collision reference notes](docs/references/collision.md),
-  and [min-entropy reference notes](docs/references/min_entropy.md)
+  [min-entropy reference notes](docs/references/min_entropy.md),
+  and [Tsallis reference notes](docs/references/tsallis.md)
 - [Shannon benchmark baseline](docs/benchmarks.md), [Hartley baseline](docs/benchmarks/hartley.md),
   [Rényi baseline](docs/benchmarks/renyi.md),
   [collision baseline](docs/benchmarks/collision.md),
-  and [min-entropy baseline](docs/benchmarks/min_entropy.md)
+  [min-entropy baseline](docs/benchmarks/min_entropy.md),
+  and [Tsallis baseline](docs/benchmarks/tsallis.md)
 - [Authoritative project plan](finite_sequence_information_complexity_project_plan.md)
 
 ## Development
@@ -183,11 +203,13 @@ python3 scripts/reference_hartley.py --check
 python3 scripts/reference_renyi.py --check
 python3 scripts/reference_collision.py --check
 python3 scripts/reference_min_entropy.py --check
+python3 scripts/reference_tsallis.py --check
 cargo bench --locked --bench shannon
 cargo bench --locked --bench hartley
 cargo bench --locked --bench renyi
 cargo bench --locked --bench collision
 cargo bench --locked --bench min_entropy
+cargo bench --locked --bench tsallis
 ```
 
 Property tests use a fixed seed and 256 cases per property for reproducible
@@ -195,14 +217,18 @@ baseline validation. Regression cases produced by proptest should be retained.
 The independent Python calculation uses exact rational counts and 80-digit
 decimal logarithms for Shannon. Hartley independently counts sets and checks
 all 257 possible byte-support sizes with 80-digit logarithms. Rust tests compare
-with the committed fixtures to `1e-12` bits absolute tolerance. Rényi adds 345
-fixtures from 120-digit direct calculations (with bounded limiting values for
+with the committed fixtures to `1e-12` absolute tolerance in the documented units.
+Rényi adds 345 fixtures from 120-digit direct calculations (with bounded limiting values for
 the largest orders), including adjacent orders around one and extreme counts.
 Collision adds 45 exact-rational reference fixtures and properties based on
 explicit pair enumeration and exact integer complements at extreme counts.
 Min-entropy adds 48 exact-rational reference fixtures, independent minimum-surprise
 checks, and properties covering dominant symbols and extreme count tables.
+Tsallis adds 532 reference fixtures, including bounded large-order references,
+and properties for order monotonicity, differing pairs, and product composition.
 
 This is a foundation milestone, not the complete v0.1 roadmap. Publishing is
 disabled until licensing, the supported toolchain policy, and the public API
-have been reviewed. Other entropy families, a CLI, and bindings remain future work.
+have been reviewed. The six core entropy measures are implemented, but the
+v0.1 roadmap still requires an n-gram primitive. The planned Shannon base
+parameter also remains pending. Later measures, a CLI, and bindings are future work.

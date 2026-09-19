@@ -1,14 +1,17 @@
 # Mathematical conventions
 
 The library implements empirical, single-symbol Shannon, Hartley, Rényi, collision,
-and min-entropy for finite byte sequences. The project plan is the architectural
-specification; later metrics and sequence transformations remain future work.
+min-entropy, and Tsallis entropy for finite byte sequences. The project plan is
+the architectural specification; later metrics and sequence transformations
+remain future work.
 
 ## Units and arithmetic
 
-Entropy uses base-2 logarithms and is reported in **bits per symbol**. All
-probability and entropy arithmetic uses `f64`. There is no base parameter or
-normalized-entropy API yet. Counts and sample sizes use `usize`.
+Shannon, Hartley, Rényi, collision, and min-entropy use base-2 logarithms and
+are reported in **bits per symbol**. Tsallis uses the fixed Shannon-bit scaling
+defined below; its values are not generally average code lengths. All probability
+and entropy arithmetic uses `f64`. There is no base parameter or normalized-entropy
+API yet. Counts and sample sizes use `usize`.
 
 ## Counts and empirical probabilities
 
@@ -35,9 +38,9 @@ sum can differ slightly from one.
 An empty histogram/distribution has sample size zero, support size zero, and
 returns zero for each probability query. This is an **empty empirical state**,
 not a normalized probability distribution: there is no empirical law when no
-observations exist. Shannon, Hartley, collision, min-entropy, and Rényi with a valid
-order return positive `0.0` for this state by API convention. This does not define a probability law on an
-empty sample or assert that `log2(0)` is zero. Callers needing to distinguish
+observations exist. All implemented entropies return positive `0.0` for this state
+by API convention, after validating any order parameter. This does not define a
+probability law on an empty sample or assert that `log2(0)` is zero. Callers needing to distinguish
 missing data must check `sample_size()` or `is_empty()` first.
 
 Every nonempty constant sequence has one probability equal to one and entropy
@@ -78,8 +81,8 @@ as an explicit operation. That API is deferred.
 
 ## Tolerance and reproducibility
 
-Tests compare entropy with absolute tolerance `1e-12` bits and probability sums
-with absolute tolerance `1e-12`. These are test acceptance thresholds for the
+Tests compare entropy with absolute tolerance `1e-12` in the documented units
+and probability sums with absolute tolerance `1e-12`. These are test acceptance thresholds for the
 256-symbol `f64` path, not changes to the mathematical definition or rigorous
 error bounds for every platform. No runtime tolerance is used to alter output.
 See [numerical behavior](numerical-behavior.md) for precision limitations.
@@ -160,3 +163,39 @@ about the observations.
 For nonempty input, `0 <= H_inf <= H2 <= H_Shannon <= H0 <= 8`. Uniform empirical
 frequencies give `log2(support_size)` for all these measures. The function reuses
 the stable Rényi infinity calculation and retains its floating-point contract.
+
+## Tsallis orders and scale
+
+`tsallis_entropy(data, q)` and `tsallis_entropy_distribution(distribution, q)`
+accept finite nonnegative `f64` orders. Negative zero is order zero. Negative
+orders, NaN, and both infinities return `InvalidTsallisOrder` before empty or
+constant handling, and before counting in the byte API. Valid calls return
+`Result<f64, InvalidTsallisOrder>`.
+
+For nonempty input and `q != 1`, define
+`S_q = (1 - sum_i p_i^q) / (q - 1) / ln(2)` over positive empirical counts.
+The constant `1/ln(2)` is fixed across orders: the `q -> 1` limit is base-2
+Shannon entropy. We call this **Shannon-bit scaling**. The unscaled formula in
+the plan has a natural-log Shannon limit; its allowed convention choice is made
+explicit here. This is not division by the maximum entropy or a repair of the
+probability distribution. Other generalized-logarithm scalings are not used.
+
+At exact `q=1`, delegate to Shannon, including its numerical limitations. At
+`q=0`, return `(k-1)/ln(2)` for observed support `k>0`; unobserved symbols are
+excluded and `0^0` is never evaluated. Empty and constant inputs return positive
+zero for every valid order. Empty input has no empirical law and is handled
+before the formula. Infinite-order Tsallis limits are outside this API.
+
+For support `k>=1`, the maximum is the uniform-law value
+`U_q(k) = (1-k^(1-q))/(q-1)/ln(2)` when `q!=1`, and `U_1(k)=log2(k)`.
+Thus `0 <= S_q <= U_q(k) <= 255/ln(2)` for byte distributions with `q>=0`.
+This is not an 8-bit bound. Entropy is nonincreasing in `q`, and uniform laws
+usually have different values at different orders. Rounding can slightly violate
+bounds; results are not clamped. At `q=2`, the value is the probability of two
+independent draws differing, divided by `ln(2)`, not collision entropy itself.
+
+For independent product laws `P` and `Q`, this scaling gives
+`S_q(P*Q) = S_q(P) + S_q(Q) + (1-q)*ln(2)*S_q(P)*S_q(Q)`.
+This composition rule illustrates why Tsallis is generally not an additive
+average code length. The implemented quantity concerns the empirical law and
+ignores sequence order; it assumes no source model or independence of input bytes.

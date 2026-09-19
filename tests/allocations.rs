@@ -4,7 +4,8 @@ use celandine::distribution::{ByteHistogram, Distribution};
 use celandine::entropy::{
     collision_entropy, collision_entropy_distribution, hartley_entropy,
     hartley_entropy_distribution, min_entropy, min_entropy_distribution, renyi_entropy,
-    renyi_entropy_distribution, shannon, shannon_distribution,
+    renyi_entropy_distribution, shannon, shannon_distribution, tsallis_entropy,
+    tsallis_entropy_distribution,
 };
 use std::alloc::{GlobalAlloc, Layout, System};
 use std::hint::black_box;
@@ -76,12 +77,29 @@ fn main() {
             black_box(renyi_entropy_distribution(black_box(&d), black_box(alpha))).unwrap();
             black_box(renyi_entropy(black_box(&data), black_box(alpha))).unwrap();
         }
+        for q in [
+            0.0,
+            0.1,
+            0.5,
+            1.0_f64.next_down(),
+            1.0,
+            1.0_f64.next_up(),
+            2.0,
+            f64::MAX,
+        ] {
+            black_box(tsallis_entropy_distribution(black_box(&d), black_box(q))).unwrap();
+            black_box(tsallis_entropy(black_box(&data), black_box(q))).unwrap();
+        }
+        for q in [-1.0, f64::NAN, f64::INFINITY] {
+            assert!(black_box(tsallis_entropy(black_box(&data), black_box(q))).is_err());
+            assert!(black_box(tsallis_entropy_distribution(black_box(&d), black_box(q))).is_err());
+        }
         assert!(black_box(renyi_entropy(black_box(&data), f64::NAN)).is_err());
         assert!(black_box(renyi_entropy_distribution(black_box(&d), -1.0)).is_err());
         let after = ALLOCATIONS.load(Ordering::Relaxed);
         assert_eq!(after - before, 0, "allocations for {size} bytes");
     }
     println!(
-        "Allocation checks passed: zero allocations for histogram, distribution, Shannon, Hartley, Rényi, collision, and min-entropy (0 B–10 MiB)."
+        "Allocation checks passed: zero allocations for histogram, distribution, Shannon, Hartley, Rényi, collision, min-entropy, and Tsallis (0 B–10 MiB)."
     );
 }

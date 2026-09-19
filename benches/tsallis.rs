@@ -1,0 +1,89 @@
+//! Reproducible byte-path and reusable-distribution performance baselines.
+
+// Criterion's entry-point macro generates an undocumented public function.
+#![allow(missing_docs)]
+
+use celandine::distribution::Distribution;
+use celandine::entropy::{tsallis_entropy, tsallis_entropy_distribution};
+use criterion::{BenchmarkId, Criterion, Throughput, criterion_group, criterion_main};
+use std::hint::black_box;
+use std::time::Duration;
+
+fn input(size: usize, shape: &str) -> Vec<u8> {
+    let mut state = 0x1234_5678_9abc_def0_u64;
+    (0..size)
+        .map(|i| match shape {
+            "constant" => 0,
+            "uniform" => i as u8,
+            "skewed" => u8::from(i % 100 == 0),
+            "mixed" => {
+                // Fixed-seed xorshift64: reproducible input, not a source model.
+                state ^= state << 13;
+                state ^= state >> 7;
+                state ^= state << 17;
+                (state >> 56) as u8
+            }
+            _ => unreachable!(),
+        })
+        .collect()
+}
+
+fn benchmarks(c: &mut Criterion) {
+    let mut group = c.benchmark_group("tsallis_bytes_order2");
+    for shape in ["constant", "uniform", "skewed", "mixed"] {
+        for size in [16, 64, 256, 1024, 4096, 16384, 65536, 1048576, 10485760] {
+            let data = input(size, shape);
+            group.throughput(Throughput::Bytes(size as u64));
+            group.bench_with_input(BenchmarkId::new(shape, size), &data, |b, data| {
+                b.iter(|| black_box(tsallis_entropy(black_box(data), black_box(2.0)).unwrap()));
+            });
+        }
+    }
+    group.finish();
+
+    let mut group = c.benchmark_group("tsallis_bytes_near1");
+    for size in [16, 64, 256, 1024, 4096, 16384, 65536, 1048576, 10485760] {
+        let data = input(size, "mixed");
+        group.throughput(Throughput::Bytes(size as u64));
+        group.bench_with_input(BenchmarkId::new("mixed", size), &data, |b, data| {
+            b.iter(|| black_box(tsallis_entropy(black_box(data), black_box(1.0 + 1e-8)).unwrap()));
+        });
+    }
+    group.finish();
+
+    let mut group = c.benchmark_group("tsallis_distribution");
+    for shape in ["constant", "uniform", "skewed", "mixed"] {
+        let distribution = Distribution::from_bytes(&input(65536, shape));
+        for (label, q) in [
+            ("0", 0.0),
+            ("0.1", 0.1),
+            ("0.5", 0.5),
+            ("1-1e-8", 1.0 - 1e-8),
+            ("1", 1.0),
+            ("1+1e-8", 1.0 + 1e-8),
+            ("2", 2.0),
+            ("1e6", 1e6),
+            ("max", f64::MAX),
+        ] {
+            group.bench_function(BenchmarkId::new(shape, label), |b| {
+                b.iter(|| {
+                    black_box(
+                        tsallis_entropy_distribution(black_box(&distribution), black_box(q))
+                            .unwrap(),
+                    )
+                });
+            });
+        }
+    }
+    group.finish();
+}
+
+criterion_group! {
+    name = benches;
+    config = Criterion::default()
+        .sample_size(30)
+        .warm_up_time(Duration::from_millis(300))
+        .measurement_time(Duration::from_secs(1));
+    targets = benchmarks
+}
+criterion_main!(benches);

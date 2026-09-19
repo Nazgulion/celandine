@@ -2,6 +2,18 @@
 
 ## Unreleased — empirical entropy foundation
 
+- Add allocation-free Tsallis entropy for bytes and reusable distributions with
+  finite nonnegative orders and explicit invalid-order errors.
+- Fix the scale to `1/ln(2)` so order one agrees with base-2 Shannon; document
+  support at zero, different bounds, history, interpretation, and composition.
+- Fix the near-zero accuracy issue found during review with direct powers for
+  non-dominant symbols below order 0.5, retaining 60 independent regression cases.
+- Use compensated `expm1` evaluation and exact count complements for stability
+  near one and extreme imbalance, with positive subnormal large-order results.
+- Add 532 independent high-precision fixtures, canonical/property tests,
+  allocation checks, an explained example, and an 81-case benchmark run, retaining
+  the original 77-case baseline.
+
 - Add dedicated allocation-free min-entropy for bytes and reusable distributions,
   sharing the stable Rényi infinite-order calculation.
 - Explain dominant-symbol surprise, the infinite-order limit, history, formula,
