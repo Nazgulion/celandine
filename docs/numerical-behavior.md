@@ -128,3 +128,22 @@ exactly in `u128` for 32/64-bit count tables, then evaluates `-log1p(-q)/ln(2)`
 where `q` is the distinct-pair probability. This checks randomized extreme
 counts with both absolute and relative tolerances, without sharing the production
 Rényi calculation. Run `python3 scripts/reference_collision.py --check`.
+
+## Min-entropy
+
+The dedicated API delegates to Rényi at positive infinity, matching that path
+bit for bit within the same binary/runtime. For a nonconstant law with largest
+count `m` and total `n`, it evaluates `-ln(m/n)/ln(2)`. When `m > n/2`, it first
+computes the integer complement `n-m`, then uses
+`-ln_1p(-(n-m)/n)/ln(2)`. Otherwise, direct logarithms of the ratio are safe.
+This avoids cancellation from subtracting two large logarithms and prevents
+rounding `m/n` to one from erasing small positive entropy. Empty and constant
+states are handled explicitly and return positive zero.
+
+The independent Python reference uses an exact rational maximum probability
+and 120-digit Decimal logarithms. The 48 retained fixtures include ties, extreme
+counts, and identical maximum probabilities with different remaining counts.
+Tests use `1e-12` bits absolute tolerance and `1e-8` relative tolerance on positive
+reference values, plus a first-order check near `usize::MAX`. These are validation
+tolerances, not universal error guarantees. Wider count fixtures are explicitly
+skipped on narrower targets. Run `python3 scripts/reference_min_entropy.py --check`.

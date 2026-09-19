@@ -32,3 +32,6 @@ See [Rényi reference notes](references/renyi.md) and its
 
 [Collision reference notes](references/collision.md) explain the order-two
 specialization and its exact matching-pair verification.
+
+[Min-entropy reference notes](references/min_entropy.md) derive the infinite-order
+limit and explain the maximum-probability interpretation and verification.

@@ -2,6 +2,13 @@
 
 ## Unreleased — empirical entropy foundation
 
+- Add dedicated allocation-free min-entropy for bytes and reusable distributions,
+  sharing the stable Rényi infinite-order calculation.
+- Explain dominant-symbol surprise, the infinite-order limit, history, formula,
+  edge cases, and empirical interpretation in docs and a runnable example.
+- Add 48 independent high-precision fixtures, canonical/property tests, extreme
+  count checks, allocation coverage, and a dedicated min-entropy benchmark baseline.
+
 - Add dedicated allocation-free collision entropy for bytes and reusable
   distributions, sharing the validated Rényi order-two calculation.
 - Explain matching draws with replacement, the formula, historical context,

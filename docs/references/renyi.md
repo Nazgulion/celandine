@@ -31,7 +31,8 @@ orders and NaN are errors. Empty input has no empirical law and returns zero
 only by project convention after validation. Zero-count symbols are excluded.
 Base two gives bits per symbol; other bases and negative-order extensions are
 not part of this API. The dedicated [collision API](../entropy/collision.md) exposes order two.
-A dedicated min-entropy function is deferred.
+The dedicated `min_entropy` function exposes the infinite-order limit; see
+[its reference notes](min_entropy.md).
 
 ## Numerical issues
 

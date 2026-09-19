@@ -1,8 +1,8 @@
 # Mathematical conventions
 
-The library implements empirical, single-symbol Shannon, Hartley, Rényi, and collision
-entropy for finite byte sequences. The project plan is the architectural specification;
-later metrics and sequence transformations remain future work.
+The library implements empirical, single-symbol Shannon, Hartley, Rényi, collision,
+and min-entropy for finite byte sequences. The project plan is the architectural
+specification; later metrics and sequence transformations remain future work.
 
 ## Units and arithmetic
 
@@ -35,8 +35,8 @@ sum can differ slightly from one.
 An empty histogram/distribution has sample size zero, support size zero, and
 returns zero for each probability query. This is an **empty empirical state**,
 not a normalized probability distribution: there is no empirical law when no
-observations exist. Shannon, Hartley, collision, and Rényi with a valid order return positive
-`0.0` for this state by API convention. This does not define a probability law on an
+observations exist. Shannon, Hartley, collision, min-entropy, and Rényi with a valid
+order return positive `0.0` for this state by API convention. This does not define a probability law on an
 empty sample or assert that `log2(0)` is zero. Callers needing to distinguish
 missing data must check `sample_size()` or `is_empty()` first.
 
@@ -140,3 +140,23 @@ finite-sample bias or unseen symbols is applied. For nonempty input,
 `0 <= H2 <= H_Shannon <= H0 <= 8`, with equality throughout for uniform frequencies.
 The implementation shares Rényi's order-two numerical behavior and does not
 recount an existing distribution or allocate memory.
+
+## Min-entropy
+
+`min_entropy(data)` and `min_entropy_distribution(distribution)` return `f64`
+in bits per symbol: `H_inf = -log2(p_max)`, where `p_max = max_i c_i / n` for a
+nonempty sample. They use the positive-infinite-order Rényi limit with no user
+parameter. Empty input returns positive zero by convention, without defining a
+maximum empirical probability; constant input returns positive zero mathematically.
+
+`p_max` is the greatest probability of a correct fixed-symbol guess for one draw
+from the empirical law. Its negative logarithm is the minimum surprise among
+observed symbols. Tied maxima give the same result; no symbol label is selected
+or returned. Other frequencies matter only through the total and largest count.
+The result ignores order and does not infer conditional uncertainty, entropy
+rate, or an unknown source's probabilities. No independence assumption is made
+about the observations.
+
+For nonempty input, `0 <= H_inf <= H2 <= H_Shannon <= H0 <= 8`. Uniform empirical
+frequencies give `log2(support_size)` for all these measures. The function reuses
+the stable Rényi infinity calculation and retains its floating-point contract.

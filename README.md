@@ -6,7 +6,7 @@
 
 Entropy, information, complexity, and distance for finite sequences.
 
-The library implements **empirical Shannon, Hartley, Rényi, and collision entropy
+The library implements **empirical Shannon, Hartley, Rényi, collision, and min-entropy
 over bytes** and their distribution foundation. It is one Rust library crate, with no runtime
 dependencies, no heap allocations on the byte path, and no unsafe library code.
 The broader project plan describes future work, not currently available APIs.
@@ -21,13 +21,15 @@ The broader project plan describes future work, not currently available APIs.
 | [Hartley entropy](docs/entropy/hartley.md) | Takes the logarithm of the observed support size. | Measures the number of possibilities and bounds Shannon entropy from above. |
 | [Rényi entropy](docs/entropy/renyi.md) | Varies the emphasis on rare versus frequent symbols using an order parameter. | Shows how diversity changes across orders, unifying Hartley and Shannon. |
 | [Collision entropy](docs/entropy/collision.md) | Takes the negative logarithm of the probability that two independent draws match. | Measures concentration and gives Rényi order two a dedicated API. |
+| [Min-entropy](docs/entropy/min_entropy.md) | Takes the negative logarithm of the largest probability. | Isolates symbol dominance and gives the infinite-order limit a dedicated API. |
 | [Validation workflow](CONTRIBUTING.md) | Checks known answers, properties, independent references, and allocations. | Detects mathematical mistakes and regressions. |
 | [Continuous integration](.github/workflows/ci.yml) | Runs validation on pushes and pull requests. | Makes regressions visible automatically as the project grows. |
 | [Benchmarks](docs/benchmarks.md) | Measure latency and throughput on fixed workloads. | Establish evidence for performance changes. |
 
 Start with [counts and probabilities](docs/distribution.md), then read the
-Shannon, Hartley, Rényi, and collision pages. Each metric page includes a short history,
-explains the formula's symbols, and works through a small example before the references.
+Shannon, Hartley, Rényi, collision, and min-entropy pages. Each metric page includes
+a short history, explains the formula's symbols, and works through a small example
+before the references.
 
 ## Public API
 
@@ -35,7 +37,8 @@ explains the formula's symbols, and works through a small example before the ref
 use celandine::distribution::{ByteHistogram, Distribution};
 use celandine::entropy::{
     collision_entropy, collision_entropy_distribution,
-    hartley_entropy, hartley_entropy_distribution, renyi_entropy,
+    hartley_entropy, hartley_entropy_distribution, min_entropy,
+    min_entropy_distribution, renyi_entropy,
     renyi_entropy_distribution, shannon, shannon_distribution,
 };
 
@@ -57,6 +60,8 @@ assert!((renyi_entropy(b"AAAB", 2.0).unwrap() - 0.6780719051126377).abs() < 1e-1
 assert!(renyi_entropy(b"AB", -1.0).is_err());
 assert_eq!(collision_entropy_distribution(&distribution), 1.0);
 assert!((collision_entropy(b"AAAB") - 0.6780719051126377).abs() < 1e-12);
+assert_eq!(min_entropy_distribution(&distribution), 1.0);
+assert!((min_entropy(b"AAAB") - 0.4150374992788438).abs() < 1e-12);
 ```
 
 Use `Distribution::from_bytes(data)` when a separate histogram step is not
@@ -88,6 +93,12 @@ and entropy `0.678072` bits per symbol. It measures frequency concentration and
 ignores position; it does not count adjacent matches or assume the observed
 sequence was generated independently.
 
+Min-entropy is the infinite-order Rényi limit with a direct `f64` API:
+`H_inf = -log2(p_max)`. It measures the surprise of the most likely symbol.
+For `AAAB`, the largest probability is `3/4` and min-entropy is `0.415037` bits
+per symbol. Keeping that maximum probability fixed leaves min-entropy unchanged,
+even if the remaining frequencies change. It does not infer a source's behavior.
+
 ## Try it on sample data
 
 ```sh
@@ -95,6 +106,7 @@ cargo run --locked --example shannon
 cargo run --locked --example hartley
 cargo run --locked --example renyi
 cargo run --locked --example collision
+cargo run --locked --example min_entropy
 ```
 
 Edit the samples in [examples/shannon.rs](examples/shannon.rs) and rerun to see
@@ -117,6 +129,11 @@ and compares collision, Shannon, and Hartley entropy. Empty input has no matchin
 probability; the example labels that explicitly while showing the zero-entropy
 convention. Edit its samples and rerun to explore frequency concentration.
 
+The [min-entropy example](examples/min_entropy.rs) prints the largest probability
+and compares min-entropy, collision, Shannon, and Hartley using one histogram.
+Its final two samples share the same dominant probability but different remaining
+frequencies, illustrating what min-entropy captures and what it ignores.
+
 ## Documentation
 
 - [Mathematical conventions](docs/mathematical-conventions.md)
@@ -125,14 +142,17 @@ convention. Edit its samples and rerun to explore frequency concentration.
 - [Hartley definition and interpretation](docs/entropy/hartley.md)
 - [Rényi definition and interpretation](docs/entropy/renyi.md)
 - [Collision definition and interpretation](docs/entropy/collision.md)
+- [Min-entropy definition and interpretation](docs/entropy/min_entropy.md)
 - [Numerical behavior](docs/numerical-behavior.md)
 - [Bibliography](docs/references.md), [Shannon reference notes](docs/references/shannon.md),
   [Hartley reference notes](docs/references/hartley.md),
   [Rényi reference notes](docs/references/renyi.md),
-  and [collision reference notes](docs/references/collision.md)
+  [collision reference notes](docs/references/collision.md),
+  and [min-entropy reference notes](docs/references/min_entropy.md)
 - [Shannon benchmark baseline](docs/benchmarks.md), [Hartley baseline](docs/benchmarks/hartley.md),
   [Rényi baseline](docs/benchmarks/renyi.md),
-  and [collision baseline](docs/benchmarks/collision.md)
+  [collision baseline](docs/benchmarks/collision.md),
+  and [min-entropy baseline](docs/benchmarks/min_entropy.md)
 - [Authoritative project plan](finite_sequence_information_complexity_project_plan.md)
 
 ## Development
@@ -162,10 +182,12 @@ python3 scripts/reference_shannon.py --check
 python3 scripts/reference_hartley.py --check
 python3 scripts/reference_renyi.py --check
 python3 scripts/reference_collision.py --check
+python3 scripts/reference_min_entropy.py --check
 cargo bench --locked --bench shannon
 cargo bench --locked --bench hartley
 cargo bench --locked --bench renyi
 cargo bench --locked --bench collision
+cargo bench --locked --bench min_entropy
 ```
 
 Property tests use a fixed seed and 256 cases per property for reproducible
@@ -178,8 +200,9 @@ fixtures from 120-digit direct calculations (with bounded limiting values for
 the largest orders), including adjacent orders around one and extreme counts.
 Collision adds 45 exact-rational reference fixtures and properties based on
 explicit pair enumeration and exact integer complements at extreme counts.
+Min-entropy adds 48 exact-rational reference fixtures, independent minimum-surprise
+checks, and properties covering dominant symbols and extreme count tables.
 
 This is a foundation milestone, not the complete v0.1 roadmap. Publishing is
 disabled until licensing, the supported toolchain policy, and the public API
-have been reviewed. A dedicated min-entropy API, other entropy families,
-a CLI, and bindings remain future work.
+have been reviewed. Other entropy families, a CLI, and bindings remain future work.

@@ -14,11 +14,13 @@ cargo run --locked --example shannon
 cargo run --locked --example hartley
 cargo run --locked --example renyi
 cargo run --locked --example collision
+cargo run --locked --example min_entropy
 ```
 
 Edit the byte samples in `examples/shannon.rs`, `examples/hartley.rs`,
-`examples/renyi.rs`, or `examples/collision.rs` and rerun to inspect other inputs. The comparison examples
-reuse one histogram per sample; Rényi also lets you change the orders.
+`examples/renyi.rs`, `examples/collision.rs`, or `examples/min_entropy.rs` and rerun
+to inspect other inputs. The comparison examples reuse one histogram per sample;
+Rényi also lets you change the orders.
 Output appears immediately in the terminal. There is no file watcher or live
 interface; each run computes the current samples once. Display formatting is
 only for readability: the entropy calculation operates on the original bytes.
@@ -41,6 +43,7 @@ python3 scripts/reference_shannon.py --check
 python3 scripts/reference_hartley.py --check
 python3 scripts/reference_renyi.py --check
 python3 scripts/reference_collision.py --check
+python3 scripts/reference_min_entropy.py --check
 ```
 
 `cargo test` checks canonical results, mathematical properties, independent
@@ -141,8 +144,9 @@ Follow the project plan's full documentation structure, adding these elements:
 - **Limits:** distinguish what is measured from what cannot be inferred, and
   retain the existing edge-case, numerical, complexity, and reference sections.
 
-Use the Shannon, Hartley, Rényi, collision, and distribution pages as examples. Reuse the metric
-text in rustdoc where practical to avoid divergent explanations. Add a brief
+Use the Shannon, Hartley, Rényi, collision, min-entropy, and distribution pages
+as examples. Reuse the metric text in rustdoc where practical to avoid divergent
+explanations. Add a brief
 plain-language introduction and formula legend to runnable examples so terminal
 output is understandable on its own. Keep full history and references in the
 documentation. Update explanations when behavior changes; this requirement
@@ -157,6 +161,7 @@ cargo bench --locked --bench shannon
 cargo bench --locked --bench hartley
 cargo bench --locked --bench renyi
 cargo bench --locked --bench collision
+cargo bench --locked --bench min_entropy
 cargo test --locked --release --test allocations
 ```
 
@@ -167,8 +172,9 @@ compare the same workloads. Preserve baseline results; record new measurements
 separately when evaluating changes. Follow the
 [Shannon benchmark methodology](docs/benchmarks.md),
 [Hartley baseline](docs/benchmarks/hartley.md),
-[Rényi baseline](docs/benchmarks/renyi.md), and
-[collision baseline](docs/benchmarks/collision.md).
+[Rényi baseline](docs/benchmarks/renyi.md),
+[collision baseline](docs/benchmarks/collision.md), and
+[min-entropy baseline](docs/benchmarks/min_entropy.md).
 
 Performance measurements do not establish mathematical correctness. Continue
 to run correctness tests and check allocation promises. Example and prose-only

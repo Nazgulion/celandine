@@ -29,5 +29,9 @@ harness = false
 name = "collision"
 harness = false
 
+[[bench]]
+name = "min_entropy"
+harness = false
+
 [lints.rust]
 missing_docs = "warn"

@@ -114,5 +114,5 @@ The matching-pair interpretation follows from independence and disjoint outcomes
 
 [`crate::entropy::renyi_entropy`] generalizes this measure; order two is identical
 to this API. Shannon averages individual symbol surprise, while Hartley counts
-observed possibilities. Min-entropy is the infinite-order Rényi limit; a dedicated
-min-entropy API remains future work.
+observed possibilities. [`crate::entropy::min_entropy()`] is the infinite-order Rényi limit
+and measures the surprise of the most likely symbol.
