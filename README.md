@@ -240,6 +240,7 @@ binary data, and explains empty results and zero-length rejection.
   and [Tsallis baseline](docs/benchmarks/tsallis.md)
 - [N-gram baseline](docs/benchmarks/ngrams.md)
 - [Shannon explicit-base baseline](docs/benchmarks/shannon_base.md)
+- [100 MiB latency and peak-memory measurements](docs/benchmarks/large-input-memory.md)
 - [Authoritative project plan](finite_sequence_information_complexity_project_plan.md)
 
 ## Development
@@ -309,9 +310,10 @@ accuracy as described in the [numerical notes](docs/entropy/shannon_base.md).
 
 The six core entropy measures and n-gram primitives are implemented, including
 explicit Shannon logarithm bases. The [v0.1 readiness review](docs/releases/v0.1-readiness.md)
-records passing validation and remaining scope and large-input/peak-memory
-evidence gaps. Dedicated fuzz targets and bounded campaigns now supplement the
-property tests. Publishing stays disabled until the remaining gates are resolved.
+records passing validation and remaining release-scope decisions. Dedicated fuzz
+campaigns, 100 MiB entropy benchmarks, and controlled peak-memory measurements
+now supplement the property tests. Publishing stays disabled until the remaining
+release gates are resolved.
 Later measures, a CLI, and bindings are future work.
 
 ## License

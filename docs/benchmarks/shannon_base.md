@@ -1,5 +1,9 @@
 # Shannon explicit-base baseline
 
+The results below preserve the original baseline. See the [100 MiB and peak-memory
+supplement](large-input-memory.md) for later measurements and reproduction commands.
+Current byte harnesses also include the added 100 MiB tier.
+
 ## Reproduction and workloads
 
 ```sh
@@ -12,7 +16,7 @@ APIs as controls in the same run. The original Shannon calculation is unchanged:
 the wrappers validate the base, call Shannon, and divide by `log2(base)`.
 Earlier [Shannon measurements](../benchmarks.md) remain preserved separately.
 
-The harness contains 168 cases:
+The original measured harness covered 168 cases:
 
 - 144 byte-input cases: four shapes, nine sizes, and four calls (original
   `shannon`, explicit base 2, base `E`, and base 10).

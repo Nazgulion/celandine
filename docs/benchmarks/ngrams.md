@@ -1,5 +1,8 @@
 # N-gram baseline
 
+The results below preserve the original baseline. See the [100 MiB and peak-memory
+supplement](large-input-memory.md) for later measurements and reproduction commands.
+
 ## Reproduction
 
 ```sh
@@ -11,7 +14,7 @@ The initial scalar implementation uses borrowed slice windows and sorted
 `BTreeMap` counts. This baseline precedes any specialized optimization; the
 existing entropy baselines remain unchanged.
 
-The harness measures 112 cases:
+The original measured harness covered 112 cases:
 
 - Extraction: length four, at 16 B, 64 B, 256 B, 1 KiB, 4 KiB, 16 KiB,
   64 KiB, 1 MiB, 10 MiB, and 100 MiB (ten cases).

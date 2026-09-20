@@ -1,5 +1,9 @@
 # Collision entropy baseline
 
+The results below preserve the original baseline. See the [100 MiB and peak-memory
+supplement](large-input-memory.md) for later measurements and reproduction commands.
+Current byte harnesses also include the added 100 MiB tier.
+
 ## Reproduction
 
 ```sh
@@ -7,7 +11,7 @@ cargo bench --locked --bench collision
 cargo test --locked --release --test allocations
 ```
 
-The harness measures 40 cases: four byte-input shapes at nine sizes, and four
+The original measured harness covered 40 cases: four byte-input shapes at nine sizes, and four
 reused distributions. Sizes are 16 B, 64 B, 256 B, 1 KiB, 4 KiB, 16 KiB,
 64 KiB, 1 MiB, and 10 MiB, using binary units (`1 KiB = 1024 B`). Inputs match
 the [Shannon baseline](../benchmarks.md): constant zero bytes, cycling uniform

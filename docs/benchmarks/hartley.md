@@ -1,5 +1,9 @@
 # Hartley baseline
 
+The results below preserve the original baseline. See the [100 MiB and peak-memory
+supplement](large-input-memory.md) for later measurements and reproduction commands.
+Current byte harnesses also include the added 100 MiB tier.
+
 ## Reproduction
 
 ```sh
@@ -7,7 +11,7 @@ cargo bench --locked --bench hartley
 cargo test --locked --release --test allocations
 ```
 
-The harness measures 40 cases: byte inputs at nine sizes for four shapes, plus
+The original measured harness covered 40 cases: byte inputs at nine sizes for four shapes, plus
 four reused-distribution cases. Sizes range from 16 B to 10 MiB and use binary
 units (`1 KiB = 1024 B`). It uses the same deterministic inputs and settings as
 the [original Shannon baseline](../benchmarks.md): constant zeros, cycling

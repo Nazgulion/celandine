@@ -1,0 +1,2 @@
+# Python CSV exports retain standard CRLF record separators in the raw evidence.
+*.csv whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

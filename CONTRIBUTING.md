@@ -215,3 +215,17 @@ separately when evaluating changes. Follow the
 Performance measurements do not establish mathematical correctness. Continue
 to run correctness tests and check allocation promises. Example and prose-only
 changes do not require repeating unchanged benchmarks.
+
+For the large-input tier and independent peak-memory measurements, follow
+[the workload and measurement definitions](docs/benchmarks/large-input-memory.md):
+
+```sh
+python3 scripts/benchmark_large_inputs.py
+python3 scripts/measure_memory.py
+```
+
+Run these sequentially, preserve each generated result directory, and record
+toolchain/host details. The first measures 10/100 MiB entropy latency; the second
+measures requested operation heap and fresh-process RSS separately. CI runs only
+`python3 scripts/measure_memory.py --smoke --repetitions 1` to verify the instrument
+and workflow without treating shared-runner timing or RSS as a performance gate.

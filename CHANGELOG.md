@@ -2,6 +2,13 @@
 
 ## Unreleased — empirical entropy foundation
 
+- Extend all entropy byte benchmark harnesses to 100 MiB and add a repeatable
+  10/100 MiB comparison run that preserves historical baselines.
+- Add an isolated, self-checked memory probe for peak requested heap allocations
+  and fresh-process RSS, including n-gram support growth and distribution reuse.
+- Add a small CI check for memory tooling and document measurement units,
+  input residency, allocator overhead, and the limits of bounded workloads.
+
 - Add three dedicated libFuzzer targets with independent count/block oracles,
   entropy invariants, and arbitrary order/base bit patterns, including invalid
   parameters and overflowing imported counts.

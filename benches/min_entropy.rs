@@ -31,7 +31,9 @@ fn input(size: usize, shape: &str) -> Vec<u8> {
 fn benchmarks(c: &mut Criterion) {
     let mut group = c.benchmark_group("min_entropy_bytes");
     for shape in ["constant", "uniform", "skewed", "mixed"] {
-        for size in [16, 64, 256, 1024, 4096, 16384, 65536, 1048576, 10485760] {
+        for size in [
+            16, 64, 256, 1024, 4096, 16384, 65536, 1048576, 10485760, 104857600,
+        ] {
             let data = input(size, shape);
             group.throughput(Throughput::Bytes(size as u64));
             group.bench_with_input(BenchmarkId::new(shape, size), &data, |b, data| {

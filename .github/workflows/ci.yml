@@ -86,6 +86,9 @@ jobs:
       - name: Compile benchmark harnesses
         run: cargo bench --locked --no-run
 
+      - name: Check memory measurement tooling
+        run: python3 scripts/measure_memory.py --smoke --repetitions 1
+
   fuzz:
     name: Fuzz smoke (ASan)
     runs-on: ubuntu-24.04
