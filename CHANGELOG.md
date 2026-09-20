@@ -2,6 +2,14 @@
 
 ## Unreleased — empirical entropy foundation
 
+- Add allocation-free `shannon_with_base` and `shannon_distribution_with_base`
+  with finite bases greater than one and explicit `InvalidLogBase` errors.
+- Preserve default bit-valued APIs and document unit conversion, validation,
+  near-one error amplification, and inherited extreme-count accuracy limits.
+- Add 144 independent 120-digit reference fixtures, unit-conversion properties,
+  allocation coverage, an updated Shannon example, and a measured benchmark
+  suite with existing-API controls.
+
 - Add borrowed, allocation-free overlapping byte n-gram extraction, exact count
   tables, and reusable empirical block distributions with sorted iteration.
 - Reject zero lengths explicitly; define empty/oversized behavior, overlap,

@@ -51,7 +51,10 @@ it ignores ordering and does not establish randomness or independence.
 
 Any finite `&[u8]`, including zero and non-text bytes. Each byte is one symbol.
 `shannon_distribution` accepts the same empirical law as a reusable
-`Distribution`. There are no tuning parameters.
+`Distribution`. These two entry points have no tuning parameters. For explicit
+information units, [`crate::entropy::shannon_with_base`] and
+[`crate::entropy::shannon_distribution_with_base`] accept a finite logarithm
+base greater than one; the default entry points remain base 2.
 
 ## Output range
 
@@ -113,6 +116,13 @@ section 2.1; MacKay (2003), *Information Theory, Inference, and Learning
 Algorithms*, chapter 2.
 
 ## Related measures
+
+[`crate::entropy::shannon_with_base`] computes `H_b = H_2/log2(b)`, where `b > 1`
+is finite. This changes units: `ABCD` gives 2 bits, approximately 1.386294 nats
+at base `e`, or 0.602060 decimal information units at base 10, all per symbol.
+Shannon explained this choice of units in the introduction of his 1948 paper.
+The explicit-base API documentation includes the formula, validation, and
+numerical limitations near base one.
 
 [`crate::entropy::hartley_entropy`] measures observed support and upper-bounds
 empirical Shannon entropy. [`crate::entropy::renyi_entropy`] generalizes Shannon

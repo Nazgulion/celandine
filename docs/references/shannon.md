@@ -15,15 +15,19 @@ bibliographic entries and the original paper link are in the
 ## Implementation convention
 
 For a nonempty sample, probabilities are relative byte frequencies. Entropy is
-in bits per symbol. Zero terms are omitted, as justified by continuity. Empty
-input returns zero solely by documented project convention.
+in bits per symbol by default. The explicit-base APIs compute `H_b = H_2/log2(b)`
+for finite `b > 1`. Zero terms are omitted, as justified by continuity. Empty
+input returns zero solely by documented project convention, after base validation
+when applicable.
 
 ## Known variants
 
-Different bases change units. Dividing by an alphabet-dependent maximum gives
+Different bases change units; the explicit-base API implements this convention
+from Shannon's introduction (pages 1–2 of the linked reprint). Dividing by an alphabet-dependent maximum gives
 a normalized score and requires an explicit choice of alphabet. Bias-corrected
 source estimators and entropy rates are distinct from the empirical marginal
-entropy implemented here. None of these variants is implemented yet.
+entropy implemented here. Normalized scores, bias correction, and entropy rates
+are not implemented yet.
 
 ## Numerical issues
 
@@ -41,6 +45,18 @@ rounding; see [numerical behavior](../numerical-behavior.md).
 
 ## Open questions
 
-The probability-vector constructor and its explicit tolerance policy, alternate
-log bases, and a cross-platform precision policy need separate design review.
+The probability-vector constructor and its explicit tolerance policy, and a
+cross-platform precision policy, need separate design review.
 They are not prerequisites for this empirical byte API.
+
+## Explicit-base verification
+
+`scripts/reference_shannon_base.py` computes `-sum(p_i * ln(p_i)/ln(base))`
+directly with 120-digit Decimal arithmetic and exact rational counts. Bases
+are converted from the actual binary `f64` values, not their shortened decimal
+display. The 144 fixtures cover common units, bases adjacent to one and two,
+very large bases, and counts through `u64::MAX`. Rust skips count totals that
+cannot fit the target's `usize`. Unit conversion is also checked through
+uniform-law logarithmic values, base monotonicity, and base-2 compatibility.
+The accuracy thresholds and inherited extreme-count caveat are documented in
+[numerical behavior](../numerical-behavior.md#shannon-with-an-explicit-base).

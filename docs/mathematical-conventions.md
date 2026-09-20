@@ -7,11 +7,12 @@ is the architectural specification; later metrics remain future work.
 
 ## Units and arithmetic
 
-Shannon, Hartley, Rényi, collision, and min-entropy use base-2 logarithms and
+Default Shannon, Hartley, Rényi, collision, and min-entropy use base-2 logarithms and
 are reported in **bits per symbol**. Tsallis uses the fixed Shannon-bit scaling
 defined below; its values are not generally average code lengths. All probability
-and entropy arithmetic uses `f64`. There is no base parameter or normalized-entropy
-API yet. Counts and sample sizes use `usize`.
+and entropy arithmetic uses `f64`. Explicit Shannon-base APIs select other
+information units as described below; there is no normalized-entropy API yet.
+Counts and sample sizes use `usize`.
 
 ## Counts and empirical probabilities
 
@@ -84,11 +85,16 @@ as an explicit operation. That API is deferred.
 
 ## Tolerance and reproducibility
 
-Tests compare entropy with absolute tolerance `1e-12` in the documented units
+Default-unit tests compare entropy with absolute tolerance `1e-12` in the documented units
 and probability sums with absolute tolerance `1e-12`. These are test acceptance thresholds for the
 256-symbol `f64` path, not changes to the mathematical definition or rigorous
 error bounds for every platform. No runtime tolerance is used to alter output.
 See [numerical behavior](numerical-behavior.md) for precision limitations.
+
+Explicit Shannon-base tests convert absolute errors back to bit scale before
+applying that tolerance, because bases near one amplify absolute errors in the
+selected units. Their independent fixtures also check relative accuracy for
+count totals at most `2^53`; see the explicit-base numerical notes.
 
 Counting and summation order are deterministic. Repeated calls in the same
 binary/runtime produce identical results. Bitwise equality across platforms,
@@ -230,3 +236,26 @@ Extraction, count reuse, and table queries allocate no memory. Nonempty count
 construction allocates tree storage proportional to distinct observed blocks.
 These APIs describe empirical block statistics and do not add entropy metrics.
 See [the n-gram guide](ngrams.md) for references, costs, and limits.
+
+## Explicit Shannon logarithm bases
+
+`shannon_with_base(data, base)` and `shannon_distribution_with_base(d, base)`
+return `Result<f64, InvalidLogBase>`. A base must be finite and strictly greater
+than one. NaN, infinities, zero, negative values, one, and positive values below
+one are rejected before counting or evaluating entropy, including empty input.
+Bases below one are excluded because their logarithms are decreasing and give
+negative entropy for nonconstant distributions. No invalid base is substituted.
+
+For a valid base `b`, `H_b = -sum_i p_i log_b(p_i) = H_2/log2(b)`. Here `p_i`
+is the observed probability of byte `i`, and `H_2` is default Shannon in bits.
+The subscript 2 here denotes the logarithm base, not a Rényi order. Base 2 gives
+bits, base `e` gives nats, and base 10 gives decimal information units, all per
+symbol. `ABCD` has four probabilities of `1/4`, giving 2 bits, approximately
+1.386294 nats, or 0.602060 decimal units per symbol. For support `k > 0`, the
+range is `0 <= H_b <= log2(k)/log2(b)` up to rounding, rather than a fixed 8-bit bound.
+
+The two default Shannon APIs are unchanged. Explicit base 2 agrees bit-for-bit
+with them; other bases divide that same result by `log2(base)`. Empty and constant
+inputs return positive zero after base validation. Other entropy families retain
+their current scales. See [Shannon units](entropy/shannon_base.md) for historical
+context, validation, complexity, and numerical limits.

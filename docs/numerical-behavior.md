@@ -211,3 +211,26 @@ are performed by the library. Callers summing many distinct blocks can accrue
 rounding error beyond the single-byte path's 256 terms. No normalization or
 clamping is applied. Tests use `1e-12` absolute tolerance on bounded fixtures.
 Empty table queries return positive zero and probability iteration is empty.
+
+## Shannon with an explicit base
+
+The explicit-base APIs evaluate the existing base-2 Shannon value and divide
+once by `base.log2()`. Validation accepts only finite `base > 1` and runs before
+counting or reading probabilities. Base 2 preserves the existing result bit for
+bit; all other bases inherit the same probability conversion and summation
+limitations. No alternate Shannon algorithm is selected based on the base.
+
+The smallest accepted `f64` base is `1.0_f64.next_up() = 1 + 2^-52`. Its
+logarithm is small but positive, so valid inputs produce finite results, even
+near that boundary. `f64::MAX` is also accepted. A base expression rounded to
+exactly one is invalid. `std::f64::consts::E` selects the supplied floating-point
+approximation to `e`, as with every other base parameter.
+
+Absolute entropy error is scaled by `1/log2(base)`, which can be large near one.
+Fixtures therefore require `abs(actual - reference) * log2(base) <= 1e-12`, an
+absolute tolerance in equivalent bits. For nonzero fixtures whose count totals
+are at most `2^53`, relative error must also be at most `1e-12`. These are bounded
+test acceptance criteria, not universal guarantees. Very imbalanced larger
+count tables retain the existing Shannon limitation: rounding the dominant
+probability to one loses that symbol's small entropy contribution. Unit
+conversion cannot recover it. The underlying counts remain exact.

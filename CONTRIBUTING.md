@@ -24,7 +24,8 @@ Edit the byte samples in `examples/shannon.rs`, `examples/hartley.rs`,
 `examples/tsallis.rs`, or `examples/ngrams.rs` and rerun to inspect other inputs.
 The entropy comparison examples reuse one histogram per sample; Rényi and
 Tsallis also let you change the orders. The n-gram example lets you change the
-block length and reuses its count table to show probabilities.
+block length and reuses its count table to show probabilities. The Shannon
+example compares bits, nats, and decimal information units per symbol.
 Output appears immediately in the terminal. There is no file watcher or live
 interface; each run computes the current samples once. Display formatting is
 only for readability: the entropy calculation operates on the original bytes.
@@ -44,6 +45,7 @@ cargo fmt --all -- --check
 cargo clippy --locked --all-targets -- -D warnings
 cargo test --locked
 python3 scripts/reference_shannon.py --check
+python3 scripts/reference_shannon_base.py --check
 python3 scripts/reference_hartley.py --check
 python3 scripts/reference_renyi.py --check
 python3 scripts/reference_collision.py --check
@@ -163,6 +165,7 @@ For the current entropy and n-gram implementations:
 
 ```sh
 cargo bench --locked --bench shannon
+cargo bench --locked --bench shannon_base
 cargo bench --locked --bench hartley
 cargo bench --locked --bench renyi
 cargo bench --locked --bench collision
@@ -182,8 +185,9 @@ separately when evaluating changes. Follow the
 [Rényi baseline](docs/benchmarks/renyi.md),
 [collision baseline](docs/benchmarks/collision.md),
 [min-entropy baseline](docs/benchmarks/min_entropy.md),
-[Tsallis baseline](docs/benchmarks/tsallis.md), and
-[n-gram baseline](docs/benchmarks/ngrams.md).
+[Tsallis baseline](docs/benchmarks/tsallis.md),
+[n-gram baseline](docs/benchmarks/ngrams.md), and
+[Shannon explicit-base baseline](docs/benchmarks/shannon_base.md).
 
 Performance measurements do not establish mathematical correctness. Continue
 to run correctness tests and check allocation promises. Example and prose-only

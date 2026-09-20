@@ -43,3 +43,7 @@ missing_docs = "warn"
 [[bench]]
 name = "ngrams"
 harness = false
+
+[[bench]]
+name = "shannon_base"
+harness = false

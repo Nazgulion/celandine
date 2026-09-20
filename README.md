@@ -20,7 +20,7 @@ The broader project plan describes future work, not currently available APIs.
 | [Byte histogram](docs/distribution.md#byte-histogram-what-it-is-and-why-it-matters) | Counts occurrences of each byte exactly. | Gives metrics a reusable foundation with fixed storage. |
 | [Empirical distribution](docs/distribution.md#empirical-distribution-what-it-is-and-why-it-matters) | Divides counts by sample size to obtain observed probabilities. | Makes frequency balance comparable and lets metrics share one histogram. |
 | [Overlapping n-grams](docs/ngrams.md) | Extracts every complete block of a chosen byte length, counts repeated blocks, and derives their probabilities. | Reveals local patterns that single-byte frequencies discard. |
-| [Shannon entropy](docs/entropy/shannon.md) | Averages symbol surprise, weighted by frequency. | Distinguishes balanced from uneven frequencies on the same support. |
+| [Shannon entropy](docs/entropy/shannon.md) | Averages symbol surprise, weighted by frequency, in bits or explicitly selected units. | Distinguishes balanced from uneven frequencies on the same support. |
 | [Hartley entropy](docs/entropy/hartley.md) | Takes the logarithm of the observed support size. | Measures the number of possibilities and bounds Shannon entropy from above. |
 | [Rényi entropy](docs/entropy/renyi.md) | Varies the emphasis on rare versus frequent symbols using an order parameter. | Shows how diversity changes across orders, unifying Hartley and Shannon. |
 | [Collision entropy](docs/entropy/collision.md) | Takes the negative logarithm of the probability that two independent draws match. | Measures concentration and gives Rényi order two a dedicated API. |
@@ -76,14 +76,35 @@ needed. `ByteHistogram::try_from_counts([usize; 256])` accepts existing counts
 and rejects total overflow. Probability iteration returns all 256 entries in
 byte order. Arbitrary floating-point probability vectors are not yet supported.
 
-Shannon uses `f64` and base-2 logarithms. Empty input is an explicit empty
-empirical state with entropy zero by convention. The result measures symbol
+Shannon uses `f64` and defaults to base-2 logarithms. Empty input is an explicit
+empty empirical state with entropy zero by convention. The result measures symbol
 frequencies and ignores order. It is exact for the empirical law in mathematical
 terms, with floating-point rounding; inference about an unknown source remains
 an estimation problem.
 
-Hartley uses the same units and empty-input convention, but measures only the
-number of distinct observed bytes: `log2(support_size)`. Changing frequencies
+The explicit-base APIs select units without recounting an existing distribution:
+
+```rust
+use celandine::distribution::Distribution;
+use celandine::entropy::{shannon_with_base, shannon_distribution_with_base};
+
+assert_eq!(shannon_with_base(b"ABCD", 2.0), Ok(2.0)); // bits per symbol
+let d = Distribution::from_bytes(b"ABCD");
+let nats = shannon_distribution_with_base(&d, std::f64::consts::E).unwrap();
+assert!((nats - 1.3862943611198906).abs() < 1e-12);
+assert!(shannon_with_base(b"", 1.0).is_err());
+```
+
+They compute `H_b = H_2 / log2(b)`, where `H_2` is entropy in bits and `b` is
+finite and greater than one. Base `e` gives nats and base 10 gives decimal
+information units, all per symbol. Invalid bases return `InvalidLogBase`, even
+for empty input; valid empty/constant inputs return positive zero. These paths
+allocate no heap memory. Values near base one can be large and amplify absolute
+rounding error. See [the formula, history, worked example, and numerical
+limits](docs/entropy/shannon_base.md).
+
+Hartley uses the same units and empty-input convention as default Shannon, but
+measures only the number of distinct observed bytes: `log2(support_size)`. Changing frequencies
 while keeping support fixed leaves Hartley unchanged. It upper-bounds empirical
 Shannon entropy and does not infer the full support of an unknown source.
 
@@ -155,6 +176,9 @@ Edit the samples in [examples/shannon.rs](examples/shannon.rs) and rerun to see
 the results. For example, `AAAA` gives `0.000000`, `ABAB` gives `1.000000`, and
 `ABCD` gives `2.000000` bits per symbol. This is a runnable library example;
 the automated tests verify correctness independently of manual inspection.
+The Shannon example reuses each histogram to compare bits, nats, and decimal
+information units per symbol; `ABCD` also gives `1.386294` nats and `0.602060`
+decimal units per symbol.
 
 The [Hartley comparison example](examples/hartley.rs) counts each sample once
 and displays both entropies. For `AAAB` it prints Shannon `0.811278` and Hartley
@@ -192,6 +216,7 @@ binary data, and explains empty results and zero-length rejection.
 - [Byte counts and empirical probabilities explained](docs/distribution.md)
 - [Overlapping n-grams, counts, and probabilities](docs/ngrams.md)
 - [Shannon definition and interpretation](docs/entropy/shannon.md)
+- [Shannon logarithm bases and units](docs/entropy/shannon_base.md)
 - [Hartley definition and interpretation](docs/entropy/hartley.md)
 - [Rényi definition and interpretation](docs/entropy/renyi.md)
 - [Collision definition and interpretation](docs/entropy/collision.md)
@@ -210,6 +235,7 @@ binary data, and explains empty results and zero-length rejection.
   [min-entropy baseline](docs/benchmarks/min_entropy.md),
   and [Tsallis baseline](docs/benchmarks/tsallis.md)
 - [N-gram baseline](docs/benchmarks/ngrams.md)
+- [Shannon explicit-base baseline](docs/benchmarks/shannon_base.md)
 - [Authoritative project plan](finite_sequence_information_complexity_project_plan.md)
 
 ## Development
@@ -236,6 +262,7 @@ cargo fmt --all -- --check
 cargo clippy --locked --all-targets -- -D warnings
 cargo doc --locked --no-deps
 python3 scripts/reference_shannon.py --check
+python3 scripts/reference_shannon_base.py --check
 python3 scripts/reference_hartley.py --check
 python3 scripts/reference_renyi.py --check
 python3 scripts/reference_collision.py --check
@@ -243,6 +270,7 @@ python3 scripts/reference_min_entropy.py --check
 python3 scripts/reference_tsallis.py --check
 python3 scripts/reference_ngrams.py --check
 cargo bench --locked --bench shannon
+cargo bench --locked --bench shannon_base
 cargo bench --locked --bench hartley
 cargo bench --locked --bench renyi
 cargo bench --locked --bench collision
@@ -256,7 +284,7 @@ baseline validation. Regression cases produced by proptest should be retained.
 The independent Python calculation uses exact rational counts and 80-digit
 decimal logarithms for Shannon. Hartley independently counts sets and checks
 all 257 possible byte-support sizes with 80-digit logarithms. Rust tests compare
-with the committed fixtures to `1e-12` absolute tolerance in the documented units.
+with the default-unit fixtures to `1e-12` absolute tolerance in the documented units.
 Rényi adds 345 fixtures from 120-digit direct calculations (with bounded limiting values for
 the largest orders), including adjacent orders around one and extreme counts.
 Collision adds 45 exact-rational reference fixtures and properties based on
@@ -267,9 +295,15 @@ Tsallis adds 532 reference fixtures, including bounded large-order references,
 and properties for order monotonicity, differing pairs, and product composition.
 N-grams add 433 exact-rational Python fixtures, exhaustive short binary inputs,
 reversal/relabeling properties, and allocation checks for extraction and reuse.
+Explicit Shannon bases add 144 independent 120-digit fixtures using exact `f64`
+base values, invalid-base checks, unit-conversion properties, and allocation tests.
+Their absolute error is checked at equivalent bit scale because values near
+base one amplify absolute rounding error; ordinary fixtures also check relative
+accuracy as described in the [numerical notes](docs/entropy/shannon_base.md).
 
 This is a foundation milestone, not the complete v0.1 roadmap. Publishing is
 disabled until licensing, the supported toolchain policy, and the public API
 have been reviewed. The six core entropy measures and n-gram primitives are
-implemented. The planned Shannon base parameter remains pending. Later measures,
-a CLI, and bindings are future work.
+implemented, including explicit Shannon logarithm bases. A v0.1 readiness review
+still needs to resolve any remaining specification and release-policy gaps.
+Later measures, a CLI, and bindings are future work.

@@ -3,6 +3,8 @@
 //! Provides allocation-free byte counting, reusable empirical distributions,
 //! and Shannon, Hartley, Rényi, collision, and min-entropy in bits per symbol.
 //! Tsallis entropy uses a fixed scale agreeing with Shannon at order one.
+//! Shannon also accepts explicit logarithm bases greater than one through
+//! [`entropy::shannon_with_base`] and [`entropy::shannon_distribution_with_base`].
 //! Empty input returns zero by convention. No source model is assumed.
 //! Overlapping byte n-grams are available through [`transforms::ngrams`], with
 //! count-backed n-gram distributions in [`distribution`]. Extraction borrows

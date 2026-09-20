@@ -5,8 +5,8 @@ use celandine::distribution::{NgramDistribution, ngram_counts, ngram_probabiliti
 use celandine::entropy::{
     collision_entropy, collision_entropy_distribution, hartley_entropy,
     hartley_entropy_distribution, min_entropy, min_entropy_distribution, renyi_entropy,
-    renyi_entropy_distribution, shannon, shannon_distribution, tsallis_entropy,
-    tsallis_entropy_distribution,
+    renyi_entropy_distribution, shannon, shannon_distribution, shannon_distribution_with_base,
+    shannon_with_base, tsallis_entropy, tsallis_entropy_distribution,
 };
 use celandine::transforms::ngrams;
 use std::alloc::{GlobalAlloc, Layout, System};
@@ -70,6 +70,24 @@ fn main() {
         black_box(d.probability(255));
         black_box(shannon_distribution(black_box(&d)));
         black_box(shannon(black_box(&data)));
+        for base in [1.0_f64.next_up(), 2.0, std::f64::consts::E, 10.0, f64::MAX] {
+            black_box(shannon_with_base(black_box(&data), black_box(base))).unwrap();
+            black_box(shannon_distribution_with_base(
+                black_box(&d),
+                black_box(base),
+            ))
+            .unwrap();
+        }
+        for base in [f64::NAN, f64::INFINITY, -1.0, 0.0, 0.5, 1.0] {
+            assert!(black_box(shannon_with_base(black_box(&data), black_box(base))).is_err());
+            assert!(
+                black_box(shannon_distribution_with_base(
+                    black_box(&d),
+                    black_box(base)
+                ))
+                .is_err()
+            );
+        }
         black_box(hartley_entropy_distribution(black_box(&d)));
         black_box(hartley_entropy(black_box(&data)));
         black_box(collision_entropy_distribution(black_box(&d)));
