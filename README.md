@@ -7,8 +7,10 @@
 Entropy, information, complexity, and distance for finite sequences.
 
 The library implements **empirical Shannon, Hartley, Rényi, collision, min-entropy,
-and Tsallis entropy over bytes** and their distribution foundation. It is one Rust
-library crate, with no runtime dependencies, no heap allocations on the byte path, and no unsafe library code.
+and Tsallis entropy over bytes**, plus **overlapping byte n-grams, counts, and
+empirical block probabilities**. It is one Rust library crate, with no runtime
+dependencies and no unsafe library code. Single-byte entropy and n-gram extraction
+allocate no heap memory; n-gram count tables allocate storage for observed blocks.
 The broader project plan describes future work, not currently available APIs.
 
 ## What is implemented and why
@@ -17,6 +19,7 @@ The broader project plan describes future work, not currently available APIs.
 | --- | --- | --- |
 | [Byte histogram](docs/distribution.md#byte-histogram-what-it-is-and-why-it-matters) | Counts occurrences of each byte exactly. | Gives metrics a reusable foundation with fixed storage. |
 | [Empirical distribution](docs/distribution.md#empirical-distribution-what-it-is-and-why-it-matters) | Divides counts by sample size to obtain observed probabilities. | Makes frequency balance comparable and lets metrics share one histogram. |
+| [Overlapping n-grams](docs/ngrams.md) | Extracts every complete block of a chosen byte length, counts repeated blocks, and derives their probabilities. | Reveals local patterns that single-byte frequencies discard. |
 | [Shannon entropy](docs/entropy/shannon.md) | Averages symbol surprise, weighted by frequency. | Distinguishes balanced from uneven frequencies on the same support. |
 | [Hartley entropy](docs/entropy/hartley.md) | Takes the logarithm of the observed support size. | Measures the number of possibilities and bounds Shannon entropy from above. |
 | [Rényi entropy](docs/entropy/renyi.md) | Varies the emphasis on rare versus frequent symbols using an order parameter. | Shows how diversity changes across orders, unifying Hartley and Shannon. |
@@ -110,6 +113,32 @@ order two. Tsallis can exceed 8 in this scale and is not generally an average
 code length. Both APIs return `Result<f64, InvalidTsallisOrder>`; negative and
 nonfinite orders are rejected even for empty input.
 
+### N-gram foundation
+
+```rust
+use celandine::transforms::ngrams;
+use celandine::distribution::{ngram_counts, NgramDistribution};
+
+let blocks: Vec<_> = ngrams(b"ABABA", 2).unwrap().collect();
+assert_eq!(blocks, vec![b"AB", b"BA", b"AB", b"BA"]);
+let counts = ngram_counts(b"ABABA", 2).unwrap();
+assert_eq!(counts.total(), 4);
+assert_eq!(counts.count(b"AB"), 2);
+let d = NgramDistribution::from_counts(counts);
+assert_eq!(d.probability(b"AB"), 0.5); // 2 of 4 block occurrences
+```
+
+`distribution::ngram_probabilities(data, n)` constructs a distribution directly.
+For input length `L` and block length `n`, the number of occurrences is `m = L-n+1`
+when `1 <= n <= L`, otherwise zero for valid `n`. A block's dimensionless
+probability is its count divided by `m`. Length zero returns `InvalidNgramLength`;
+empty results have no empirical law and probability queries return zero by convention.
+Blocks overlap, borrow their source bytes, and use no padding or text decoding.
+Count and probability tables iterate over observed blocks in lexicographic byte
+order. These distributions describe observed local patterns; the current entropy
+APIs still accept single-byte distributions. See the [definition, rationale,
+worked example, and limits](docs/ngrams.md).
+
 ## Try it on sample data
 
 ```sh
@@ -119,6 +148,7 @@ cargo run --locked --example renyi
 cargo run --locked --example collision
 cargo run --locked --example min_entropy
 cargo run --locked --example tsallis
+cargo run --locked --example ngrams
 ```
 
 Edit the samples in [examples/shannon.rs](examples/shannon.rs) and rerun to see
@@ -151,10 +181,16 @@ explains the scaling, and prints additional values just below and above one.
 For uniform `AB`, it prints `1.442695`, `1.000000`, and `0.721348` at orders
 zero, one, and two: uniformity does not make Tsallis constant across orders.
 
+The [n-gram example](examples/ngrams.rs) prints overlapping blocks, their counts,
+and probabilities. `ABABA` at length two has four occurrences and two distinct
+blocks, each with probability `0.5`. It also contrasts `AABB` with `ABAB`, handles
+binary data, and explains empty results and zero-length rejection.
+
 ## Documentation
 
 - [Mathematical conventions](docs/mathematical-conventions.md)
 - [Byte counts and empirical probabilities explained](docs/distribution.md)
+- [Overlapping n-grams, counts, and probabilities](docs/ngrams.md)
 - [Shannon definition and interpretation](docs/entropy/shannon.md)
 - [Hartley definition and interpretation](docs/entropy/hartley.md)
 - [Rényi definition and interpretation](docs/entropy/renyi.md)
@@ -173,6 +209,7 @@ zero, one, and two: uniformity does not make Tsallis constant across orders.
   [collision baseline](docs/benchmarks/collision.md),
   [min-entropy baseline](docs/benchmarks/min_entropy.md),
   and [Tsallis baseline](docs/benchmarks/tsallis.md)
+- [N-gram baseline](docs/benchmarks/ngrams.md)
 - [Authoritative project plan](finite_sequence_information_complexity_project_plan.md)
 
 ## Development
@@ -204,12 +241,14 @@ python3 scripts/reference_renyi.py --check
 python3 scripts/reference_collision.py --check
 python3 scripts/reference_min_entropy.py --check
 python3 scripts/reference_tsallis.py --check
+python3 scripts/reference_ngrams.py --check
 cargo bench --locked --bench shannon
 cargo bench --locked --bench hartley
 cargo bench --locked --bench renyi
 cargo bench --locked --bench collision
 cargo bench --locked --bench min_entropy
 cargo bench --locked --bench tsallis
+cargo bench --locked --bench ngrams
 ```
 
 Property tests use a fixed seed and 256 cases per property for reproducible
@@ -226,9 +265,11 @@ Min-entropy adds 48 exact-rational reference fixtures, independent minimum-surpr
 checks, and properties covering dominant symbols and extreme count tables.
 Tsallis adds 532 reference fixtures, including bounded large-order references,
 and properties for order monotonicity, differing pairs, and product composition.
+N-grams add 433 exact-rational Python fixtures, exhaustive short binary inputs,
+reversal/relabeling properties, and allocation checks for extraction and reuse.
 
 This is a foundation milestone, not the complete v0.1 roadmap. Publishing is
 disabled until licensing, the supported toolchain policy, and the public API
-have been reviewed. The six core entropy measures are implemented, but the
-v0.1 roadmap still requires an n-gram primitive. The planned Shannon base
-parameter also remains pending. Later measures, a CLI, and bindings are future work.
+have been reviewed. The six core entropy measures and n-gram primitives are
+implemented. The planned Shannon base parameter remains pending. Later measures,
+a CLI, and bindings are future work.

@@ -1,5 +1,11 @@
 # Byte counts and empirical distributions
 
+This module also exports `ngram_counts`, `ngram_probabilities`, `NgramCounts`,
+and `NgramDistribution` for overlapping byte blocks. Their construction,
+probabilities, ownership, and worked examples are explained in the
+[n-gram guide](ngrams.md) and [`crate::transforms`] API documentation. The
+single-byte tables described below retain their allocation-free implementation.
+
 The distribution layer turns observations into the counts and probabilities
 used by the entropy functions. The byte values are symbols; no text encoding or
 domain meaning is assumed. These are basic statistical summaries, not separate

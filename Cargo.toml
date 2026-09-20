@@ -39,3 +39,7 @@ harness = false
 
 [lints.rust]
 missing_docs = "warn"
+
+[[bench]]
+name = "ngrams"
+harness = false

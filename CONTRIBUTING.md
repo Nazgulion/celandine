@@ -16,13 +16,15 @@ cargo run --locked --example renyi
 cargo run --locked --example collision
 cargo run --locked --example min_entropy
 cargo run --locked --example tsallis
+cargo run --locked --example ngrams
 ```
 
 Edit the byte samples in `examples/shannon.rs`, `examples/hartley.rs`,
-`examples/renyi.rs`, `examples/collision.rs`, `examples/min_entropy.rs`, or
-`examples/tsallis.rs` and rerun to inspect other inputs. The comparison examples
-reuse one histogram per sample;
-Rényi and Tsallis also let you change the orders.
+`examples/renyi.rs`, `examples/collision.rs`, `examples/min_entropy.rs`,
+`examples/tsallis.rs`, or `examples/ngrams.rs` and rerun to inspect other inputs.
+The entropy comparison examples reuse one histogram per sample; Rényi and
+Tsallis also let you change the orders. The n-gram example lets you change the
+block length and reuses its count table to show probabilities.
 Output appears immediately in the terminal. There is no file watcher or live
 interface; each run computes the current samples once. Display formatting is
 only for readability: the entropy calculation operates on the original bytes.
@@ -47,6 +49,7 @@ python3 scripts/reference_renyi.py --check
 python3 scripts/reference_collision.py --check
 python3 scripts/reference_min_entropy.py --check
 python3 scripts/reference_tsallis.py --check
+python3 scripts/reference_ngrams.py --check
 ```
 
 `cargo test` checks canonical results, mathematical properties, independent
@@ -156,7 +159,7 @@ applies until the user explicitly changes it.
 
 ## Measure algorithm and performance changes
 
-For the current entropy implementations:
+For the current entropy and n-gram implementations:
 
 ```sh
 cargo bench --locked --bench shannon
@@ -165,6 +168,7 @@ cargo bench --locked --bench renyi
 cargo bench --locked --bench collision
 cargo bench --locked --bench min_entropy
 cargo bench --locked --bench tsallis
+cargo bench --locked --bench ngrams
 cargo test --locked --release --test allocations
 ```
 
@@ -177,8 +181,9 @@ separately when evaluating changes. Follow the
 [Hartley baseline](docs/benchmarks/hartley.md),
 [Rényi baseline](docs/benchmarks/renyi.md),
 [collision baseline](docs/benchmarks/collision.md),
-[min-entropy baseline](docs/benchmarks/min_entropy.md), and
-[Tsallis baseline](docs/benchmarks/tsallis.md).
+[min-entropy baseline](docs/benchmarks/min_entropy.md),
+[Tsallis baseline](docs/benchmarks/tsallis.md), and
+[n-gram baseline](docs/benchmarks/ngrams.md).
 
 Performance measurements do not establish mathematical correctness. Continue
 to run correctness tests and check allocation promises. Example and prose-only

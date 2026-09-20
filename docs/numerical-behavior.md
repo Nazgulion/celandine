@@ -195,3 +195,19 @@ exact order one. This exception inherits Shannon's existing contract. These
 thresholds are tests, not universal error bounds. Fixtures beyond `usize::MAX`
 are skipped explicitly. Run `python3 scripts/reference_tsallis.py --check`; see
 [reference notes](references/tsallis.md) for the asymptotic bound.
+
+## N-gram counts and probabilities
+
+Overlapping block counts remain exact integers bounded by the source length.
+`n=0` is rejected before using Rust's window iterator; positive lengths greater
+than the input, including `usize::MAX`, give zero occurrences. No `L-n+1`
+expression is evaluated on an oversized length, and no `256^n` alphabet table
+is constructed.
+
+For nonempty n-gram tables, probabilities use `count as f64 / total as f64`.
+Their units are dimensionless fractions of complete block occurrences. The
+integer-to-float caveat above applies; no logarithms or probability summation
+are performed by the library. Callers summing many distinct blocks can accrue
+rounding error beyond the single-byte path's 256 terms. No normalization or
+clamping is applied. Tests use `1e-12` absolute tolerance on bounded fixtures.
+Empty table queries return positive zero and probability iteration is empty.

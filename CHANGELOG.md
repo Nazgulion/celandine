@@ -2,6 +2,14 @@
 
 ## Unreleased — empirical entropy foundation
 
+- Add borrowed, allocation-free overlapping byte n-gram extraction, exact count
+  tables, and reusable empirical block distributions with sorted iteration.
+- Reject zero lengths explicitly; define empty/oversized behavior, overlap,
+  byte semantics, borrowing, memory costs, and probability units.
+- Add educational docs and an example, 433 independently generated exact-rational
+  fixtures, exhaustive short binary checks, property tests, allocation checks,
+  and a measured n-gram benchmark baseline.
+
 - Add allocation-free Tsallis entropy for bytes and reusable distributions with
   finite nonnegative orders and explicit invalid-order errors.
 - Fix the scale to `1/ln(2)` so order one agrees with base-2 Shannon; document

@@ -1,9 +1,9 @@
 # Mathematical conventions
 
 The library implements empirical, single-symbol Shannon, Hartley, Rényi, collision,
-min-entropy, and Tsallis entropy for finite byte sequences. The project plan is
-the architectural specification; later metrics and sequence transformations
-remain future work.
+min-entropy, and Tsallis entropy for finite byte sequences, plus overlapping
+byte n-grams, their counts, and empirical block probabilities. The project plan
+is the architectural specification; later metrics remain future work.
 
 ## Units and arithmetic
 
@@ -34,6 +34,9 @@ For nonempty input the probabilities sum to one mathematically; the floating
 sum can differ slightly from one.
 
 ## Empty and constant inputs
+
+The following entropy conventions refer to single-byte distributions. For
+overlapping n-gram empty states, see the n-gram section below.
 
 An empty histogram/distribution has sample size zero, support size zero, and
 returns zero for each probability query. This is an **empty empirical state**,
@@ -199,3 +202,31 @@ For independent product laws `P` and `Q`, this scaling gives
 This composition rule illustrates why Tsallis is generally not an additive
 average code length. The implemented quantity concerns the empirical law and
 ignores sequence order; it assumes no source model or independence of input bytes.
+
+## Overlapping n-grams
+
+`transforms::ngrams(data, n)` returns borrowed contiguous byte blocks at step
+one. `distribution::ngram_counts` and `distribution::ngram_probabilities` tally
+these same occurrences. With input length `L`, the total is `m = L-n+1` for
+`1 <= n <= L`, otherwise zero for valid `n`. The positive block length is
+retained even when no blocks exist. Length zero returns `InvalidNgramLength`
+from all three functions, before observing input, including empty input.
+
+No padding, wrapping, text decoding, or boundary markers are applied. At `n=1`
+counts agree with the existing byte histogram. At `n=L>0` there is one block.
+All larger lengths, including `usize::MAX`, yield empty results without overflow.
+For `ABABA`, length two yields `AB, BA, AB, BA`; counts are two each and the
+probabilities are `2/4 = 0.5`. Occurrences overlap and need not be independent.
+
+`NgramCounts` owns a sorted tree of borrowed block keys and exact positive
+`usize` counts. Its sum equals `m <= L`. `NgramDistribution` owns these counts
+and derives dimensionless `f64` probabilities as `count/m` without a second
+stored table. Both iterate over observed blocks only, in lexicographic byte
+order. Queries for absent or wrong-length blocks return zero. An empty state
+has zero support, no iterator entries, and probability queries return positive
+zero; it is not a normalized law. The source must outlive both representations.
+
+Extraction, count reuse, and table queries allocate no memory. Nonempty count
+construction allocates tree storage proportional to distinct observed blocks.
+These APIs describe empirical block statistics and do not add entropy metrics.
+See [the n-gram guide](ngrams.md) for references, costs, and limits.

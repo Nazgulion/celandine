@@ -42,3 +42,13 @@ limit and explain the maximum-probability interpretation and verification.
   Defines the entropy family with a conventional positive scaling constant.
   [Tsallis reference notes](references/tsallis.md) explain this library's fixed
   Shannon-bit scaling, order-one limit, and independent verification.
+
+- Christopher D. Manning, Prabhakar Raghavan, and Hinrich Schütze (2008),
+  *Introduction to Information Retrieval*, Cambridge University Press,
+  section 3.2.2, [k-gram indexes](https://nlp.stanford.edu/IR-book/html/htmledition/k-gram-indexes-for-wildcard-queries-1.html).
+  Illustrates overlapping contiguous character blocks. The [n-gram guide](ngrams.md)
+  explains the byte-based, unpadded convention and independent verification.
+- Rust standard library: [slice windows](https://doc.rust-lang.org/std/primitive.slice.html#method.windows)
+  and [BTreeMap](https://doc.rust-lang.org/std/collections/struct.BTreeMap.html).
+  Storage/iterator references for borrowed extraction and sorted counts;
+  mathematical and empty-state conventions are documented separately.

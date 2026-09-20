@@ -1,12 +1,14 @@
 //! Isolated, single-threaded allocation check; the Rust test harness is disabled.
 
 use celandine::distribution::{ByteHistogram, Distribution};
+use celandine::distribution::{NgramDistribution, ngram_counts, ngram_probabilities};
 use celandine::entropy::{
     collision_entropy, collision_entropy_distribution, hartley_entropy,
     hartley_entropy_distribution, min_entropy, min_entropy_distribution, renyi_entropy,
     renyi_entropy_distribution, shannon, shannon_distribution, tsallis_entropy,
     tsallis_entropy_distribution,
 };
+use celandine::transforms::ngrams;
 use std::alloc::{GlobalAlloc, Layout, System};
 use std::hint::black_box;
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -50,6 +52,16 @@ fn main() {
     ] {
         let data: Vec<u8> = (0..size).map(|i| i as u8).collect();
         let before = ALLOCATIONS.load(Ordering::Relaxed);
+        for n in [1, 2, 8, size.max(1), usize::MAX] {
+            for block in ngrams(black_box(&data), black_box(n)).unwrap() {
+                black_box(block);
+            }
+        }
+        assert!(ngrams(black_box(&data), 0).is_err());
+        assert!(ngram_counts(black_box(&data), 0).is_err());
+        assert!(ngram_probabilities(black_box(&data), 0).is_err());
+        black_box(ngram_counts(black_box(&data), usize::MAX).unwrap());
+        black_box(ngram_probabilities(black_box(&data), usize::MAX).unwrap());
         let histogram = ByteHistogram::from_bytes(black_box(&data));
         black_box(histogram.support_size());
         let reconstructed = ByteHistogram::try_from_counts(*histogram.counts()).unwrap();
@@ -99,7 +111,23 @@ fn main() {
         let after = ALLOCATIONS.load(Ordering::Relaxed);
         assert_eq!(after - before, 0, "allocations for {size} bytes");
     }
+    // Construction may allocate; moving counts and reading the table must not.
+    for data in [&b""[..], b"A", b"ABABA", b"AAAA", &[0, 255, 128, 0]] {
+        for n in [1, 2, 8] {
+            let counts = ngram_counts(black_box(data), n).unwrap();
+            let before = ALLOCATIONS.load(Ordering::Relaxed);
+            let d = NgramDistribution::from_counts(counts);
+            black_box(d.ngram_len());
+            black_box(d.sample_size());
+            black_box(d.support_size());
+            black_box(d.is_empty());
+            black_box(d.counts().counts().map(|(_, c)| c).sum::<usize>());
+            black_box(d.probabilities().map(|(_, p)| p).sum::<f64>());
+            black_box(d.probability(black_box(b"AB")));
+            assert_eq!(ALLOCATIONS.load(Ordering::Relaxed) - before, 0);
+        }
+    }
     println!(
-        "Allocation checks passed: zero allocations for histogram, distribution, Shannon, Hartley, Rényi, collision, min-entropy, and Tsallis (0 B–10 MiB)."
+        "Allocation checks passed: existing byte metrics and n-gram extraction (0 B–10 MiB), invalid/oversized n-grams, and count reuse/queries."
     );
 }

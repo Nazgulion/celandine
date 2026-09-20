@@ -4,6 +4,9 @@
 //! and Shannon, Hartley, Rényi, collision, and min-entropy in bits per symbol.
 //! Tsallis entropy uses a fixed scale agreeing with Shannon at order one.
 //! Empty input returns zero by convention. No source model is assumed.
+//! Overlapping byte n-grams are available through [`transforms::ngrams`], with
+//! count-backed n-gram distributions in [`distribution`]. Extraction borrows
+//! the input without allocation; n-gram count tables allocate tree storage.
 //!
 //! ```
 //! use celandine::distribution::Distribution;
@@ -21,3 +24,4 @@
 
 pub mod distribution;
 pub mod entropy;
+pub mod transforms;
