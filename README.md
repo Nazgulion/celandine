@@ -223,6 +223,8 @@ binary data, and explains empty results and zero-length rejection.
 - [Min-entropy definition and interpretation](docs/entropy/min_entropy.md)
 - [Tsallis definition and interpretation](docs/entropy/tsallis.md)
 - [Numerical behavior](docs/numerical-behavior.md)
+- [Toolchain, platform, and compatibility policy](docs/support.md)
+- [v0.1 readiness review](docs/releases/v0.1-readiness.md)
 - [Bibliography](docs/references.md), [Shannon reference notes](docs/references/shannon.md),
   [Hartley reference notes](docs/references/hartley.md),
   [Rényi reference notes](docs/references/renyi.md),
@@ -249,8 +251,9 @@ on Ubuntu with Rust 1.90.0 and Python 3.12, including debug/release tests,
 independent references, examples, and benchmark compilation. Timing baselines
 remain separate local measurements.
 
-Validated with Rust 1.90.0, edition 2024. A minimum supported Rust version has
-not yet been established. Python 3.10+ is used only to regenerate/check reference
+Minimum supported Rust: **1.90**, edition 2024. The tested runtime target is
+Linux x86-64 (`x86_64-unknown-linux-gnu`); see the [support policy](docs/support.md).
+Python 3.10+ is used only to regenerate/check reference
 fixtures; ordinary Rust tests need no Python interpreter. Criterion and proptest
 are development dependencies only. The lockfile is retained for reproducibility.
 
@@ -301,9 +304,12 @@ Their absolute error is checked at equivalent bit scale because values near
 base one amplify absolute rounding error; ordinary fixtures also check relative
 accuracy as described in the [numerical notes](docs/entropy/shannon_base.md).
 
-This is a foundation milestone, not the complete v0.1 roadmap. Publishing is
-disabled until licensing, the supported toolchain policy, and the public API
-have been reviewed. The six core entropy measures and n-gram primitives are
-implemented, including explicit Shannon logarithm bases. A v0.1 readiness review
-still needs to resolve any remaining specification and release-policy gaps.
+The six core entropy measures and n-gram primitives are implemented, including
+explicit Shannon logarithm bases. The [v0.1 readiness review](docs/releases/v0.1-readiness.md)
+records passing validation and remaining scope, fuzzing, and large-input/peak-memory
+evidence gaps. Publishing stays disabled until those gates are resolved.
 Later measures, a CLI, and bindings are future work.
+
+## License
+
+Licensed under the [MIT License](LICENSE).

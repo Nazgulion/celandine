@@ -81,8 +81,9 @@ Actions tab after the workflow reaches the default branch. This makes failures
 visible without relying on contributors to remember each local command.
 
 The initial job uses Ubuntu 24.04, Rust 1.90.0 with rustfmt and Clippy, and Python
-3.12. Rust is fixed to the toolchain already used for this milestone; this does
-not establish a minimum supported Rust version or cross-platform support policy.
+3.12. It validates the supported Rust 1.90 minimum and Linux x86-64 runtime
+baseline. See the [support policy](docs/support.md) for compatibility commitments
+and the limits of additional compile-only platform checks.
 The checkout and Python setup actions are pinned to release commit hashes.
 
 It checks formatting and all-target lints, builds the library, runs debug and

@@ -2,6 +2,12 @@
 
 ## Unreleased — empirical entropy foundation
 
+- Adopt the MIT license and add crate repository, README, and license metadata.
+- Declare Rust 1.90 as the supported minimum; document Linux x86-64 runtime
+  support, compile-only target evidence, and numerical/API compatibility policy.
+- Record the v0.1 readiness review, validation evidence, and remaining scope,
+  dedicated fuzzing, large-input, and peak-memory release gates.
+
 - Add allocation-free `shannon_with_base` and `shannon_distribution_with_base`
   with finite bases greater than one and explicit `InvalidLogBase` errors.
 - Preserve default bit-valued APIs and document unit conversion, validation,

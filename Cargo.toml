@@ -2,7 +2,11 @@
 name = "celandine"
 version = "0.1.0"
 edition = "2024"
+rust-version = "1.90"
 description = "Information-theoretic measures for finite discrete sequences"
+license = "MIT"
+repository = "https://github.com/Nazgulion/celandine"
+readme = "README.md"
 publish = false
 
 [dev-dependencies]
