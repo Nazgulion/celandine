@@ -50,6 +50,13 @@ jobs:
       - name: Lint all targets
         run: cargo clippy --locked --all-targets -- -D warnings
 
+      - name: Validate fuzz harnesses and replay seeds on stable
+        run: |
+          cargo fmt --manifest-path fuzz/Cargo.toml -- --check
+          cargo clippy --manifest-path fuzz/Cargo.toml --locked --all-targets -- -D warnings
+          python3 scripts/fuzz_seeds.py --check
+          cargo test --manifest-path fuzz/Cargo.toml --locked --lib
+
       - name: Build library
         run: cargo build --locked
 
@@ -78,3 +85,42 @@ jobs:
 
       - name: Compile benchmark harnesses
         run: cargo bench --locked --no-run
+
+  fuzz:
+    name: Fuzz smoke (ASan)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash
+    env:
+      CARGO_TERM_COLOR: always
+      RUSTUP_TOOLCHAIN: nightly-2025-10-25
+    steps:
+      - name: Check out source
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+
+      - name: Install pinned fuzz tools
+        run: |
+          rustup toolchain install "$RUSTUP_TOOLCHAIN" --profile minimal --component rust-src
+          cargo install cargo-fuzz --version 0.13.1 --locked
+          cargo fetch --manifest-path fuzz/Cargo.toml --locked
+
+      - name: Run bounded campaigns
+        run: python3 scripts/fuzz_campaign.py --runs 10000
+
+      - name: Retain logs, corpora, and failure artifacts
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: fuzz-campaign
+          path: fuzz/runs/
+          retention-days: 14
+          if-no-files-found: warn

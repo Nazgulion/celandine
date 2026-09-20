@@ -20,6 +20,11 @@ Python is needed only to regenerate or independently check them. Reference
 scripts require Python 3.10 or later; this review ran them on Python 3.10.12,
 and CI uses Python 3.12.
 
+The separate [fuzz workspace](fuzzing.md) has its own lockfile and test-only
+libFuzzer dependency. Coverage-guided campaigns use nightly-2025-10-25 and
+cargo-fuzz 0.13.1; stable seed replay uses Rust 1.90. This additional development
+toolchain does not raise the consumer library's minimum Rust version.
+
 See Cargo's [Rust-version documentation](https://doc.rust-lang.org/cargo/reference/rust-version.html)
 for the meaning of the manifest field.
 

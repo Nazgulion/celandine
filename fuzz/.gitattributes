@@ -1,0 +1,2 @@
+# Preserve exact wire-format bytes, including on checkouts with autocrlf enabled.
+seeds/**/*.bin binary

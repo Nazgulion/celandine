@@ -1,0 +1,38 @@
+[package]
+name = "celandine-fuzz"
+version = "0.0.0"
+edition = "2024"
+license = "MIT"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+celandine = { path = ".." }
+libfuzzer-sys = "=0.4.10"
+
+# Keep sanitizer tooling and its lockfile separate from the consumer crate.
+[workspace]
+members = ["."]
+
+[[bin]]
+name = "byte_entropy"
+path = "fuzz_targets/byte_entropy.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "count_entropy"
+path = "fuzz_targets/count_entropy.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "ngrams"
+path = "fuzz_targets/ngrams.rs"
+test = false
+doc = false
+bench = false

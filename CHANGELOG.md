@@ -2,6 +2,14 @@
 
 ## Unreleased — empirical entropy foundation
 
+- Add three dedicated libFuzzer targets with independent count/block oracles,
+  entropy invariants, and arbitrary order/base bit patterns, including invalid
+  parameters and overflowing imported counts.
+- Add 55 reproducible seed cases, stable seed replay, a pinned ASan campaign
+  runner with retained logs/artifacts, and bounded fuzz campaigns in CI.
+- Keep fuzz tooling in a separate development workspace and lockfile; preserve
+  the public API, runtime dependency set, and Rust 1.90 support baseline.
+
 - Adopt the MIT license and add crate repository, README, and license metadata.
 - Declare Rust 1.90 as the supported minimum; document Linux x86-64 runtime
   support, compile-only target evidence, and numerical/API compatibility policy.

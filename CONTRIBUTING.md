@@ -73,6 +73,25 @@ Scope checks to the change: prose-only edits do not require new mathematical
 tests or a fresh performance baseline. Report what was checked and any failures
 or checks that could not run.
 
+## Dedicated fuzz testing
+
+Follow [the fuzzing workflow](docs/fuzzing.md) when changing covered public APIs.
+Replay committed seeds and check the separate harness on the supported compiler:
+
+```sh
+python3 scripts/fuzz_seeds.py --check
+cargo fmt --manifest-path fuzz/Cargo.toml -- --check
+cargo clippy --manifest-path fuzz/Cargo.toml --locked --all-targets -- -D warnings
+cargo test --manifest-path fuzz/Cargo.toml --locked --lib
+```
+
+After installing the pinned fuzz tools documented there, run
+`python3 scripts/fuzz_campaign.py --runs 100000` for byte entropy, count imports
+with entropy parameters, and n-gram operations. Record the seed, limits, toolchain,
+and results. Preserve/minimize failures and add normal independently justified
+regression tests for defects. Fuzzing supplements numerical references and does
+not replace performance measurements.
+
 ## Continuous integration
 
 [CI](.github/workflows/ci.yml) runs the validation workflow automatically on
@@ -101,6 +120,9 @@ relevant benchmarks locally when algorithms change. A passing CI run also does
 not replace the mathematical review required by the project plan.
 
 The workflow needs no project secrets and has read-only repository permissions.
+The stable job also checks fuzz-harness formatting/lints and replays its seeds.
+A separate pinned nightly job runs 10,000 ASan fuzz executions per target and
+retains campaign logs, corpora, and failure artifacts for 14 days.
 It reports check results; making them mandatory for merging requires a separate
 repository ruleset or branch-protection setting. That setting is not changed by
 adding the workflow. Inspect failed steps in the Actions tab and reproduce them

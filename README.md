@@ -27,6 +27,7 @@ The broader project plan describes future work, not currently available APIs.
 | [Min-entropy](docs/entropy/min_entropy.md) | Takes the negative logarithm of the largest probability. | Isolates symbol dominance and gives the infinite-order limit a dedicated API. |
 | [Tsallis entropy](docs/entropy/tsallis.md) | Measures diversity through probability powers with a fixed Shannon-bit scale. | Provides an order-dependent measure with a different composition rule and the Shannon limit at one. |
 | [Validation workflow](CONTRIBUTING.md) | Checks known answers, properties, independent references, and allocations. | Detects mathematical mistakes and regressions. |
+| [Dedicated fuzzing](docs/fuzzing.md) | Mutates byte inputs, counts, parameters, and block lengths with independent checks. | Finds unusual combinations and retains failures for regression testing. |
 | [Continuous integration](.github/workflows/ci.yml) | Runs validation on pushes and pull requests. | Makes regressions visible automatically as the project grows. |
 | [Benchmarks](docs/benchmarks.md) | Measure latency and throughput on fixed workloads. | Establish evidence for performance changes. |
 
@@ -225,6 +226,7 @@ binary data, and explains empty results and zero-length rejection.
 - [Numerical behavior](docs/numerical-behavior.md)
 - [Toolchain, platform, and compatibility policy](docs/support.md)
 - [v0.1 readiness review](docs/releases/v0.1-readiness.md)
+- [Fuzz targets, replay, and campaign workflow](docs/fuzzing.md)
 - [Bibliography](docs/references.md), [Shannon reference notes](docs/references/shannon.md),
   [Hartley reference notes](docs/references/hartley.md),
   [Rényi reference notes](docs/references/renyi.md),
@@ -249,7 +251,8 @@ examples, regression tests, independent references, and performance checks.
 [Continuous integration](CONTRIBUTING.md#continuous-integration) runs the checks
 on Ubuntu with Rust 1.90.0 and Python 3.12, including debug/release tests,
 independent references, examples, and benchmark compilation. Timing baselines
-remain separate local measurements.
+remain separate local measurements. Dedicated fuzz seeds also replay on Rust
+1.90.0; a separate pinned nightly job runs bounded AddressSanitizer campaigns.
 
 Minimum supported Rust: **1.90**, edition 2024. The tested runtime target is
 Linux x86-64 (`x86_64-unknown-linux-gnu`); see the [support policy](docs/support.md).
@@ -306,8 +309,9 @@ accuracy as described in the [numerical notes](docs/entropy/shannon_base.md).
 
 The six core entropy measures and n-gram primitives are implemented, including
 explicit Shannon logarithm bases. The [v0.1 readiness review](docs/releases/v0.1-readiness.md)
-records passing validation and remaining scope, fuzzing, and large-input/peak-memory
-evidence gaps. Publishing stays disabled until those gates are resolved.
+records passing validation and remaining scope and large-input/peak-memory
+evidence gaps. Dedicated fuzz targets and bounded campaigns now supplement the
+property tests. Publishing stays disabled until the remaining gates are resolved.
 Later measures, a CLI, and bindings are future work.
 
 ## License
