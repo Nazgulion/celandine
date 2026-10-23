@@ -89,6 +89,22 @@ def seeds():
         ("forward", b"AAB"), ("reverse", b"BAA"),
     ]:
         yield "lz76", name, data
+    for name, data in [
+        ("empty", b""), ("single", b"A"), ("short", b"ABABAB"),
+        ("window_before", bytes(range(256))*127+b"A"*255),
+        ("window", bytes(range(256))*128),
+        ("window_after", bytes(range(256))*128+b"A"),
+        ("constant", b"A"*65536), ("late_novelty", b"A"*65535+b"B"),
+    ]:
+        yield "compression", name, data
+    state = 0x123456789abcdef0
+    data = bytearray()
+    for _ in range(65536):
+        state ^= (state << 13) & ((1 << 64)-1)
+        state ^= state >> 7
+        state ^= (state << 17) & ((1 << 64)-1)
+        data.append(state >> 56)
+    yield "compression", "mixed", bytes(data)
     k = 1 << 50
     for offset in [-2, -1, 0, 1, 2]:
         pairs = [(3*k+offset, k), (k, 3*k+offset)]

@@ -466,6 +466,31 @@ pub fn lz76(input: &[u8]) {
     }
 }
 
+/// Bounded raw bytes; compare counted length to a materialized stream and decode.
+pub fn compression(input: &[u8]) {
+    use celandine::compression::{
+        CompressionRatioError, Zlib, compressed_length, compression_ratio,
+    };
+    let data = &input[..input.len().min(65536)];
+    let stream = miniz_oxide::deflate::compress_to_vec_zlib(data, 6);
+    assert_eq!(compressed_length(data, &Zlib).unwrap(), stream.len());
+    assert_eq!(
+        miniz_oxide::inflate::decompress_to_vec_zlib(&stream).unwrap(),
+        data
+    );
+    if data.is_empty() {
+        assert!(matches!(
+            compression_ratio(data, &Zlib),
+            Err(CompressionRatioError::EmptyInput)
+        ));
+    } else {
+        assert_eq!(
+            compression_ratio(data, &Zlib).unwrap(),
+            stream.len() as f64 / data.len() as f64
+        );
+    }
+}
+
 #[cfg(test)]
 mod tests {
     #[test]
@@ -478,6 +503,7 @@ mod tests {
             ("jensen_shannon", super::jensen_shannon),
             ("subword", super::subword),
             ("lz76", super::lz76),
+            ("compression", super::compression),
         ] {
             let directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
                 .join("seeds")

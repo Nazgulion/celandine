@@ -113,6 +113,11 @@ fn run(operation: &str, data: &[u8], n: usize) -> (usize, usize, usize) {
             d.support_size()
         });
     }
+    #[cfg(not(feature = "compression-deflate"))]
+    assert_ne!(
+        operation, "compression",
+        "enable compression-deflate for this measurement"
+    );
     peak_allocator::measure(|| match operation {
         "input" => {
             black_box(data);
@@ -120,6 +125,12 @@ fn run(operation: &str, data: &[u8], n: usize) -> (usize, usize, usize) {
         }
         "entropy" => entropy(data),
         "lz76" => lz76_complexity(black_box(data)),
+        #[cfg(feature = "compression-deflate")]
+        "compression" => celandine::compression::compressed_length(
+            black_box(data),
+            &celandine::compression::Zlib,
+        )
+        .unwrap(),
         "subword" => subword_complexity(black_box(data), black_box(n)),
         "subword_profile" => subword_complexity_profile(black_box(data))
             .take(black_box(n))
@@ -173,6 +184,12 @@ fn main() {
         let (sum, peak, calls) = run("subword_profile", b"ABABA", 6);
         assert_eq!(sum, 10);
         assert!(peak > 0 && calls > 0);
+        #[cfg(feature = "compression-deflate")]
+        {
+            let (length, peak, calls) = run("compression", b"A", 1);
+            assert_eq!(length, 9);
+            assert!(peak > 0 && calls > 0);
+        }
         println!(
             "Peak-memory probe self-check passed (allocate, zero, grow, shrink, free, reset, n-grams)."
         );
@@ -198,6 +215,7 @@ fn main() {
             | "subword"
             | "subword_profile"
             | "lz76"
+            | "compression"
     ));
     assert!(matches!(
         shape.as_str(),

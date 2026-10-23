@@ -13,7 +13,8 @@ compatibility decision and changelog entry; it is not a routine patch change.
 Newer Rust releases are not automatically evidence of tested compatibility.
 The pinned CI toolchain is authoritative for the current supported baseline.
 
-The library has no runtime or build dependencies. Criterion and proptest are
+The default library has no runtime or build dependencies. The optional
+compression backend is described below. Criterion and proptest are
 development dependencies, and the committed lockfile records the validated
 development environment. Ordinary Rust tests use committed reference fixtures;
 Python is needed only to regenerate or independently check them. Reference
@@ -82,3 +83,12 @@ provide the package-compatibility reference.
 The owner selected MIT only. The repository's [LICENSE](../LICENSE) contains
 the license text, and the crate declares `license = "MIT"`. See the canonical
 [MIT license](https://spdx.org/licenses/MIT.html) for its SPDX identifier and text.
+
+## Optional compression
+
+Default consumers have no runtime dependencies. `compression-deflate` opts into
+miniz_oxide =0.9.1 (with-alloc only) and adler2, both offering MIT licensing.
+The project remains MIT-only. The interface and custom backends need no feature.
+Rust 1.90.0 default/all-feature validation and Linux x86-64 runtime tests include
+this backend. Version pinning preserves the selected encoder; exact measurement
+reproduction should also retain Cargo.lock. This adds no platform-runtime claims.

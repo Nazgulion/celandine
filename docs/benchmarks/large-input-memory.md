@@ -212,3 +212,13 @@ exercises one scalar count and one complete 64-byte profile.
 LZ76 counts, with diverse inputs bounded at 64 KiB and periodic inputs through
 100 MiB. See the [LZ76 baseline](lz76.md). In `lz76` rows, `support` records the
 phrase count; `ngram_length` is unused. The smoke check also exercises LZ76.
+
+## Optional compression measurements
+
+`python3 scripts/measure_memory.py --compression` enables `compression-deflate`
+and measures zlib length at 16 B, 64 KiB, 10 MiB and 100 MiB for all four shapes,
+with input controls and three repetitions (96 fresh processes). The `support`
+column contains complete compressed bytes; `ngram_length` is unused. Both the
+input and compressed output sizes are excluded from auxiliary heap: input is
+prepared first, and output is counted/discarded. Backend state allocations are
+included. See the [compression baseline](compression.md).

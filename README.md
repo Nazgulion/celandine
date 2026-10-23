@@ -9,9 +9,10 @@ Entropy, information, complexity, and distance for finite sequences.
 The library implements **empirical Shannon, Hartley, Rényi, collision, min-entropy,
 and Tsallis entropy over bytes**, plus **overlapping byte n-grams, counts, and
 empirical block probabilities**, and **total variation distance between byte
-distributions**, plus **Jensen–Shannon divergence and distance**, and **subword complexity and LZ76 complexity**.
-It is one Rust library crate, with no runtime dependencies and
-no unsafe library code. Single-byte entropy, implemented distribution comparisons, and n-gram
+distributions**, plus **Jensen–Shannon divergence and distance**, and **subword complexity and LZ76 complexity**, plus **optional compression measurements**.
+It is one Rust library crate, with no runtime dependencies by default and
+no unsafe library code. Feature `compression-deflate` adds a pinned pure-Rust
+zlib encoder; the compressor interface itself stays dependency-free. Single-byte entropy, implemented distribution comparisons, and n-gram
 extraction allocate no heap memory; n-gram count tables allocate storage for observed blocks.
 The broader project plan describes future work, not currently available APIs.
 
@@ -33,6 +34,7 @@ The broader project plan describes future work, not currently available APIs.
 | [Jensen–Shannon distance](docs/divergence/jensen_shannon_distance.md) | Takes the square root of Jensen–Shannon divergence. | Supplies a metric on probability laws, including the triangle inequality. |
 | [Subword complexity](docs/complexity/subword.md) | Counts distinct contiguous blocks at a chosen byte length, with a lazy profile across lengths. | Reveals order-dependent pattern diversity without a probability model. |
 | [LZ76 complexity](docs/complexity/lz76.md) | Counts exhaustive production phrases with overlapping copies. | Describes sequential novelty beyond byte frequencies. |
+| [Compression measurements](docs/compression.md) | Counts complete encoded bytes and divides by input length; optional fixed zlib backend. | Measures encoder-specific compressibility, including overhead and sequential repetition. |
 | [Validation workflow](CONTRIBUTING.md) | Checks known answers, properties, independent references, and allocations. | Detects mathematical mistakes and regressions. |
 | [Dedicated fuzzing](docs/fuzzing.md) | Mutates byte inputs, counts, parameters, and block lengths with independent checks. | Finds unusual combinations and retains failures for regression testing. |
 | [Continuous integration](.github/workflows/ci.yml) | Runs validation on pushes and pull requests. | Makes regressions visible automatically as the project grows. |
@@ -42,6 +44,26 @@ Start with [counts and probabilities](docs/distribution.md), then read the
 Shannon, Hartley, Rényi, collision, min-entropy, and Tsallis pages. Each metric page
 includes a short history, explains the formula's symbols, and works through a small example
 before the references.
+
+## Optional compression
+
+Enable `compression-deflate` in your dependency's `features` list, then:
+
+```rust
+use celandine::compression::{Zlib, compressed_length, compression_ratio};
+assert_eq!(compressed_length(b"A", &Zlib).unwrap(), 9); // complete zlib bytes
+assert_eq!(compression_ratio(b"A", &Zlib).unwrap(), 9.0); // 9 bytes / 1 byte
+assert_eq!(compressed_length(b"", &Zlib).unwrap(), 8);
+assert!(compression_ratio(b"", &Zlib).is_err()); // undefined denominator
+```
+
+`Zlib` fixes miniz_oxide 0.9.1, level 6, a fresh 32 KiB window, and no dictionary.
+It counts output without retaining it. Headers and checksums are included;
+short inputs may expand. This is a compressor-dependent complexity proxy.
+Run `cargo run --locked --features compression-deflate --example compression`.
+See the [definition and history](docs/compression.md),
+[measured baseline](docs/benchmarks/compression.md), and
+[fuzz evidence](docs/fuzzing/compression.md).
 
 ## Public API
 
@@ -370,6 +392,7 @@ are development dependencies only. The lockfile is retained for reproducibility.
 ```sh
 cargo build --locked
 cargo test --locked
+cargo test --locked --all-features
 cargo test --locked --release --test allocations
 cargo fmt --all -- --check
 cargo clippy --locked --all-targets -- -D warnings
@@ -386,6 +409,7 @@ python3 scripts/reference_total_variation.py --check
 python3 scripts/reference_jensen_shannon.py --check
 python3 scripts/reference_subword.py --check
 python3 scripts/reference_lz76.py --check
+python3 scripts/reference_compression.py --check
 cargo bench --locked --bench shannon
 cargo bench --locked --bench shannon_base
 cargo bench --locked --bench hartley
@@ -398,10 +422,11 @@ cargo bench --locked --bench total_variation
 cargo bench --locked --bench jensen_shannon
 cargo bench --locked --bench subword
 cargo bench --locked --bench lz76
+cargo bench --locked --features compression-deflate --bench compression
 ```
 
-Property tests use a fixed seed and 256 cases per property for reproducible
-baseline validation. Regression cases produced by proptest should be retained.
+Property tests use fixed seeds and 256 cases per property (128 for the larger
+compression inputs) for reproducible baseline validation. Regression cases produced by proptest should be retained.
 The independent Python calculation uses exact rational counts and 80-digit
 decimal logarithms for Shannon. Hartley independently counts sets and checks
 all 257 possible byte-support sizes with 80-digit logarithms. Rust tests compare
@@ -434,14 +459,20 @@ inputs, property tests, allocation checks, and a bounded full-profile fuzz targe
 LZ76 adds 1,035 independently generated histories, an exhaustive minimum-production
 oracle, property/allocation tests, and a dedicated fuzz target.
 
+Compression adds hand-parsed stream checks, 27 independently decoded streams,
+128 seeded materialized-stream comparisons, error/empty-input tests, and bounded
+fuzzing. Default and all-feature configurations are validated separately.
+
 The six core entropy measures, n-gram primitives, total variation,
-Jensen–Shannon comparisons, subword complexity, and raw LZ76 complexity are implemented, including explicit Shannon logarithm bases. The [v0.1 readiness review](docs/releases/v0.1-readiness.md)
+Jensen–Shannon comparisons, subword complexity, raw LZ76 complexity, and optional
+compression measurements are implemented, including explicit Shannon logarithm bases. The [v0.1 readiness review](docs/releases/v0.1-readiness.md)
 records passing validation and remaining release-scope decisions. Dedicated fuzz
 campaigns, 100 MiB entropy benchmarks, and controlled peak-memory measurements
 now supplement the property tests. Publishing stays disabled until the remaining
 release gates are resolved.
 Development now prioritizes breadth across categories, with total variation and
-Jensen–Shannon comparisons followed by subword and LZ76 complexity for sequence structure. Joint distributions and additional entropies are deferred; other
+Jensen–Shannon comparisons followed by subword and LZ76 complexity for sequence structure, then optional
+compression length and ratio. Joint distributions and additional entropies are deferred; other
 metrics, a CLI, and bindings remain future work.
 
 ## License

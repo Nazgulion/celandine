@@ -1,0 +1,75 @@
+{
+  "versions": {
+    "rustc": "rustc 1.92.0-nightly (2aaa62b89 2025-10-24)\nbinary: rustc\ncommit-hash: 2aaa62b89d22b570e560731b03e3d2d6f5c3bbce\ncommit-date: 2025-10-24\nhost: x86_64-unknown-linux-gnu\nrelease: 1.92.0-nightly\nLLVM version: 21.1.3",
+    "cargo_fuzz": "cargo-fuzz 0.13.1"
+  },
+  "runs_per_target": 100000,
+  "seed": 20260920,
+  "targets": {
+    "compression": {
+      "command": [
+        "cargo",
+        "fuzz",
+        "run",
+        "compression",
+        "$REPO/fuzz/runs/campaign-70l23x66/compression",
+        "--",
+        "-seed=20260920",
+        "-runs=100000",
+        "-max_len=65536",
+        "-timeout=10",
+        "-rss_limit_mb=2048",
+        "-artifact_prefix=$REPO/fuzz/runs/campaign-70l23x66/compression-artifacts/"
+      ],
+      "starting_corpus_sha256": {
+        "constant.bin": "156c38442089c1323d3e3ba549a6ac24341c47e8b6367bec4740c9b8c865826e",
+        "empty.bin": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "late_novelty.bin": "596e2827b0c4d0bcd46ffbcaf835cd623a4d4eec7bdaf2168b1544f978a83bf6",
+        "mixed.bin": "a0d38ac843ccea9448b6013777b4a8cc0e10297b85e1b822227518566e06af85",
+        "short.bin": "d40442ca542e9c04f957a1fced9e9727391c2d2bf1458228d4d534a031e3c277",
+        "single.bin": "559aead08264d5795d3909718cdd05abd49572e84fe55590eef31a88a08fdffd",
+        "window.bin": "e11360251d1173650cdcd20f111d8f1ca2e412f572e8b36a4dc067121c1799b8",
+        "window_after.bin": "dc86a0c2db5684033ad5ec62d989925168bd5c1b9614b7c4ef19b1226bd2be50",
+        "window_before.bin": "e84d364d3f83a9061d69352c30db58ba951dd51601258a356caa19f8f1e41293"
+      },
+      "exit_code": 0
+    }
+  },
+  "commit": "f30cd445b343375cee3b9dce69c93d5fdf2171f9",
+  "source_sha256": {
+    "src/complexity/lz76.rs": "09c08e6ea32ccfb425b006033e720e0c244104e138a3ef20bcd168020265dab9",
+    "src/complexity/mod.rs": "8437a4fff9b752c013258c7b1d1b9c164995cbe8fbefe588b60a177542b74d5c",
+    "src/compression/deflate.rs": "ceeb5b317b142ea6875b2bcef0b4f6a71b77de87c9ae9236c362b1e676b2a260",
+    "src/compression/mod.rs": "8ca25a7a557e08f02cacb091193e68aee5d6eea200ce9c2b071c3d65e18561d7",
+    "src/distribution/counts.rs": "3f6f0919c7e00e350b8e82d42c78afd2d289c10f0b01543b9d38564467c24a03",
+    "src/distribution/mod.rs": "8d0cee38fbb9c48aa8e48ed99d5f72052676dd85dbb295a78bbd8f9da6d58e3b",
+    "src/distribution/ngrams.rs": "cc3579319605c33588843a2038b2c8fba75e6ee7ab28fd06a2f59b6c24ec1fc3",
+    "src/distribution/probability.rs": "4c50e5e8c18a5a37302448a95e371cb6411bbd230c590e29c9952c8f9335085e",
+    "src/divergence/jensen_shannon.rs": "5c884fe70a4f96432c52a3a3eb6fcd9df4c04f71d032383fc3b563a087b38716",
+    "src/divergence/mod.rs": "cd5ea955711689a5ed1b077387986f08fd21cc1874681529c2d72ff54e70fd5f",
+    "src/divergence/total_variation.rs": "23e79a3cb364772c11de533742f74452c0a756a7f5bf65c721bb73f07bdd77dd",
+    "src/entropy/collision.rs": "1395d7d96b37e015169fda13c8fed5576730d36a86d0272e78fa74c51140dbb0",
+    "src/entropy/hartley.rs": "25c107590af852c8ed8b20771deac9b592601dc0b214fa48485ffb991c475a40",
+    "src/entropy/min_entropy.rs": "bb2be6a80d7f3f247e1f114bfe89aa10cf53f1a703d885262aa7d9405f08499b",
+    "src/entropy/mod.rs": "527d45ae83b53fa8d027312f078e7ee875a96569edce42efc55bf8f940cf0862",
+    "src/entropy/renyi.rs": "0fb8b293051725fc3f88ddfee706ced52416ffb2b93594bc87ef9a3ac7a50388",
+    "src/entropy/shannon.rs": "4f5853058415e740b50ca3a433088da8cf3d944331d0ab7c556d89a67b3f3bb9",
+    "src/entropy/tsallis.rs": "fe2d36f3e4849f9e614803a38ae797574c1c258977870e8a2836830028d06923",
+    "src/lib.rs": "42d56da07045b1d95f3e388b3d41d7c3101e9a11edd4c27004672feef5d4e982",
+    "src/transforms/mod.rs": "58974b9867d0f94100d6f935c9f71d84d7f0f9e946610e8203824440948c2233",
+    "src/transforms/ngrams.rs": "a43e2c948594ee4e2cb08762d750e3024950bda598258e06010b7282ed7c07c5",
+    "fuzz/src/lib.rs": "bebc07fe03eedb51517397e7e985e43ce6619f421d832af2d66ddaf67baf43c3",
+    "fuzz/fuzz_targets/byte_entropy.rs": "a83116e3d2c9bdb19263f7acf6f4c266d21a9d139bfaa549cffecc5b9a4e7487",
+    "fuzz/fuzz_targets/compression.rs": "511396c44e305cc96314ac0594eb2f1d437e690433d1f39990765677eb433624",
+    "fuzz/fuzz_targets/count_entropy.rs": "640087747f4cca1e55b3f00445a02a48933095209ac3beaa83674807f32edc5a",
+    "fuzz/fuzz_targets/jensen_shannon.rs": "1258b5c58959873ae06a4fa14f27a3359d15bac09aa427a2d1b6da2c0f1148ba",
+    "fuzz/fuzz_targets/lz76.rs": "e5eaf11b11ec572910607d0606f6a1ec8fd8283a8ca1effd16311b5bee059e12",
+    "fuzz/fuzz_targets/ngrams.rs": "a470280750902ed510be4529f3705cd58e624e33c35136d1082eb4f9e4ea2ae9",
+    "fuzz/fuzz_targets/subword.rs": "5e5cc825145c685e6da525c15123cc80c135b1c8a8cdffbdcbace45efe90e614",
+    "fuzz/fuzz_targets/total_variation.rs": "d6580ff910e7ea8a55090236f9eb686253ef72bcb8846e879450c40a51617183",
+    "fuzz/Cargo.toml": "aa688c7ebd4dece06d592d22f8a0f059fbe38e82ee6749570872b4b78f5fd0e6",
+    "fuzz/Cargo.lock": "cfe25354ab858018648c807179ece5fa23308be0a09cbcf1fcdcc22f597034b0",
+    "scripts/fuzz_campaign.py": "c8476f32d9d57a20b24edadd22a7cbc29cabca3dbd8b8e5c70a9a7617b332ad5",
+    "scripts/fuzz_seeds.py": "04df3aa060178eff254b85732f10104a58958d24aacb3a0411b3fff96d1d889a"
+  }
+}

@@ -1,6 +1,15 @@
 # Changelog
 
-## Unreleased — entropy, distance, and sequence foundations
+## Unreleased — entropy, distance, sequence, and compression foundations
+
+- Add a dependency-free `Compressor` interface, complete `compressed_length` in
+  bytes, and dimensionless `compression_ratio` with an explicit empty-input error.
+- Add optional `compression-deflate`: pinned miniz_oxide 0.9.1, fixed level-6
+  zlib streams, fresh state, no dictionary, and counted/discarded output.
+- Retain framing/checksum overhead and propagate backend errors. Add independent
+  C-zlib decoding, properties, an example, feature-matrix CI, fuzz coverage,
+  and measured latency and memory evidence.
+
 
 - Add `lz76_complexity` for exhaustive 1976 phrase counts over bytes, including
   overlapping reproduction and a counted final reproducible suffix.

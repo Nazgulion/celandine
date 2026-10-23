@@ -82,3 +82,12 @@ limit and explain the maximum-probability interpretation and verification.
   [DOI](https://doi.org/10.1109/TIT.1976.1055501).
   [LZ76 reference notes](references/lz76.md) identify the exhaustive convention,
   accessible primary expositions, published parses, and independent verification.
+
+## Compression measurements
+
+[Definition and implementation conventions](compression.md). Primary format
+references: Deutsch and Gailly, [RFC 1950 (May 1996)](https://www.rfc-editor.org/rfc/rfc1950),
+and Deutsch, [RFC 1951 (May 1996)](https://www.rfc-editor.org/rfc/rfc1951).
+DEFLATE combines LZ77 and Huffman coding; zlib adds framing and Adler-32.
+The chosen encoder is [miniz_oxide 0.9.1](https://docs.rs/miniz_oxide/0.9.1/).
+See [verification details](references/compression.md).

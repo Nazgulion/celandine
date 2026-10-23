@@ -21,6 +21,7 @@ cargo run --locked --example total_variation
 cargo run --locked --example jensen_shannon
 cargo run --locked --example subword
 cargo run --locked --example lz76
+cargo run --locked --features compression-deflate --example compression
 ```
 
 Edit the byte samples in `examples/shannon.rs`, `examples/hartley.rs`,
@@ -51,7 +52,9 @@ From the repository root:
 ```sh
 cargo fmt --all -- --check
 cargo clippy --locked --all-targets -- -D warnings
+cargo clippy --locked --all-targets --all-features -- -D warnings
 cargo test --locked
+cargo test --locked --all-features
 python3 scripts/reference_shannon.py --check
 python3 scripts/reference_shannon_base.py --check
 python3 scripts/reference_hartley.py --check
@@ -64,7 +67,17 @@ python3 scripts/reference_total_variation.py --check
 python3 scripts/reference_jensen_shannon.py --check
 python3 scripts/reference_subword.py --check
 python3 scripts/reference_lz76.py --check
+python3 scripts/reference_compression.py --check
 ```
+
+Test default and all-feature builds in debug and release. Default consumers must
+retain an empty runtime dependency tree (`cargo tree --locked --edges normal
+--no-default-features`). CI runs top-level examples with all features enabled;
+optional examples and benches declare `required-features` in Cargo.toml.
+The compression reference checker decodes live counted streams with Python C-zlib;
+its oracle checks format validity and reported lengths rather than requiring
+unrelated encoders to choose identical streams. This complements stored fixtures
+for the mathematical metrics.
 
 `cargo test` checks canonical results, mathematical properties, independent
 reference fixtures, documentation examples, and the isolated allocation test.
@@ -79,6 +92,7 @@ For documentation changes, check relevant examples and build the API docs:
 
 ```sh
 RUSTDOCFLAGS='-D warnings' cargo doc --locked --no-deps
+RUSTDOCFLAGS='-D warnings' cargo doc --locked --no-deps --all-features
 ```
 
 Scope checks to the change: prose-only edits do not require new mathematical
@@ -212,6 +226,7 @@ cargo bench --locked --bench total_variation
 cargo bench --locked --bench jensen_shannon
 cargo bench --locked --bench subword
 cargo bench --locked --bench lz76
+cargo bench --locked --features compression-deflate --bench compression
 cargo test --locked --release --test allocations
 ```
 
@@ -250,3 +265,15 @@ toolchain/host details. The first measures 10/100 MiB entropy latency; the secon
 measures requested operation heap and fresh-process RSS separately. CI runs only
 `python3 scripts/measure_memory.py --smoke --repetitions 1` to verify the instrument
 and workflow without treating shared-runner timing or RSS as a performance gate.
+
+For optional zlib latency and heap/RSS measurements run, sequentially:
+
+```sh
+python3 scripts/benchmark_compression.py
+python3 scripts/measure_memory.py --compression
+```
+
+See the [compression baseline](docs/benchmarks/compression.md). The compression
+example explains byte units, the ratio formula, short-input expansion, and empty
+input errors. The separate fuzz workspace enables the optional backend explicitly;
+its dependency choices do not enable it for ordinary library consumers.

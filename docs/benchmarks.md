@@ -95,3 +95,7 @@ and confidence intervals are retained in the CSV.
 
 Allocation checks passed in debug and release: **zero heap allocation calls**
 for the checked paths at every tested size from 0 B to 10 MiB.
+
+Optional compression has a [latency and memory baseline](benchmarks/compression.md)
+covering complete fresh zlib streams, with input buffers outside timing and
+operation heap measurement. Default consumers do not enable this backend.

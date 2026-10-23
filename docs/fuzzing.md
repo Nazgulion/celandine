@@ -7,9 +7,10 @@ miss. Celandine uses LLVM's [libFuzzer](https://llvm.org/docs/LibFuzzer.html),
 through the Rust Fuzz project's [cargo-fuzz](https://rust-fuzz.github.io/book/cargo-fuzz/tutorial.html).
 It complements the independent high-precision fixtures and property tests.
 
-The seven test-only targets live in a separate `fuzz/` Cargo workspace. Their
+The eight test-only targets live in a separate `fuzz/` Cargo workspace. Their
 dependencies and nightly compiler requirements do not affect the public library
-or its Rust 1.90 minimum. No mathematical APIs or runtime dependencies are added.
+or its Rust 1.90 minimum. The fuzz workspace explicitly enables the optional
+compression backend; ordinary consumers retain their own feature selection.
 
 ## Targets and checks
 
@@ -22,6 +23,7 @@ or its Rust 1.90 minimum. No mathematical APIs or runtime dependencies are added
 | `jensen_shannon` | Same three-mode layout as total variation | All four APIs, empty errors, count overflow, symmetry/identity, disjoint support, square-root equivalence, TV bounds, independent pairwise entropy-mixture oracle |
 | `subword` | One little-endian 64-bit length, then up to 64 bytes (72 total) | Scalar and complete profile against sorted explicit slices; empty word, oversized lengths, reversal/relabeling, forward/reverse iteration |
 | `lz76` | Up to 128 raw bytes, no header | Exhaustive count against substring-novelty parsing, integer bounds, bijective renaming, one-symbol extension |
+| `compression` | Up to 65,536 raw bytes, no header | Complete zlib length against materialized encoding, round-trip decoding, ratio formula, and empty error |
 
 LZ76 has fourteen seeds covering empty/single inputs, overlapping constant and
 periodic strings, distinct labels, binary bytes, published examples, late novelty,
@@ -150,3 +152,14 @@ failure artifacts for 14 days, even after a failed campaign. Longer local runs
 remain useful; passing a bounded campaign is not proof of exhaustive input or
 code coverage. Fuzzer RSS includes instrumentation and oracle allocations and
 does not replace the planned library peak-memory benchmarks.
+
+## Optional compression coverage
+
+The separate fuzz workspace enables `compression-deflate`. Its `compression`
+target accepts at most 65,536 raw bytes and checks counted length against a
+materialized stream, decoding, ratio units, and empty-input behavior. Nine seeds
+include empty/single bytes, repetition, diverse data, and 32 KiB boundaries.
+The codec round-trip oracle shares miniz and is supplemented by independent
+C-zlib decoding in `scripts/reference_compression.py --check`.
+Run `python3 scripts/fuzz_campaign.py --target compression --runs 100000`.
+See [the retained campaign](fuzzing/compression.md).

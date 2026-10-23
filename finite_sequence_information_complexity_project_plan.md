@@ -2945,6 +2945,14 @@ LZ76, compression, and other roadmap APIs remain separate future increments.
 overlapping copies and a counted final nonempty suffix. Include the full quality
 workflow. Normalized variants, compression backends, and later APIs remain deferred.
 
+**Next breadth increment (2026-10-23, owner-authorized):** implement a compressor
+interface, compressed length in bytes, and compression ratio with explicit empty
+input behavior. Add one optional pure-Rust zlib/DEFLATE backend with fixed settings,
+complete-stream overhead, and the established documentation, independent checks,
+examples, fuzzing, and measured-performance workflow. Keep default consumers free
+of runtime dependencies. Additional backends, normalized compression distance,
+overhead calibration, normalized LZ76, CLI, and application layers remain deferred.
+
 Do not develop in the order that sounds most exciting.
 
 Use this dependency order:

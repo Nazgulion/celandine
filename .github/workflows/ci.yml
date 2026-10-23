@@ -48,7 +48,9 @@ jobs:
         run: cargo fmt --all -- --check
 
       - name: Lint all targets
-        run: cargo clippy --locked --all-targets -- -D warnings
+        run: |
+          cargo clippy --locked --all-targets -- -D warnings
+          cargo clippy --locked --all-targets --all-features -- -D warnings
 
       - name: Validate fuzz harnesses and replay seeds on stable
         run: |
@@ -57,14 +59,26 @@ jobs:
           python3 scripts/fuzz_seeds.py --check
           cargo test --manifest-path fuzz/Cargo.toml --locked --lib
 
+      - name: Check default runtime dependency boundary
+        run: |
+          python3 - <<'PY'
+          import subprocess
+          tree = subprocess.check_output(["cargo", "tree", "--locked", "--edges", "normal", "--no-default-features", "--prefix", "none"], text=True)
+          assert len(tree.splitlines()) == 1, tree
+          PY
+
       - name: Build library
         run: cargo build --locked
 
       - name: Test debug build
-        run: cargo test --locked
+        run: |
+          cargo test --locked
+          cargo test --locked --all-features
 
       - name: Test release build
-        run: cargo test --locked --release
+        run: |
+          cargo test --locked --release
+          cargo test --locked --all-features --release
 
       - name: Verify independent references
         run: |
@@ -75,19 +89,25 @@ jobs:
       - name: Build documentation
         env:
           RUSTDOCFLAGS: -D warnings
-        run: cargo doc --locked --no-deps
+        run: |
+          cargo doc --locked --no-deps
+          cargo doc --locked --no-deps --all-features
 
       - name: Run examples
         run: |
           for example in examples/*.rs; do
-            cargo run --locked --example "$(basename "$example" .rs)"
+            cargo run --locked --all-features --example "$(basename "$example" .rs)"
           done
 
       - name: Compile benchmark harnesses
-        run: cargo bench --locked --no-run
+        run: |
+          cargo bench --locked --no-run
+          cargo bench --locked --no-run --all-features
 
       - name: Check memory measurement tooling
-        run: python3 scripts/measure_memory.py --smoke --repetitions 1
+        run: |
+          python3 scripts/measure_memory.py --smoke --repetitions 1
+          cargo bench --locked --all-features --bench peak_memory -- --self-check
 
   fuzz:
     name: Fuzz smoke (ASan)

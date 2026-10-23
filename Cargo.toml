@@ -9,6 +9,13 @@ repository = "https://github.com/Nazgulion/celandine"
 readme = "README.md"
 publish = false
 
+[features]
+default = []
+compression-deflate = ["dep:miniz_oxide"]
+
+[dependencies]
+miniz_oxide = { version = "=0.9.1", optional = true, default-features = false, features = ["with-alloc"] }
+
 [dev-dependencies]
 criterion = { version = "0.7", default-features = false, features = ["cargo_bench_support"] }
 proptest = { version = "1.9", default-features = false, features = ["std"] }
@@ -71,3 +78,12 @@ harness = false
 [[bench]]
 name = "lz76"
 harness = false
+
+[[example]]
+name = "compression"
+required-features = ["compression-deflate"]
+
+[[bench]]
+name = "compression"
+harness = false
+required-features = ["compression-deflate"]

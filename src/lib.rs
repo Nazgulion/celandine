@@ -16,6 +16,8 @@
 //! [`complexity::subword_complexity_profile`] lazily covers lengths zero through L.
 //! [`complexity::lz76_complexity`] counts exhaustive LZ76 production phrases
 //! with overlapping copies and a counted final suffix, without heap allocation.
+//! [`compression`] measures complete encoded byte lengths and ratios through a
+//! dependency-free compressor interface; `compression-deflate` enables fixed zlib.
 //! Extraction borrows
 //! the input without allocation; n-gram count tables allocate tree storage.
 //!
@@ -34,6 +36,7 @@
 #![forbid(unsafe_code)]
 
 pub mod complexity;
+pub mod compression;
 pub mod distribution;
 pub mod divergence;
 pub mod entropy;

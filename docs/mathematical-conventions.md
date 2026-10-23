@@ -327,3 +327,13 @@ The result is a raw phrase count, without normalization or source inference.
 Bijective byte renaming preserves it; reversal need not (`AAB` gives 2, `BAA` 3).
 The scalar implementation uses no heap and quadratic worst-case time. See the
 [metric guide](complexity/lz76.md) for formula terms, history, examples, and limits.
+
+## Compression measurements
+
+C(x) is a fresh complete stream length in bytes; R(x) = C(x)/|x| is dimensionless.
+The stream includes framing, checksums, and finalization. Empty length is delegated
+to the backend; empty ratio errors before compression. Ratios can exceed one.
+No overhead subtraction or normalization is implicit. Generic failures preserve
+the backend's error. Optional `Zlib` fixes miniz_oxide 0.9.1, level 6, default
+strategy, a 32 KiB window, and no preset/shared dictionary. See the
+[definition, worked examples, limits, and references](compression.md).
