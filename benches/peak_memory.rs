@@ -4,7 +4,7 @@
 #[path = "support/peak_allocator.rs"]
 mod peak_allocator;
 
-use celandine::complexity::{subword_complexity, subword_complexity_profile};
+use celandine::complexity::{lz76_complexity, subword_complexity, subword_complexity_profile};
 use celandine::distribution::{ByteHistogram, Distribution, ngram_counts, ngram_probabilities};
 use celandine::divergence::{
     jensen_shannon_distance, jensen_shannon_distance_distribution, jensen_shannon_divergence,
@@ -119,6 +119,7 @@ fn run(operation: &str, data: &[u8], n: usize) -> (usize, usize, usize) {
             0
         }
         "entropy" => entropy(data),
+        "lz76" => lz76_complexity(black_box(data)),
         "subword" => subword_complexity(black_box(data), black_box(n)),
         "subword_profile" => subword_complexity_profile(black_box(data))
             .take(black_box(n))
@@ -157,6 +158,10 @@ fn main() {
         assert_eq!(run("reuse", b"ABABA", 2).1, 0);
         assert_eq!(run("total_variation", b"AAAB", 1), (2, 0, 0));
         assert_eq!(run("jensen_shannon", b"AAAB", 1), (2, 0, 0));
+        assert_eq!(run("lz76", b"", 1), (0, 0, 0));
+        assert_eq!(run("lz76", b"A", 1), (1, 0, 0));
+        assert_eq!(run("lz76", b"AAAA", 1), (2, 0, 0));
+        assert_eq!(run("lz76", b"101101011", 1), (5, 0, 0));
         assert_eq!(run("subword", b"ABABA", 0), (1, 0, 0));
         assert_eq!(run("subword", b"ABABA", 1), (2, 0, 0));
         assert_eq!(run("subword", b"ABABA", 5), (1, 0, 0));
@@ -192,6 +197,7 @@ fn main() {
             | "jensen_shannon"
             | "subword"
             | "subword_profile"
+            | "lz76"
     ));
     assert!(matches!(
         shape.as_str(),

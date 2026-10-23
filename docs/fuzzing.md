@@ -7,7 +7,7 @@ miss. Celandine uses LLVM's [libFuzzer](https://llvm.org/docs/LibFuzzer.html),
 through the Rust Fuzz project's [cargo-fuzz](https://rust-fuzz.github.io/book/cargo-fuzz/tutorial.html).
 It complements the independent high-precision fixtures and property tests.
 
-The six test-only targets live in a separate `fuzz/` Cargo workspace. Their
+The seven test-only targets live in a separate `fuzz/` Cargo workspace. Their
 dependencies and nightly compiler requirements do not affect the public library
 or its Rust 1.90 minimum. No mathematical APIs or runtime dependencies are added.
 
@@ -21,6 +21,11 @@ or its Rust 1.90 minimum. No mathematical APIs or runtime dependencies are added
 | `total_variation` | Mode byte: remainder mod 3 selects byte pairs (0), raw counts (1), or bounded counts (2); details below | Empty errors, byte/count equivalence, overflow validation, bounds, exact symmetry/identity, overlap-complement and half-L1 references |
 | `jensen_shannon` | Same three-mode layout as total variation | All four APIs, empty errors, count overflow, symmetry/identity, disjoint support, square-root equivalence, TV bounds, independent pairwise entropy-mixture oracle |
 | `subword` | One little-endian 64-bit length, then up to 64 bytes (72 total) | Scalar and complete profile against sorted explicit slices; empty word, oversized lengths, reversal/relabeling, forward/reverse iteration |
+| `lz76` | Up to 128 raw bytes, no header | Exhaustive count against substring-novelty parsing, integer bounds, bijective renaming, one-symbol extension |
+
+LZ76 has fourteen seeds covering empty/single inputs, overlapping constant and
+periodic strings, distinct labels, binary bytes, published examples, late novelty,
+and reversal-sensitive examples. Results require exact integer equality.
 
 Subword profiling is capped at 64 bytes because all lengths are evaluated.
 Fifteen new seeds include empty headers, zero/oversized lengths, constant,
@@ -86,7 +91,7 @@ The [Rust Fuzz setup guide](https://rust-fuzz.github.io/book/cargo-fuzz/setup.ht
 explains the nightly/sanitizer requirement. The committed fuzz lockfile pins
 `libfuzzer-sys` and transitive dependencies separately from the library lockfile.
 
-Replay the 105 generated seeds plus one retained oracle regression seed with the supported stable compiler:
+Replay the 119 generated seeds plus one retained oracle regression seed with the supported stable compiler:
 
 ```sh
 python3 scripts/fuzz_seeds.py --check
@@ -119,7 +124,7 @@ The [campaign record](fuzzing/initial-campaign.md) records the initial three tar
 the [total variation campaign](fuzzing/total-variation.md) records the fourth target.
 The [Jensen–Shannon campaign](fuzzing/jensen-shannon.md) records the fifth target
 and a fresh TV regression campaign. The [subword campaign](fuzzing/subword.md)
-records the sixth target.
+records the sixth target. The [LZ76 campaign](fuzzing/lz76.md) records the seventh.
 
 ## Failures and continuous integration
 

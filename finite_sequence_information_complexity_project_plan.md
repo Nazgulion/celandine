@@ -2940,6 +2940,11 @@ profile. Count the empty word with `p(0)=1`, reuse the n-gram foundation, and
 retain all documentation, independent validation, and measured-performance gates.
 LZ76, compression, and other roadmap APIs remain separate future increments.
 
+**Next complexity increment (2026-10-23, owner-authorized):** implement raw
+`lz76_complexity` after subword complexity, using exhaustive LZ76 parsing with
+overlapping copies and a counted final nonempty suffix. Include the full quality
+workflow. Normalized variants, compression backends, and later APIs remain deferred.
+
 Do not develop in the order that sounds most exciting.
 
 Use this dependency order:

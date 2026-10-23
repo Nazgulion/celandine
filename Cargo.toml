@@ -67,3 +67,7 @@ harness = false
 [[bench]]
 name = "subword"
 harness = false
+
+[[bench]]
+name = "lz76"
+harness = false

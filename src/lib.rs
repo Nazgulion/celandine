@@ -14,6 +14,8 @@
 //! count-backed n-gram distributions in [`distribution`].
 //! [`complexity::subword_complexity`] counts distinct contiguous blocks exactly;
 //! [`complexity::subword_complexity_profile`] lazily covers lengths zero through L.
+//! [`complexity::lz76_complexity`] counts exhaustive LZ76 production phrases
+//! with overlapping copies and a counted final suffix, without heap allocation.
 //! Extraction borrows
 //! the input without allocation; n-gram count tables allocate tree storage.
 //!

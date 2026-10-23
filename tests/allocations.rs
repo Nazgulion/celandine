@@ -1,6 +1,6 @@
 //! Isolated, single-threaded allocation check; the Rust test harness is disabled.
 
-use celandine::complexity::{subword_complexity, subword_complexity_profile};
+use celandine::complexity::{lz76_complexity, subword_complexity, subword_complexity_profile};
 use celandine::distribution::{ByteHistogram, Distribution};
 use celandine::distribution::{NgramDistribution, ngram_counts, ngram_probabilities};
 use celandine::divergence::{
@@ -89,6 +89,7 @@ fn main() {
     ] {
         let data: Vec<u8> = (0..size).map(|i| i as u8).collect();
         let before = ALLOCATIONS.load(Ordering::Relaxed);
+        black_box(lz76_complexity(black_box(&data))); // Cycling input, including 10 MiB.
         for n in [0, 1, size, size + 1, usize::MAX] {
             black_box(subword_complexity(black_box(&data), black_box(n)));
         }
@@ -249,7 +250,12 @@ fn main() {
             assert_eq!(ALLOCATIONS.load(Ordering::Relaxed) - before, 0);
         }
     }
+    for data in [&b""[..], b"A", b"AAAA", b"101101011", b"010011101101100"] {
+        let before = ALLOCATIONS.load(Ordering::Relaxed);
+        black_box(lz76_complexity(black_box(data)));
+        assert_eq!(ALLOCATIONS.load(Ordering::Relaxed), before);
+    }
     println!(
-        "Allocation checks passed: existing byte metrics and n-gram extraction (0 B–10 MiB), invalid/oversized n-grams, count reuse/queries, and subword fast paths/lazy skipping."
+        "Allocation checks passed: existing byte metrics and n-gram extraction (0 B–10 MiB), invalid/oversized n-grams, count reuse/queries, subword fast paths/lazy skipping, and LZ76."
     );
 }

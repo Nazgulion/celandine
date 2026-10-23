@@ -2,6 +2,10 @@
 //!
 //! Subword complexity counts distinct contiguous blocks, preserving local order.
 //! See [`subword_complexity`] for its definition, history, and limits.
+//! [`lz76_complexity`] counts phrases in an exhaustive left-to-right history.
+
+mod lz76;
+pub use lz76::lz76_complexity;
 
 use crate::distribution::{ByteHistogram, ngram_counts};
 

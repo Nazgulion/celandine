@@ -20,13 +20,15 @@ cargo run --locked --example ngrams
 cargo run --locked --example total_variation
 cargo run --locked --example jensen_shannon
 cargo run --locked --example subword
+cargo run --locked --example lz76
 ```
 
 Edit the byte samples in `examples/shannon.rs`, `examples/hartley.rs`,
 `examples/renyi.rs`, `examples/collision.rs`, `examples/min_entropy.rs`,
 `examples/tsallis.rs`, `examples/ngrams.rs`, `examples/total_variation.rs`,
-`examples/jensen_shannon.rs`, or `examples/subword.rs` and rerun to inspect other inputs.
-The subword example counts distinct blocks and shows lazy profiles.
+`examples/jensen_shannon.rs`, `examples/subword.rs`, or `examples/lz76.rs` and rerun to inspect other inputs.
+The subword example counts distinct blocks and shows lazy profiles; LZ76 explains
+exhaustive production counts and overlapping copies.
 The entropy comparison examples reuse one histogram per sample; Rényi and
 Tsallis also let you change the orders. The n-gram example lets you change the
 block length and reuses its count table to show probabilities. The Shannon
@@ -61,6 +63,7 @@ python3 scripts/reference_ngrams.py --check
 python3 scripts/reference_total_variation.py --check
 python3 scripts/reference_jensen_shannon.py --check
 python3 scripts/reference_subword.py --check
+python3 scripts/reference_lz76.py --check
 ```
 
 `cargo test` checks canonical results, mathematical properties, independent
@@ -97,7 +100,7 @@ cargo test --manifest-path fuzz/Cargo.toml --locked --lib
 After installing the pinned fuzz tools documented there, run
 `python3 scripts/fuzz_campaign.py --runs 100000` for byte entropy, count imports
 with entropy parameters, n-gram operations, total variation/Jensen–Shannon
-comparisons, and bounded subword profiles. Record the seed, limits, toolchain,
+comparisons, bounded subword profiles, and LZ76 counts. Record the seed, limits, toolchain,
 and results. Preserve/minimize failures and add normal independently justified
 regression tests for defects. Fuzzing supplements numerical references and does
 not replace performance measurements.
@@ -194,7 +197,7 @@ applies until the user explicitly changes it.
 
 ## Measure algorithm and performance changes
 
-For the current entropy, n-gram, distance, and subword implementations:
+For the current entropy, n-gram, distance, subword, and LZ76 implementations:
 
 ```sh
 cargo bench --locked --bench shannon
@@ -208,6 +211,7 @@ cargo bench --locked --bench ngrams
 cargo bench --locked --bench total_variation
 cargo bench --locked --bench jensen_shannon
 cargo bench --locked --bench subword
+cargo bench --locked --bench lz76
 cargo test --locked --release --test allocations
 ```
 
@@ -225,8 +229,9 @@ separately when evaluating changes. Follow the
 [n-gram baseline](docs/benchmarks/ngrams.md),
 [Shannon explicit-base baseline](docs/benchmarks/shannon_base.md),
 [total variation baseline](docs/benchmarks/total_variation.md),
-[Jensen–Shannon baseline](docs/benchmarks/jensen_shannon.md), and
-[subword baseline](docs/benchmarks/subword.md).
+[Jensen–Shannon baseline](docs/benchmarks/jensen_shannon.md),
+[subword baseline](docs/benchmarks/subword.md), and
+[LZ76 baseline](docs/benchmarks/lz76.md).
 
 Performance measurements do not establish mathematical correctness. Continue
 to run correctness tests and check allocation promises. Example and prose-only

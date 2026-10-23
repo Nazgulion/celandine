@@ -429,6 +429,43 @@ pub fn subword(input: &[u8]) {
     assert_eq!(p(data, usize::MAX), 0);
 }
 
+/// Up to 128 raw bytes; independent novelty parsing and label invariance.
+pub fn lz76(input: &[u8]) {
+    use celandine::complexity::lz76_complexity as lz;
+    let data = &input[..input.len().min(128)];
+    // Grow candidates until the full block is absent before its last byte.
+    // This does not use the library's longest-match scan over source positions.
+    fn reference(data: &[u8]) -> usize {
+        let mut start = 0;
+        let mut count = 0;
+        while start < data.len() {
+            let mut end = start + 1;
+            while end < data.len()
+                && data[..end - 1]
+                    .windows(end - start)
+                    .any(|w| w == &data[start..end])
+            {
+                end += 1;
+            }
+            count += 1;
+            start = end;
+        }
+        count
+    }
+    let count = lz(data);
+    assert_eq!(count, reference(data));
+    assert!(count <= data.len());
+    if data.len() >= 2 {
+        assert!(count >= 2);
+    }
+    let renamed: Vec<_> = data.iter().map(|b| b ^ 0xa5).collect();
+    assert_eq!(count, lz(&renamed));
+    if !data.is_empty() {
+        let before = lz(&data[..data.len() - 1]);
+        assert!((before..=before + 1).contains(&count));
+    }
+}
+
 #[cfg(test)]
 mod tests {
     #[test]
@@ -440,6 +477,7 @@ mod tests {
             ("total_variation", super::total_variation),
             ("jensen_shannon", super::jensen_shannon),
             ("subword", super::subword),
+            ("lz76", super::lz76),
         ] {
             let directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
                 .join("seeds")

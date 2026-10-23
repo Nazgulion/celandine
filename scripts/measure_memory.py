@@ -21,6 +21,7 @@ def cases(smoke):
     if smoke:
         for operation in ["input", "entropy", "extract", "counts", "probabilities", "reuse", "total_variation", "jensen_shannon"]:
             yield operation, "mixed", 4096, 4
+        yield "lz76", "mixed", 4096, 1
         yield "subword", "mixed", 4096, 4
         yield "subword_profile", "mixed", 64, 65
         return
@@ -56,6 +57,16 @@ def subword_cases():
     yield "subword_profile", "mixed", 100 * MIB, 2
 
 
+def lz76_cases():
+    for shape in ["constant", "uniform", "skewed"]:
+        for size in [10 * MIB, 100 * MIB]:
+            for operation in ["input", "lz76"]:
+                yield operation, shape, size, 1
+    for size in [4096, 16384, 65536]:
+        for operation in ["input", "lz76"]:
+            yield operation, "mixed", size, 1
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--smoke", action="store_true", help="small instrument/workflow check")
@@ -63,13 +74,14 @@ def main():
                         help="measure only TV and input controls at 10/100 MiB")
     parser.add_argument("--jensen-shannon", action="store_true",
                         help="measure only JS and input controls at 10/100 MiB")
+    parser.add_argument("--lz76", action="store_true", help="LZ76 scalar memory with bounded diverse inputs")
     parser.add_argument("--subword", action="store_true", help="subword scalar and bounded profile memory")
     parser.add_argument("--repetitions", type=int, default=3)
     args = parser.parse_args()
     if args.repetitions < 1:
         parser.error("repetitions must be positive")
-    if sum([args.smoke, args.total_variation, args.jensen_shannon, args.subword]) > 1:
-        parser.error("choose one of --smoke, --total-variation, --jensen-shannon, or --subword")
+    if sum([args.smoke, args.total_variation, args.jensen_shannon, args.subword, args.lz76]) > 1:
+        parser.error("choose one of --smoke, --total-variation, --jensen-shannon, --subword, or --lz76")
     if platform.system() != "Linux":
         parser.error("process RSS units and evidence currently target Linux")
     build = subprocess.check_output(["cargo", "bench", "--locked", "--bench", "peak_memory",
@@ -83,7 +95,7 @@ def main():
     output = Path(tempfile.mkdtemp(prefix="peak-memory-", dir=parent))
     metadata = {
         "host": platform.platform(), "repetitions": args.repetitions, "smoke": args.smoke,
-        "subword": args.subword, "total_variation": args.total_variation, "jensen_shannon": args.jensen_shannon,
+        "lz76": args.lz76, "subword": args.subword, "total_variation": args.total_variation, "jensen_shannon": args.jensen_shannon,
         "rustc": subprocess.check_output(["rustc", "-Vv"], text=True),
         "time": subprocess.check_output(["/usr/bin/time", "--version"], text=True),
         "cpu": subprocess.check_output(["lscpu"], text=True),
@@ -104,6 +116,8 @@ def main():
                      for shape in ["constant", "uniform", "skewed", "mixed"]
                      for size in [10 * MIB, 100 * MIB]
                      for operation in ["input", comparison]) if (args.total_variation or args.jensen_shannon) else cases(args.smoke)
+        if args.lz76:
+            workloads = lz76_cases()
         if args.subword:
             workloads = subword_cases()
         for operation, shape, size, n in workloads:
@@ -117,7 +131,7 @@ def main():
                 values, = list(csv.reader(io.StringIO(result.stdout)))
                 assert len(values) == len(FIELDS)
                 row = dict(zip(FIELDS, values))
-                no_heap = (operation in ["input", "entropy", "extract", "reuse", "total_variation", "jensen_shannon"]
+                no_heap = (operation in ["input", "entropy", "extract", "reuse", "total_variation", "jensen_shannon", "lz76"]
                            or (operation == "subword" and (n <= 1 or n >= size))
                            or (operation == "subword_profile" and (n <= 2 or size <= 2)))
                 if no_heap:

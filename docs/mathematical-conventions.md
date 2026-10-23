@@ -313,3 +313,17 @@ Finite profiles need not increase; byte reversal and bijective relabeling preser
 counts but arbitrary reordering need not. Full profiles can be expensive;
 bound the consumed prefix for large inputs. See the [metric guide](complexity/subword.md)
 for history, formula terms, exact bounds, algorithmic costs, and limitations.
+
+## LZ76 complexity
+
+`complexity::lz76_complexity(x)` counts components of the exhaustive Lempel–Ziv
+1976 production history. At each start, copy the longest match beginning earlier,
+then add one new byte unless the input ends. Overlapping copies are allowed.
+Count any remaining reproducible suffix once; append no sentinel or empty phrase.
+`AAAA` gives `A | AAA`, hence 2 phrases. Empty input gives 0, one byte gives 1,
+and nonempty length `N` gives an exact integer in `1..=N` (at least 2 for `N>=2`).
+
+The result is a raw phrase count, without normalization or source inference.
+Bijective byte renaming preserves it; reversal need not (`AAB` gives 2, `BAA` 3).
+The scalar implementation uses no heap and quadratic worst-case time. See the
+[metric guide](complexity/lz76.md) for formula terms, history, examples, and limits.

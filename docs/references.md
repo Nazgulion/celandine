@@ -76,3 +76,9 @@ limit and explain the maximum-probability interpretation and verification.
   [Publisher chapter](https://doi.org/10.1017/CBO9780511777653.005).
   [Subword reference notes](references/subword.md) explain the finite-sample
   convention and independent exact verification.
+
+- Abraham Lempel and Jacob Ziv (1976), *On the Complexity of Finite Sequences*,
+  IEEE Transactions on Information Theory 22(1), 75–81.
+  [DOI](https://doi.org/10.1109/TIT.1976.1055501).
+  [LZ76 reference notes](references/lz76.md) identify the exhaustive convention,
+  accessible primary expositions, published parses, and independent verification.

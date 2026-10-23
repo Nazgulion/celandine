@@ -81,6 +81,14 @@ def seeds():
         yield "subword", name, struct.pack("<Q", n) + data
     yield "subword", "short", b"\xff"
     yield "subword", "raw_empty", b""
+    for name, data in [
+        ("empty", b""), ("single", b"A"), ("two_equal", b"AA"), ("two_distinct", b"AB"),
+        ("overlap", b"AAAA"), ("periodic", b"ABABAB"), ("distinct", bytes(range(128))),
+        ("constant", b"A"*128), ("binary", b"\0\xff"*64), ("mills", b"101101011"),
+        ("estevez_rams", b"010011101101100"), ("late_novelty", b"A"*127+b"B"),
+        ("forward", b"AAB"), ("reverse", b"BAA"),
+    ]:
+        yield "lz76", name, data
     k = 1 << 50
     for offset in [-2, -1, 0, 1, 2]:
         pairs = [(3*k+offset, k), (k, 3*k+offset)]

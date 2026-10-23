@@ -205,3 +205,10 @@ lengths, input controls, and retained readings. For `subword_profile` rows only,
 and `support` is a wrapping checksum of those counts. Scalar rows retain the
 ordinary block-length and support meanings. The small `--smoke` mode now also
 exercises one scalar count and one complete 64-byte profile.
+
+## Subsequent LZ76 workloads
+
+`python3 scripts/measure_memory.py --lz76` measures allocation-free exhaustive
+LZ76 counts, with diverse inputs bounded at 64 KiB and periodic inputs through
+100 MiB. See the [LZ76 baseline](lz76.md). In `lz76` rows, `support` records the
+phrase count; `ngram_length` is unused. The smoke check also exercises LZ76.

@@ -2,6 +2,13 @@
 
 ## Unreleased — entropy, distance, and sequence foundations
 
+- Add `lz76_complexity` for exhaustive 1976 phrase counts over bytes, including
+  overlapping reproduction and a counted final reproducible suffix.
+- Define empty/single-byte behavior and integer units, with constant auxiliary
+  space, no heap allocation, and explicit quadratic worst-case runtime limits.
+- Add worked/published parses, independent histories, a minimum-production
+  oracle, properties, a runnable example, fuzzing, and measured performance.
+
 - Add exact subword complexity for contiguous byte blocks and a lazy profile
   covering lengths zero through the input length, including the empty word.
 - Reuse n-gram counts for interior lengths, with allocation-free fast paths for
