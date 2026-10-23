@@ -256,3 +256,25 @@ alphabets also use exhaustive event sets. There are 148 fixtures including empty
 errors, unequal totals, proportional laws, full supports, and extreme counts.
 Nonzero fixtures use `1e-15` relative tolerance; exact zeros are checked bitwise.
 This tolerance is validation evidence, not a universal correctly-rounded promise.
+
+## Jensen–Shannon comparisons
+
+The implementation avoids subtracting rounded Shannon entropies. For each symbol
+it computes `s/2*g(d)`, where `s=p+q`, `d=|p-q|/s`, and `g` is the positive
+binary entropy gap derived in the [reference notes](references/jensen_shannon.md).
+An exact integer cross-product difference retains tiny gaps between imported
+histograms; floating addition avoids overflowing the cross-product sum. A
+positive power series for `d<=1/2`, `ln_1p` above that threshold, endpoint
+handling, and compensated outer summation limit cancellation.
+
+Proportional laws yield positive zero; disjoint supports yield one. Other
+outputs are not clamped and may slightly exceed the mathematical unit bound.
+Rounding near one can hide a small deficit. The distance is the square root of
+the same computed divergence and inherits its numerical behavior. No universal
+correct-rounding or cross-platform bitwise contract is asserted.
+
+Independent 160-digit references cover 171 pairs, including series-boundary
+neighbors, maximum-width products, differing supports, and tiny nonzero values.
+Nonzero results use `1e-12` relative tolerance. The floating entropy-identity
+oracle uses pairwise summation and `2e-14` absolute tolerance; it cannot validate
+relative error for tiny values, so the high-precision fixtures remain necessary.

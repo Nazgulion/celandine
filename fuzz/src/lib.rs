@@ -303,6 +303,100 @@ pub fn total_variation(input: &[u8]) {
     assert!((actual - direct).abs() <= 1e-14);
 }
 
+/// Mode 0: split word and bytes; modes 1/2: raw/bounded interleaved count pairs.
+pub fn jensen_shannon(input: &[u8]) {
+    use celandine::divergence::{
+        EmptyDistribution, jensen_shannon_distance, jensen_shannon_distance_distribution,
+        jensen_shannon_divergence as js, jensen_shannon_divergence_distribution as js_distribution,
+        total_variation_distance_distribution,
+    };
+    let mode = input.first().copied().unwrap_or(0) % 3;
+    let mut byte_result = None;
+    let (left, right) = if mode == 0 {
+        let data = &input[input.len().min(9)..input.len().min(4105)];
+        let split = (word(input, 1) % (data.len() as u64 + 1)) as usize;
+        let (x, y) = data.split_at(split);
+        byte_result = Some(js(x, y));
+        assert_eq!(js(x, y), js(y, x));
+        assert_eq!(jensen_shannon_distance(x, y), js(x, y).map(f64::sqrt));
+        let counts = |data: &[u8]| {
+            let mut sorted = data.to_vec();
+            sorted.sort_unstable();
+            let mut table = [0usize; 256];
+            for run in sorted.chunk_by(|a, b| a == b) {
+                table[run[0] as usize] = run.len();
+            }
+            table
+        };
+        (counts(x), counts(y))
+    } else {
+        let divisor = if mode == 1 { 1 } else { 512 };
+        (
+            std::array::from_fn(|i| word(input, 1 + 16 * i) as usize / divisor),
+            std::array::from_fn(|i| word(input, 9 + 16 * i) as usize / divisor),
+        )
+    };
+    let n: u128 = left.iter().map(|&c| c as u128).sum();
+    let m: u128 = right.iter().map(|&c| c as u128).sum();
+    let p = ByteHistogram::try_from_counts(left);
+    let q = ByteHistogram::try_from_counts(right);
+    assert_eq!(p.is_ok(), n <= usize::MAX as u128);
+    assert_eq!(q.is_ok(), m <= usize::MAX as u128);
+    let (Ok(p), Ok(q)) = (p, q) else { return };
+    let p = Distribution::from_counts(p);
+    let q = Distribution::from_counts(q);
+    let actual = js_distribution(&p, &q);
+    assert_eq!(
+        jensen_shannon_distance_distribution(&p, &q),
+        actual.map(f64::sqrt)
+    );
+    assert_eq!(actual, js_distribution(&q, &p));
+    if let Some(expected) = byte_result {
+        assert_eq!(actual, expected);
+    }
+    if n == 0 || m == 0 {
+        assert_eq!(actual, Err(EmptyDistribution));
+        return;
+    }
+    let actual = actual.unwrap();
+    assert!((0.0..=1.0 + 1e-14).contains(&actual));
+    assert_eq!(
+        js_distribution(&p, &p).unwrap().to_bits(),
+        0.0_f64.to_bits()
+    );
+    let tv = total_variation_distance_distribution(&p, &q).unwrap();
+    assert!(actual <= tv + 1e-14);
+    assert!(actual + 1e-14 >= tv * tv / (2.0 * LN_2));
+    if tv > 0.0 {
+        assert!(actual > 0.0);
+    }
+    if left.iter().zip(&right).all(|(&a, &b)| a == 0 || b == 0) {
+        assert_eq!(actual, 1.0);
+    }
+    // Independent entropy-of-mixture identity; pairwise summation limits the
+    // oracle's accumulated roundoff. Absolute tolerance is not a tiny-J oracle.
+    let a: Vec<_> = left.iter().map(|&c| c as f64 / n as f64).collect();
+    let b: Vec<_> = right.iter().map(|&c| c as f64 / m as f64).collect();
+    let mixture: Vec<_> = a.iter().zip(&b).map(|(a, b)| (a + b) / 2.0).collect();
+    fn pairwise(values: &[f64]) -> f64 {
+        match values.len() {
+            0 => 0.0,
+            1 => values[0],
+            n => pairwise(&values[..n / 2]) + pairwise(&values[n / 2..]),
+        }
+    }
+    let entropy = |v: &[f64]| {
+        pairwise(
+            &v.iter()
+                .filter(|&&x| x > 0.0)
+                .map(|x| -x * x.ln() / LN_2)
+                .collect::<Vec<_>>(),
+        )
+    };
+    let reference = entropy(&mixture) - (entropy(&a) + entropy(&b)) / 2.0;
+    assert!((actual - reference).abs() <= 2e-14);
+}
+
 #[cfg(test)]
 mod tests {
     #[test]
@@ -312,6 +406,7 @@ mod tests {
             ("count_entropy", super::count_entropy),
             ("ngrams", super::ngrams),
             ("total_variation", super::total_variation),
+            ("jensen_shannon", super::jensen_shannon),
         ] {
             let directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
                 .join("seeds")

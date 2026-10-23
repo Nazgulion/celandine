@@ -59,3 +59,12 @@ limit and explain the maximum-probability interpretation and verification.
   [Author-hosted book](https://pages.uoregon.edu/dlevin/MARKOV/mcmt2e.pdf).
   [Total variation reference notes](references/total_variation.md) document the
   half-L1 convention, exact count derivation, empty errors, and verification.
+
+- Jianhua Lin (1991), *Divergence Measures Based on the Shannon Entropy*, IEEE
+  Transactions on Information Theory 37(1), 145–151.
+  [DOI](https://doi.org/10.1109/18.61115).
+- Dominik M. Endres and Johannes E. Schindelin (2003), *A New Metric for
+  Probability Distributions*, IEEE Transactions on Information Theory 49(7),
+  1858–1860. [DOI](https://doi.org/10.1109/TIT.2003.813506).
+  [Jensen–Shannon reference notes](references/jensen_shannon.md) explain the
+  equal-weight convention, square-root metric, and stable count evaluation.

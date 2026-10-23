@@ -7,7 +7,7 @@ miss. Celandine uses LLVM's [libFuzzer](https://llvm.org/docs/LibFuzzer.html),
 through the Rust Fuzz project's [cargo-fuzz](https://rust-fuzz.github.io/book/cargo-fuzz/tutorial.html).
 It complements the independent high-precision fixtures and property tests.
 
-The four test-only targets live in a separate `fuzz/` Cargo workspace. Their
+The five test-only targets live in a separate `fuzz/` Cargo workspace. Their
 dependencies and nightly compiler requirements do not affect the public library
 or its Rust 1.90 minimum. No mathematical APIs or runtime dependencies are added.
 
@@ -19,6 +19,7 @@ or its Rust 1.90 minimum. No mathematical APIs or runtime dependencies are added
 | `count_entropy` | The same 16-byte header, then up to 256 little-endian 64-bit counts | Count-total overflow against a `u128` sum; accepted distributions through every distribution entropy API, including arbitrary order/base values |
 | `ngrams` | One little-endian 64-bit length, then up to 512 bytes | All three constructors, errors, overlapping positions, forward/reverse iteration, borrowed pointers, counts and probabilities against independently sorted explicit slices, arbitrary queries |
 | `total_variation` | Mode byte: remainder mod 3 selects byte pairs (0), raw counts (1), or bounded counts (2); details below | Empty errors, byte/count equivalence, overflow validation, bounds, exact symmetry/identity, overlap-complement and half-L1 references |
+| `jensen_shannon` | Same three-mode layout as total variation | All four APIs, empty errors, count overflow, symmetry/identity, disjoint support, square-root equivalence, TV bounds, independent pairwise entropy-mixture oracle |
 
 For total variation mode 0, a little-endian u64 split selector follows the mode,
 then at most 4096 bytes; the split is selector modulo `(payload_length+1)`.
@@ -30,6 +31,12 @@ The byte oracle sorts runs independently. The exact overlap complement checks
 tiny distances as well as zeros; a separate compensated floating half-L1 check uses absolute
 `1e-14` tolerance. Fifteen new seeds cover byte pairs, empty states, wide counts,
 overflow, proportional laws, disjoint supports, and unit cross-product gaps.
+
+Jensen–Shannon uses the same decoder layout and 15 base cases, plus five
+series-boundary seeds. Its pairwise entropy-mixture oracle uses absolute
+`2e-14` tolerance; exact zeros, disjoint-support ones, and positivity for different
+laws are checked separately. Relative accuracy for tiny divergence comes from
+160-digit fixtures, not this floating oracle.
 
 Short headers/count words are zero-padded. Trailing input beyond each target's
 limit is ignored. On the supported Linux x86-64 fuzz target, counts and lengths
@@ -73,7 +80,7 @@ The [Rust Fuzz setup guide](https://rust-fuzz.github.io/book/cargo-fuzz/setup.ht
 explains the nightly/sanitizer requirement. The committed fuzz lockfile pins
 `libfuzzer-sys` and transitive dependencies separately from the library lockfile.
 
-Replay the 70 generated seeds plus one retained oracle regression seed with the supported stable compiler:
+Replay the 90 generated seeds plus one retained oracle regression seed with the supported stable compiler:
 
 ```sh
 python3 scripts/fuzz_seeds.py --check
@@ -103,7 +110,9 @@ output directory. These generated files are ignored by Git. Retain the same
 sources, seeds, compiler, dependencies, and flags to reproduce the setup; a fixed
 random seed alone does not promise identical mutation traces across machines.
 The [campaign record](fuzzing/initial-campaign.md) records the initial three targets;
-the [total variation campaign](fuzzing/total-variation.md) records the new target.
+the [total variation campaign](fuzzing/total-variation.md) records the fourth target.
+The [Jensen–Shannon campaign](fuzzing/jensen-shannon.md) records the fifth target
+and a fresh TV regression campaign.
 
 ## Failures and continuous integration
 

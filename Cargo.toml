@@ -59,3 +59,7 @@ harness = false
 [[bench]]
 name = "total_variation"
 harness = false
+
+[[bench]]
+name = "jensen_shannon"
+harness = false

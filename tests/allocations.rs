@@ -2,7 +2,11 @@
 
 use celandine::distribution::{ByteHistogram, Distribution};
 use celandine::distribution::{NgramDistribution, ngram_counts, ngram_probabilities};
-use celandine::divergence::{total_variation_distance, total_variation_distance_distribution};
+use celandine::divergence::{
+    jensen_shannon_distance, jensen_shannon_distance_distribution, jensen_shannon_divergence,
+    jensen_shannon_divergence_distribution, total_variation_distance,
+    total_variation_distance_distribution,
+};
 use celandine::entropy::{
     collision_entropy, collision_entropy_distribution, hartley_entropy,
     hartley_entropy_distribution, min_entropy, min_entropy_distribution, renyi_entropy,
@@ -86,6 +90,43 @@ fn main() {
         );
         assert!(total_variation_distance(black_box(&data), black_box(b"")).is_err());
         assert!(total_variation_distance_distribution(&d, &Distribution::from_bytes(b"")).is_err());
+        assert_eq!(
+            black_box(jensen_shannon_divergence(
+                black_box(&data),
+                black_box(b"AAAB")
+            ))
+            .is_ok(),
+            size > 0
+        );
+        assert_eq!(
+            black_box(jensen_shannon_distance(
+                black_box(&data),
+                black_box(b"AAAB")
+            ))
+            .is_ok(),
+            size > 0
+        );
+        assert_eq!(
+            black_box(jensen_shannon_divergence_distribution(
+                black_box(&d),
+                black_box(&other)
+            ))
+            .is_ok(),
+            size > 0
+        );
+        assert_eq!(
+            black_box(jensen_shannon_distance_distribution(
+                black_box(&d),
+                black_box(&other)
+            ))
+            .is_ok(),
+            size > 0
+        );
+        let empty = Distribution::from_bytes(b"");
+        assert!(jensen_shannon_divergence(black_box(&data), black_box(b"")).is_err());
+        assert!(jensen_shannon_distance(black_box(&data), black_box(b"")).is_err());
+        assert!(jensen_shannon_divergence_distribution(&d, &empty).is_err());
+        assert!(jensen_shannon_distance_distribution(&d, &empty).is_err());
         black_box(d.probabilities().sum::<f64>());
         black_box(d.probability(255));
         black_box(shannon_distribution(black_box(&d)));

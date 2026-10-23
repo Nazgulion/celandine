@@ -8,6 +8,8 @@
 //! Entropy of empty input returns zero by convention. No source model is assumed.
 //! [`divergence::total_variation_distance`] compares byte frequencies in two
 //! nonempty samples, returning a dimensionless distance in `[0, 1]`.
+//! Equal-weight [`divergence::jensen_shannon_divergence`] compares them through
+//! a mixture in bits; [`divergence::jensen_shannon_distance`] returns its square root.
 //! Overlapping byte n-grams are available through [`transforms::ngrams`], with
 //! count-backed n-gram distributions in [`distribution`]. Extraction borrows
 //! the input without allocation; n-gram count tables allocate tree storage.

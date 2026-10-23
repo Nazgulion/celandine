@@ -2,6 +2,15 @@
 
 ## Unreleased — empirical entropy and distance foundations
 
+- Add equal-weight, base-2 Jensen–Shannon divergence and its separately named
+  square-root distance, for byte slices and reusable distributions.
+- Preserve tiny count differences with exact cross products and stable per-symbol
+  evaluation; reject empty laws and handle zero counts without smoothing.
+- Reuse `EmptyDistribution` across comparisons, generalizing its display text
+  while preserving its public path and total variation's calculation.
+- Add high-precision references, metric properties, a runnable example, fuzzing,
+  allocation checks, and measured latency/memory baselines for both APIs.
+
 - Add allocation-free total variation distance for byte samples and reusable
   distributions, with explicit errors for either empty input and support for
   unequal sample sizes.

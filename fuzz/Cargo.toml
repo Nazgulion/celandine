@@ -43,3 +43,10 @@ path = "fuzz_targets/ngrams.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+name = "jensen_shannon"
+path = "fuzz_targets/jensen_shannon.rs"
+test = false
+doc = false
+bench = false

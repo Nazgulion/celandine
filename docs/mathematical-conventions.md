@@ -3,7 +3,7 @@
 The library implements empirical, single-symbol Shannon, Hartley, Rényi, collision,
 min-entropy, and Tsallis entropy for finite byte sequences, plus overlapping
 byte n-grams, their counts, empirical block probabilities, and total variation
-distance between byte distributions. The project plan
+and Jensen–Shannon comparisons between byte distributions. The project plan
 is the architectural specification; later metrics remain future work.
 
 ## Units and arithmetic
@@ -276,3 +276,25 @@ The dimensionless distance is `TV(P,Q) = sum_i |p_i-q_i| / 2`, in `[0,1]`.
 No smoothing, clamping, or source-model inference is applied. Integer products
 and differences precede floating conversion; see the [metric guide](divergence/total_variation.md)
 for the formula's terms, historical context, exactness, costs, and limits.
+
+## Jensen–Shannon divergence and distance
+
+For nonempty byte laws `P,Q`, let `M=(P+Q)/2`. Equal-weight divergence is
+`J=(KL(P||M)+KL(Q||M))/2=H(M)-(H(P)+H(Q))/2` in bits, using base-2 logs.
+A zero numerator contributes zero. Each law has weight one half, independently
+of sample length. Distance is the separately named `sqrt(J)` in square-root-bit
+units. Both have mathematical range `[0,1]`; equal laws return positive zero
+and disjoint supports one. The distance, rather than the divergence, is a metric
+on laws. Input order is discarded, so neither is a metric distinguishing sequences.
+
+Both byte and `_distribution` APIs return `Result<f64, EmptyDistribution>` and
+reject either empty sample, including two empties. The shared error's display
+message now says “comparison requires two nonempty distributions”; its public
+type/path and total variation's mathematical behavior are unchanged. No smoothing,
+pooling by sample size, adjustable weights/bases, or public KL API is introduced.
+
+For `A` versus `AB`, the mixture is `(3/4,1/4)`, so divergence is
+`0.8112781244591328-0.5=0.31127812445913283` bits and distance is about
+`0.5579230452841438`. See the [divergence guide](divergence/jensen_shannon.md)
+and [distance guide](divergence/jensen_shannon_distance.md) for history, formula
+terms, costs, and rounding limits.

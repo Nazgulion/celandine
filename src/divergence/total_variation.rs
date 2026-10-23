@@ -1,20 +1,5 @@
+use super::EmptyDistribution;
 use crate::distribution::Distribution;
-use std::fmt;
-
-/// At least one input has no observations and therefore no probability law.
-///
-/// Total variation requires two nonempty distributions, including when both
-/// inputs are empty. No probabilities are inferred from an empty sample.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct EmptyDistribution;
-
-impl fmt::Display for EmptyDistribution {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("total variation requires two nonempty distributions")
-    }
-}
-
-impl std::error::Error for EmptyDistribution {}
 
 #[doc = include_str!("../../docs/divergence/total_variation.md")]
 pub fn total_variation_distance(x: &[u8], y: &[u8]) -> Result<f64, EmptyDistribution> {

@@ -39,7 +39,7 @@ fn canonical_values_and_empty_errors() {
     let error: &dyn std::error::Error = &EmptyDistribution;
     assert_eq!(
         error.to_string(),
-        "total variation requires two nonempty distributions"
+        "comparison requires two nonempty distributions"
     );
     assert!(error.source().is_none());
 }

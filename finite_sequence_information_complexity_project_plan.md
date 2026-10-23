@@ -2929,6 +2929,11 @@ This overrides the immediate ordering below, while retaining its dependency
 rationale and all per-metric quality gates. Further categories remain separately
 scoped increments rather than authorization to implement the whole roadmap.
 
+**Next breadth increment (2026-10-23, owner-authorized):** after reviewing,
+committing, and pushing total variation, implement equal-weight Jensen–Shannon
+divergence and its separately named square-root distance. Other roadmap items
+remain deferred to their own increments.
+
 Do not develop in the order that sounds most exciting.
 
 Use this dependency order:

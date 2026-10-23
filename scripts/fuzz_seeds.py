@@ -9,7 +9,7 @@ import struct
 ROOT = Path(__file__).resolve().parents[1] / "fuzz" / "seeds"
 
 
-def seeds():
+def base_seeds():
     values = [
         ("zero", 0.0), ("negative_zero", -0.0), ("negative", -1.0),
         ("half", 0.5), ("one_below", math.nextafter(1.0, 0.0)),
@@ -63,6 +63,18 @@ def seeds():
     for target in ["byte_entropy", "count_entropy", "ngrams", "total_variation"]:
         yield target, "short", b"\xff"
         yield target, "raw_empty", b""
+
+
+def seeds():
+    for target, name, data in base_seeds():
+        yield target, name, data
+        if target == "total_variation":
+            yield "jensen_shannon", name, data
+    k = 1 << 50
+    for offset in [-2, -1, 0, 1, 2]:
+        pairs = [(3*k+offset, k), (k, 3*k+offset)]
+        yield "jensen_shannon", f"series_boundary_{offset}", b"\1" + b"".join(
+            struct.pack("<QQ", a, b) for a, b in pairs)
 
 
 def main():
