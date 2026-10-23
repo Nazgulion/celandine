@@ -4,6 +4,7 @@
 #[path = "support/peak_allocator.rs"]
 mod peak_allocator;
 
+use celandine::complexity::{subword_complexity, subword_complexity_profile};
 use celandine::distribution::{ByteHistogram, Distribution, ngram_counts, ngram_probabilities};
 use celandine::divergence::{
     jensen_shannon_distance, jensen_shannon_distance_distribution, jensen_shannon_divergence,
@@ -118,6 +119,10 @@ fn run(operation: &str, data: &[u8], n: usize) -> (usize, usize, usize) {
             0
         }
         "entropy" => entropy(data),
+        "subword" => subword_complexity(black_box(data), black_box(n)),
+        "subword_profile" => subword_complexity_profile(black_box(data))
+            .take(black_box(n))
+            .fold(0usize, usize::wrapping_add),
         "extract" => {
             for block in ngrams(black_box(data), black_box(n)).unwrap() {
                 black_box(block);
@@ -152,6 +157,17 @@ fn main() {
         assert_eq!(run("reuse", b"ABABA", 2).1, 0);
         assert_eq!(run("total_variation", b"AAAB", 1), (2, 0, 0));
         assert_eq!(run("jensen_shannon", b"AAAB", 1), (2, 0, 0));
+        assert_eq!(run("subword", b"ABABA", 0), (1, 0, 0));
+        assert_eq!(run("subword", b"ABABA", 1), (2, 0, 0));
+        assert_eq!(run("subword", b"ABABA", 5), (1, 0, 0));
+        assert_eq!(run("subword", b"ABABA", usize::MAX), (0, 0, 0));
+        let (count, peak, calls) = run("subword", b"ABABA", 2);
+        assert_eq!(count, 2);
+        assert!(peak > 0 && calls > 0);
+        assert_eq!(run("subword_profile", b"ABABA", 2), (3, 0, 0));
+        let (sum, peak, calls) = run("subword_profile", b"ABABA", 6);
+        assert_eq!(sum, 10);
+        assert!(peak > 0 && calls > 0);
         println!(
             "Peak-memory probe self-check passed (allocate, zero, grow, shrink, free, reset, n-grams)."
         );
@@ -174,6 +190,8 @@ fn main() {
             | "reuse"
             | "total_variation"
             | "jensen_shannon"
+            | "subword"
+            | "subword_profile"
     ));
     assert!(matches!(
         shape.as_str(),
@@ -181,7 +199,8 @@ fn main() {
     ));
     let size: usize = args[2].parse().unwrap();
     let n: usize = args[3].parse().unwrap();
-    assert!(size <= 100 * 1024 * 1024 && n > 0);
+    assert!(size <= 100 * 1024 * 1024);
+    assert!(n > 0 || matches!(operation.as_str(), "subword" | "subword_profile"));
     let mut data = input(size, shape);
     // Force writes to each 4 KiB page even for zero-filled buffers, then read all
     // bytes. Input RSS must not be hidden by lazily mapped shared zero pages.

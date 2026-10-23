@@ -1,6 +1,13 @@
 # Changelog
 
-## Unreleased — empirical entropy and distance foundations
+## Unreleased — entropy, distance, and sequence foundations
+
+- Add exact subword complexity for contiguous byte blocks and a lazy profile
+  covering lengths zero through the input length, including the empty word.
+- Reuse n-gram counts for interior lengths, with allocation-free fast paths for
+  zero, one, full, and oversized block lengths; document finite-profile costs.
+- Add independent exact profiles, exhaustive/property tests, allocation checks,
+  a runnable example, bounded fuzzing, and measured latency/memory baselines.
 
 - Add equal-weight, base-2 Jensen–Shannon divergence and its separately named
   square-root distance, for byte slices and reusable distributions.

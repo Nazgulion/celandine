@@ -68,3 +68,11 @@ limit and explain the maximum-probability interpretation and verification.
   1858–1860. [DOI](https://doi.org/10.1109/TIT.2003.813506).
   [Jensen–Shannon reference notes](references/jensen_shannon.md) explain the
   equal-weight convention, square-root metric, and stable count evaluation.
+
+- Marston Morse and Gustav A. Hedlund (1938), *Symbolic Dynamics*, American
+  Journal of Mathematics 60(4), 815–866. [DOI](https://doi.org/10.2307/2371264).
+- Julien Cassaigne and François Nicolas (2010), *Factor complexity*, in
+  *Combinatorics, Automata and Number Theory*, pp. 163–247.
+  [Publisher chapter](https://doi.org/10.1017/CBO9780511777653.005).
+  [Subword reference notes](references/subword.md) explain the finite-sample
+  convention and independent exact verification.

@@ -50,3 +50,10 @@ path = "fuzz_targets/jensen_shannon.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+name = "subword"
+path = "fuzz_targets/subword.rs"
+test = false
+doc = false
+bench = false

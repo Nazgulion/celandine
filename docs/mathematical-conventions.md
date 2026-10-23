@@ -298,3 +298,18 @@ For `A` versus `AB`, the mixture is `(3/4,1/4)`, so divergence is
 `0.5579230452841438`. See the [divergence guide](divergence/jensen_shannon.md)
 and [distance guide](divergence/jensen_shannon_distance.md) for history, formula
 terms, costs, and rounding limits.
+
+## Subword complexity
+
+`complexity::subword_complexity(x, n)` returns the exact integer number of
+contiguous, overlapping, distinct n-byte blocks of sample `x`. Repeated blocks
+count once. The empty word gives `p_x(0)=1` even for empty input; `n > len(x)`
+gives zero. Every `usize` is valid. Raw n-gram APIs still reject zero lengths.
+For `ABABA`, length-two occurrences are `AB,BA,AB,BA`, so the result is 2 blocks.
+
+`subword_complexity_profile(x)` lazily yields lengths `0..=len(x)`, including
+`[1]` for empty input. Its entries are counts, not bits or estimates of a source.
+Finite profiles need not increase; byte reversal and bijective relabeling preserve
+counts but arbitrary reordering need not. Full profiles can be expensive;
+bound the consumed prefix for large inputs. See the [metric guide](complexity/subword.md)
+for history, formula terms, exact bounds, algorithmic costs, and limitations.

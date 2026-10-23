@@ -70,6 +70,17 @@ def seeds():
         yield target, name, data
         if target == "total_variation":
             yield "jensen_shannon", name, data
+    for name, n, data in [
+        ("zero_empty", 0, b""), ("zero_nonempty", 0, b"AB"),
+        ("empty", 1, b""), ("single", 1, b"A"), ("overlap", 2, b"ABABA"),
+        ("constant", 32, b"A" * 64), ("distinct", 2, bytes(range(64))),
+        ("grouped", 2, b"AABB"), ("alternating", 2, b"ABAB"),
+        ("full", 5, b"ABABA"), ("oversized", 6, b"ABABA"),
+        ("huge", (1 << 64)-1, b"AB"), ("binary", 2, b"\0\xff" * 32),
+    ]:
+        yield "subword", name, struct.pack("<Q", n) + data
+    yield "subword", "short", b"\xff"
+    yield "subword", "raw_empty", b""
     k = 1 << 50
     for offset in [-2, -1, 0, 1, 2]:
         pairs = [(3*k+offset, k), (k, 3*k+offset)]

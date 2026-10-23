@@ -1,5 +1,6 @@
 //! Isolated, single-threaded allocation check; the Rust test harness is disabled.
 
+use celandine::complexity::{subword_complexity, subword_complexity_profile};
 use celandine::distribution::{ByteHistogram, Distribution};
 use celandine::distribution::{NgramDistribution, ngram_counts, ngram_probabilities};
 use celandine::divergence::{
@@ -52,11 +53,53 @@ unsafe impl GlobalAlloc for CountingAllocator {
 static ALLOCATOR: CountingAllocator = CountingAllocator;
 
 fn main() {
+    // Regression: skipping must not evaluate discarded block lengths. A Map
+    // adapter ran the counting closure on skipped entries on Rust 1.90.
+    let data = b"ABCDEFGHIJKLMNOP";
+    let before = ALLOCATIONS.load(Ordering::Relaxed);
+    assert_eq!(
+        subword_complexity_profile(black_box(data)).nth(data.len()),
+        Some(1)
+    );
+    assert_eq!(
+        ALLOCATIONS.load(Ordering::Relaxed) - before,
+        0,
+        "profile nth skipping allocated"
+    );
+    assert_eq!(
+        subword_complexity_profile(black_box(data)).nth_back(data.len()),
+        Some(1)
+    );
+    assert_eq!(
+        ALLOCATIONS.load(Ordering::Relaxed) - before,
+        0,
+        "profile nth_back skipping allocated"
+    );
+    assert_eq!(
+        subword_complexity_profile(black_box(data)).nth(usize::MAX),
+        None
+    );
+    assert_eq!(
+        ALLOCATIONS.load(Ordering::Relaxed) - before,
+        0,
+        "exhausted profile skipping allocated"
+    );
     for size in [
         0, 1, 16, 64, 256, 1024, 4096, 16384, 65536, 1048576, 10485760,
     ] {
         let data: Vec<u8> = (0..size).map(|i| i as u8).collect();
         let before = ALLOCATIONS.load(Ordering::Relaxed);
+        for n in [0, 1, size, size + 1, usize::MAX] {
+            black_box(subword_complexity(black_box(&data), black_box(n)));
+        }
+        let profile = subword_complexity_profile(black_box(&data));
+        black_box(profile.len());
+        let _ = black_box(profile.clone());
+        black_box(profile.clone().take(2).sum::<usize>());
+        black_box(profile.clone().nth(size));
+        black_box(profile.clone().nth_back(size));
+        black_box(profile.clone().nth(usize::MAX));
+        black_box(profile.rev().take(1).sum::<usize>());
         for n in [1, 2, 8, size.max(1), usize::MAX] {
             for block in ngrams(black_box(&data), black_box(n)).unwrap() {
                 black_box(block);
@@ -207,6 +250,6 @@ fn main() {
         }
     }
     println!(
-        "Allocation checks passed: existing byte metrics and n-gram extraction (0 B–10 MiB), invalid/oversized n-grams, and count reuse/queries."
+        "Allocation checks passed: existing byte metrics and n-gram extraction (0 B–10 MiB), invalid/oversized n-grams, count reuse/queries, and subword fast paths/lazy skipping."
     );
 }

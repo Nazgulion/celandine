@@ -195,3 +195,13 @@ instrument's exercised allocation contracts independently of its counters.
 Frequency scaling, core scheduling, allocator behavior, cache state, and other
 machine activity affect both latency and RSS. Confidence intervals describe the
 sampled timings; repeated RSS ranges are observations, not universal bounds.
+
+## Subsequent subword workloads
+
+`python3 scripts/measure_memory.py --subword` measures the subword scalar and
+lazy-profile APIs. The [subword baseline](subword.md) specifies bounded profile
+lengths, input controls, and retained readings. For `subword_profile` rows only,
+`ngram_length` means the number of yielded entries (starting at length zero),
+and `support` is a wrapping checksum of those counts. Scalar rows retain the
+ordinary block-length and support meanings. The small `--smoke` mode now also
+exercises one scalar count and one complete 64-byte profile.

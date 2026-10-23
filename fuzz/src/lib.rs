@@ -397,6 +397,38 @@ pub fn jensen_shannon(input: &[u8]) {
     assert!((actual - reference).abs() <= 2e-14);
 }
 
+/// A little-endian u64 block length followed by at most 64 bytes.
+/// Complete profiles stay bounded; sorted explicit slices independently count blocks.
+pub fn subword(input: &[u8]) {
+    use celandine::complexity::{subword_complexity as p, subword_complexity_profile};
+    let n = word(input, 0) as usize;
+    let data = &input[input.len().min(8)..input.len().min(72)];
+    fn reference(data: &[u8], n: usize) -> usize {
+        if n > data.len() {
+            return 0;
+        }
+        let mut words: Vec<_> = (0..=data.len() - n).map(|i| &data[i..i + n]).collect();
+        words.sort_unstable();
+        words.dedup();
+        words.len()
+    }
+    assert_eq!(p(data, n), reference(data, n));
+    let expected: Vec<_> = (0..=data.len()).map(|n| reference(data, n)).collect();
+    let profile = subword_complexity_profile(data);
+    assert_eq!(profile.len(), data.len() + 1);
+    assert!(profile.clone().eq(expected.iter().copied()));
+    assert_eq!(profile.clone().nth(n), expected.get(n).copied());
+    let from_back = expected.len().checked_sub(n).and_then(|v| v.checked_sub(1));
+    assert_eq!(profile.clone().nth_back(n), from_back.map(|i| expected[i]));
+    assert!(profile.rev().eq(expected.iter().rev().copied()));
+    let reversed: Vec<_> = data.iter().rev().copied().collect();
+    let renamed: Vec<_> = data.iter().map(|b| b ^ 0xa5).collect();
+    assert!(subword_complexity_profile(&reversed).eq(expected.iter().copied()));
+    assert!(subword_complexity_profile(&renamed).eq(expected));
+    assert_eq!(p(data, 0), 1);
+    assert_eq!(p(data, usize::MAX), 0);
+}
+
 #[cfg(test)]
 mod tests {
     #[test]
@@ -407,6 +439,7 @@ mod tests {
             ("ngrams", super::ngrams),
             ("total_variation", super::total_variation),
             ("jensen_shannon", super::jensen_shannon),
+            ("subword", super::subword),
         ] {
             let directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
                 .join("seeds")

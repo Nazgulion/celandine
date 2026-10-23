@@ -2934,6 +2934,12 @@ committing, and pushing total variation, implement equal-weight Jensen–Shannon
 divergence and its separately named square-root distance. Other roadmap items
 remain deferred to their own increments.
 
+**Next sequence increment (2026-10-23, owner-authorized):** after committing
+and pushing Jensen–Shannon, implement subword complexity and its lazy finite
+profile. Count the empty word with `p(0)=1`, reuse the n-gram foundation, and
+retain all documentation, independent validation, and measured-performance gates.
+LZ76, compression, and other roadmap APIs remain separate future increments.
+
 Do not develop in the order that sounds most exciting.
 
 Use this dependency order:

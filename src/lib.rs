@@ -11,7 +11,10 @@
 //! Equal-weight [`divergence::jensen_shannon_divergence`] compares them through
 //! a mixture in bits; [`divergence::jensen_shannon_distance`] returns its square root.
 //! Overlapping byte n-grams are available through [`transforms::ngrams`], with
-//! count-backed n-gram distributions in [`distribution`]. Extraction borrows
+//! count-backed n-gram distributions in [`distribution`].
+//! [`complexity::subword_complexity`] counts distinct contiguous blocks exactly;
+//! [`complexity::subword_complexity_profile`] lazily covers lengths zero through L.
+//! Extraction borrows
 //! the input without allocation; n-gram count tables allocate tree storage.
 //!
 //! ```
@@ -28,6 +31,7 @@
 
 #![forbid(unsafe_code)]
 
+pub mod complexity;
 pub mod distribution;
 pub mod divergence;
 pub mod entropy;

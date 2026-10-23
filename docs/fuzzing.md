@@ -7,7 +7,7 @@ miss. Celandine uses LLVM's [libFuzzer](https://llvm.org/docs/LibFuzzer.html),
 through the Rust Fuzz project's [cargo-fuzz](https://rust-fuzz.github.io/book/cargo-fuzz/tutorial.html).
 It complements the independent high-precision fixtures and property tests.
 
-The five test-only targets live in a separate `fuzz/` Cargo workspace. Their
+The six test-only targets live in a separate `fuzz/` Cargo workspace. Their
 dependencies and nightly compiler requirements do not affect the public library
 or its Rust 1.90 minimum. No mathematical APIs or runtime dependencies are added.
 
@@ -20,6 +20,12 @@ or its Rust 1.90 minimum. No mathematical APIs or runtime dependencies are added
 | `ngrams` | One little-endian 64-bit length, then up to 512 bytes | All three constructors, errors, overlapping positions, forward/reverse iteration, borrowed pointers, counts and probabilities against independently sorted explicit slices, arbitrary queries |
 | `total_variation` | Mode byte: remainder mod 3 selects byte pairs (0), raw counts (1), or bounded counts (2); details below | Empty errors, byte/count equivalence, overflow validation, bounds, exact symmetry/identity, overlap-complement and half-L1 references |
 | `jensen_shannon` | Same three-mode layout as total variation | All four APIs, empty errors, count overflow, symmetry/identity, disjoint support, square-root equivalence, TV bounds, independent pairwise entropy-mixture oracle |
+| `subword` | One little-endian 64-bit length, then up to 64 bytes (72 total) | Scalar and complete profile against sorted explicit slices; empty word, oversized lengths, reversal/relabeling, forward/reverse iteration |
+
+Subword profiling is capped at 64 bytes because all lengths are evaluated.
+Fifteen new seeds include empty headers, zero/oversized lengths, constant,
+alternating, grouped, binary, and distinct-byte samples. Integer results require
+exact equality; this target has no floating-point tolerance.
 
 For total variation mode 0, a little-endian u64 split selector follows the mode,
 then at most 4096 bytes; the split is selector modulo `(payload_length+1)`.
@@ -80,7 +86,7 @@ The [Rust Fuzz setup guide](https://rust-fuzz.github.io/book/cargo-fuzz/setup.ht
 explains the nightly/sanitizer requirement. The committed fuzz lockfile pins
 `libfuzzer-sys` and transitive dependencies separately from the library lockfile.
 
-Replay the 90 generated seeds plus one retained oracle regression seed with the supported stable compiler:
+Replay the 105 generated seeds plus one retained oracle regression seed with the supported stable compiler:
 
 ```sh
 python3 scripts/fuzz_seeds.py --check
@@ -112,7 +118,8 @@ random seed alone does not promise identical mutation traces across machines.
 The [campaign record](fuzzing/initial-campaign.md) records the initial three targets;
 the [total variation campaign](fuzzing/total-variation.md) records the fourth target.
 The [Jensen–Shannon campaign](fuzzing/jensen-shannon.md) records the fifth target
-and a fresh TV regression campaign.
+and a fresh TV regression campaign. The [subword campaign](fuzzing/subword.md)
+records the sixth target.
 
 ## Failures and continuous integration
 
