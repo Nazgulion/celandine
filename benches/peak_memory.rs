@@ -5,6 +5,7 @@
 mod peak_allocator;
 
 use celandine::distribution::{ByteHistogram, Distribution, ngram_counts, ngram_probabilities};
+use celandine::divergence::{total_variation_distance, total_variation_distance_distribution};
 use celandine::entropy::*;
 use celandine::transforms::ngrams;
 use std::hint::black_box;
@@ -71,6 +72,20 @@ fn entropy(data: &[u8]) -> usize {
 }
 
 fn run(operation: &str, data: &[u8], n: usize) -> (usize, usize, usize) {
+    if operation == "total_variation" {
+        // Two overlapping views share the one resident input allocation.
+        let other = &data[data.len().min(1)..];
+        let p = Distribution::from_bytes(data);
+        let q = Distribution::from_bytes(other);
+        return peak_allocator::measure(|| {
+            let _ = black_box(total_variation_distance(black_box(data), black_box(other)));
+            let _ = black_box(total_variation_distance_distribution(
+                black_box(&p),
+                black_box(&q),
+            ));
+            p.support_size()
+        });
+    }
     if operation == "reuse" {
         let d = ngram_probabilities(data, n).unwrap();
         return peak_allocator::measure(|| {
@@ -118,6 +133,7 @@ fn main() {
         assert!(peak > 0 && calls > 0);
         assert_eq!(run("extract", b"ABABA", 2).1, 0);
         assert_eq!(run("reuse", b"ABABA", 2).1, 0);
+        assert_eq!(run("total_variation", b"AAAB", 1), (2, 0, 0));
         println!(
             "Peak-memory probe self-check passed (allocate, zero, grow, shrink, free, reset, n-grams)."
         );
@@ -132,7 +148,7 @@ fn main() {
     let shape = &args[1];
     assert!(matches!(
         operation.as_str(),
-        "input" | "entropy" | "extract" | "counts" | "probabilities" | "reuse"
+        "input" | "entropy" | "extract" | "counts" | "probabilities" | "reuse" | "total_variation"
     ));
     assert!(matches!(
         shape.as_str(),

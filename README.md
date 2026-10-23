@@ -8,9 +8,10 @@ Entropy, information, complexity, and distance for finite sequences.
 
 The library implements **empirical Shannon, Hartley, Rényi, collision, min-entropy,
 and Tsallis entropy over bytes**, plus **overlapping byte n-grams, counts, and
-empirical block probabilities**. It is one Rust library crate, with no runtime
-dependencies and no unsafe library code. Single-byte entropy and n-gram extraction
-allocate no heap memory; n-gram count tables allocate storage for observed blocks.
+empirical block probabilities**, and **total variation distance between byte
+distributions**. It is one Rust library crate, with no runtime dependencies and
+no unsafe library code. Single-byte entropy, total variation, and n-gram
+extraction allocate no heap memory; n-gram count tables allocate storage for observed blocks.
 The broader project plan describes future work, not currently available APIs.
 
 ## What is implemented and why
@@ -26,6 +27,7 @@ The broader project plan describes future work, not currently available APIs.
 | [Collision entropy](docs/entropy/collision.md) | Takes the negative logarithm of the probability that two independent draws match. | Measures concentration and gives Rényi order two a dedicated API. |
 | [Min-entropy](docs/entropy/min_entropy.md) | Takes the negative logarithm of the largest probability. | Isolates symbol dominance and gives the infinite-order limit a dedicated API. |
 | [Tsallis entropy](docs/entropy/tsallis.md) | Measures diversity through probability powers with a fixed Shannon-bit scale. | Provides an order-dependent measure with a different composition rule and the Shannon limit at one. |
+| [Total variation distance](docs/divergence/total_variation.md) | Compares byte relative frequencies across two nonempty samples. | Measures composition differences independently of sample length and ordering. |
 | [Validation workflow](CONTRIBUTING.md) | Checks known answers, properties, independent references, and allocations. | Detects mathematical mistakes and regressions. |
 | [Dedicated fuzzing](docs/fuzzing.md) | Mutates byte inputs, counts, parameters, and block lengths with independent checks. | Finds unusual combinations and retains failures for regression testing. |
 | [Continuous integration](.github/workflows/ci.yml) | Runs validation on pushes and pull requests. | Makes regressions visible automatically as the project grows. |
@@ -135,6 +137,27 @@ order two. Tsallis can exceed 8 in this scale and is not generally an average
 code length. Both APIs return `Result<f64, InvalidTsallisOrder>`; negative and
 nonfinite orders are rejected even for empty input.
 
+### Comparing distributions
+
+```rust
+use celandine::distribution::Distribution;
+use celandine::divergence::{total_variation_distance, total_variation_distance_distribution};
+
+assert_eq!(total_variation_distance(b"AAAB", b"AB"), Ok(0.25));
+let p = Distribution::from_bytes(b"AABB");
+let q = Distribution::from_bytes(b"ABAB");
+assert_eq!(total_variation_distance_distribution(&p, &q), Ok(0.0));
+assert!(total_variation_distance(b"", b"AB").is_err());
+```
+
+Total variation is `TV(P,Q) = sum_i |p_i-q_i| / 2`, where `p_i` and `q_i` are
+relative frequencies of byte `i`. It is dimensionless in `[0,1]`: zero for equal
+laws, one for disjoint supports. `AAAB` versus `AB` gives `(1/4+1/4)/2 = 0.25`.
+Sample lengths may differ. Either empty sample returns `EmptyDistribution`,
+including two empty samples, because no empirical probability law exists.
+Exact count arithmetic preserves small differences before the final `f64`
+conversion. See the [definition, history, and limits](docs/divergence/total_variation.md).
+
 ### N-gram foundation
 
 ```rust
@@ -171,6 +194,7 @@ cargo run --locked --example collision
 cargo run --locked --example min_entropy
 cargo run --locked --example tsallis
 cargo run --locked --example ngrams
+cargo run --locked --example total_variation
 ```
 
 Edit the samples in [examples/shannon.rs](examples/shannon.rs) and rerun to see
@@ -211,6 +235,10 @@ and probabilities. `ABABA` at length two has four occurrences and two distinct
 blocks, each with probability `0.5`. It also contrasts `AABB` with `ABAB`, handles
 binary data, and explains empty results and zero-length rejection.
 
+The [total variation example](examples/total_variation.rs) compares unequal sample
+lengths, identical composition with different ordering, disjoint supports, binary
+data, and empty-input errors.
+
 ## Documentation
 
 - [Mathematical conventions](docs/mathematical-conventions.md)
@@ -223,6 +251,9 @@ binary data, and explains empty results and zero-length rejection.
 - [Collision definition and interpretation](docs/entropy/collision.md)
 - [Min-entropy definition and interpretation](docs/entropy/min_entropy.md)
 - [Tsallis definition and interpretation](docs/entropy/tsallis.md)
+- [Total variation definition and interpretation](docs/divergence/total_variation.md)
+- [Total variation reference notes](docs/references/total_variation.md)
+- [Total variation performance and memory baseline](docs/benchmarks/total_variation.md)
 - [Numerical behavior](docs/numerical-behavior.md)
 - [Toolchain, platform, and compatibility policy](docs/support.md)
 - [v0.1 readiness review](docs/releases/v0.1-readiness.md)
@@ -276,6 +307,7 @@ python3 scripts/reference_collision.py --check
 python3 scripts/reference_min_entropy.py --check
 python3 scripts/reference_tsallis.py --check
 python3 scripts/reference_ngrams.py --check
+python3 scripts/reference_total_variation.py --check
 cargo bench --locked --bench shannon
 cargo bench --locked --bench shannon_base
 cargo bench --locked --bench hartley
@@ -284,6 +316,7 @@ cargo bench --locked --bench collision
 cargo bench --locked --bench min_entropy
 cargo bench --locked --bench tsallis
 cargo bench --locked --bench ngrams
+cargo bench --locked --bench total_variation
 ```
 
 Property tests use a fixed seed and 256 cases per property for reproducible
@@ -308,13 +341,18 @@ Their absolute error is checked at equivalent bit scale because values near
 base one amplify absolute rounding error; ordinary fixtures also check relative
 accuracy as described in the [numerical notes](docs/entropy/shannon_base.md).
 
-The six core entropy measures and n-gram primitives are implemented, including
-explicit Shannon logarithm bases. The [v0.1 readiness review](docs/releases/v0.1-readiness.md)
+Total variation adds 148 exact-rational fixtures, event-enumeration checks,
+metric properties, and a dedicated fuzz target.
+
+The six core entropy measures, n-gram primitives, and total variation distance
+are implemented, including explicit Shannon logarithm bases. The [v0.1 readiness review](docs/releases/v0.1-readiness.md)
 records passing validation and remaining release-scope decisions. Dedicated fuzz
 campaigns, 100 MiB entropy benchmarks, and controlled peak-memory measurements
 now supplement the property tests. Publishing stays disabled until the remaining
 release gates are resolved.
-Later measures, a CLI, and bindings are future work.
+Development now prioritizes breadth across categories, starting with total
+variation. Joint distributions and additional entropies are deferred; other
+metrics, a CLI, and bindings remain future work.
 
 ## License
 

@@ -225,6 +225,84 @@ pub fn ngrams(input: &[u8]) {
     );
 }
 
+/// Mode 0: split word and bytes; modes 1/2: raw/bounded interleaved count pairs.
+pub fn total_variation(input: &[u8]) {
+    use celandine::divergence::{
+        EmptyDistribution, total_variation_distance as tv,
+        total_variation_distance_distribution as tv_distribution,
+    };
+    let mode = input.first().copied().unwrap_or(0) % 3;
+    let mut byte_result = None;
+    let (left, right) = if mode == 0 {
+        let data = &input[input.len().min(9)..input.len().min(4105)];
+        let split = (word(input, 1) % (data.len() as u64 + 1)) as usize;
+        let (x, y) = data.split_at(split);
+        byte_result = Some(tv(x, y));
+        assert_eq!(tv(x, y), tv(y, x));
+        let counts = |data: &[u8]| {
+            let mut sorted = data.to_vec();
+            sorted.sort_unstable();
+            let mut table = [0usize; 256];
+            for run in sorted.chunk_by(|a, b| a == b) {
+                table[run[0] as usize] = run.len();
+            }
+            table
+        };
+        (counts(x), counts(y))
+    } else {
+        let divisor = if mode == 1 { 1 } else { 512 };
+        (
+            std::array::from_fn(|i| word(input, 1 + 16 * i) as usize / divisor),
+            std::array::from_fn(|i| word(input, 9 + 16 * i) as usize / divisor),
+        )
+    };
+    let n: u128 = left.iter().map(|&c| c as u128).sum();
+    let m: u128 = right.iter().map(|&c| c as u128).sum();
+    let p = ByteHistogram::try_from_counts(left);
+    let q = ByteHistogram::try_from_counts(right);
+    assert_eq!(p.is_ok(), n <= usize::MAX as u128);
+    assert_eq!(q.is_ok(), m <= usize::MAX as u128);
+    let (Ok(p), Ok(q)) = (p, q) else { return };
+    let p = Distribution::from_counts(p);
+    let q = Distribution::from_counts(q);
+    let actual = tv_distribution(&p, &q);
+    assert_eq!(actual, tv_distribution(&q, &p));
+    if let Some(expected) = byte_result {
+        assert_eq!(actual, expected);
+    }
+    if n == 0 || m == 0 {
+        assert_eq!(actual, Err(EmptyDistribution));
+        return;
+    }
+    let actual = actual.unwrap();
+    assert!((0.0..=1.0).contains(&actual));
+    assert_eq!(
+        tv_distribution(&p, &p).unwrap().to_bits(),
+        0.0_f64.to_bits()
+    );
+    // Independent overlap identity, subtracting in integers to retain tiny gaps.
+    let overlap: u128 = left
+        .iter()
+        .zip(&right)
+        .map(|(&a, &b)| ((a as u128) * m).min((b as u128) * n))
+        .sum();
+    let expected = (n * m - overlap) as f64 / (n * m) as f64;
+    assert_eq!(actual, expected);
+    // Independently evaluate half-L1 with compensated summation. An ordinary
+    // 256-term sum can drift beyond the oracle tolerance even when the library
+    // matches the exact rational result (retained regression-oracle-summation).
+    let mut direct = 0.0;
+    let mut correction = 0.0;
+    for (&a, &b) in left.iter().zip(&right) {
+        let term = (a as f64 / n as f64 - b as f64 / m as f64).abs() / 2.0;
+        let adjusted = term - correction;
+        let next = direct + adjusted;
+        correction = (next - direct) - adjusted;
+        direct = next;
+    }
+    assert!((actual - direct).abs() <= 1e-14);
+}
+
 #[cfg(test)]
 mod tests {
     #[test]
@@ -233,6 +311,7 @@ mod tests {
             ("byte_entropy", super::byte_entropy as fn(&[u8])),
             ("count_entropy", super::count_entropy),
             ("ngrams", super::ngrams),
+            ("total_variation", super::total_variation),
         ] {
             let directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
                 .join("seeds")

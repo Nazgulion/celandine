@@ -12,7 +12,8 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
 TOOLCHAIN = "nightly-2025-10-25"
-TARGETS = {"byte_entropy": 4112, "count_entropy": 2064, "ngrams": 520}
+TARGETS = {"byte_entropy": 4112, "count_entropy": 2064, "ngrams": 520,
+           "total_variation": 4105}
 
 
 def positive(value):

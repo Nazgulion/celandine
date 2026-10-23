@@ -17,6 +17,13 @@ libfuzzer-sys = "=0.4.10"
 members = ["."]
 
 [[bin]]
+name = "total_variation"
+path = "fuzz_targets/total_variation.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
 name = "byte_entropy"
 path = "fuzz_targets/byte_entropy.rs"
 test = false

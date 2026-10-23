@@ -2,7 +2,8 @@
 
 The library implements empirical, single-symbol Shannon, Hartley, Rényi, collision,
 min-entropy, and Tsallis entropy for finite byte sequences, plus overlapping
-byte n-grams, their counts, and empirical block probabilities. The project plan
+byte n-grams, their counts, empirical block probabilities, and total variation
+distance between byte distributions. The project plan
 is the architectural specification; later metrics remain future work.
 
 ## Units and arithmetic
@@ -259,3 +260,19 @@ with them; other bases divide that same result by `log2(base)`. Empty and consta
 inputs return positive zero after base validation. Other entropy families retain
 their current scales. See [Shannon units](entropy/shannon_base.md) for historical
 context, validation, complexity, and numerical limits.
+
+## Total variation distance
+
+`divergence::total_variation_distance(x, y)` and
+`divergence::total_variation_distance_distribution(p, q)` return
+`Result<f64, EmptyDistribution>`. Both laws must be nonempty; either empty input,
+including both, is an error. The byte wrapper validates before counting.
+Different positive sample sizes are allowed; bytes are compared by shared label,
+not paired by position. Arbitrary probability vectors are not accepted.
+
+The dimensionless distance is `TV(P,Q) = sum_i |p_i-q_i| / 2`, in `[0,1]`.
+`AAAB` and `AB` have probabilities `(3/4,1/4)` and `(1/2,1/2)`, hence TV is
+`(1/4+1/4)/2 = 0.25`. Equal laws return positive zero; disjoint supports give one.
+No smoothing, clamping, or source-model inference is applied. Integer products
+and differences precede floating conversion; see the [metric guide](divergence/total_variation.md)
+for the formula's terms, historical context, exactness, costs, and limits.

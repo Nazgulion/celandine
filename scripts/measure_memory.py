@@ -19,7 +19,7 @@ FIELDS = ["operation", "shape", "input_bytes", "ngram_length", "support",
 
 def cases(smoke):
     if smoke:
-        for operation in ["input", "entropy", "extract", "counts", "probabilities", "reuse"]:
+        for operation in ["input", "entropy", "extract", "counts", "probabilities", "reuse", "total_variation"]:
             yield operation, "mixed", 4096, 4
         return
     for shape in ["constant", "uniform", "skewed", "mixed"]:
@@ -39,10 +39,14 @@ def cases(smoke):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--smoke", action="store_true", help="small instrument/workflow check")
+    parser.add_argument("--total-variation", action="store_true",
+                        help="measure only TV and input controls at 10/100 MiB")
     parser.add_argument("--repetitions", type=int, default=3)
     args = parser.parse_args()
     if args.repetitions < 1:
         parser.error("repetitions must be positive")
+    if args.smoke and args.total_variation:
+        parser.error("choose either --smoke or --total-variation")
     if platform.system() != "Linux":
         parser.error("process RSS units and evidence currently target Linux")
     build = subprocess.check_output(["cargo", "bench", "--locked", "--bench", "peak_memory",
@@ -56,6 +60,7 @@ def main():
     output = Path(tempfile.mkdtemp(prefix="peak-memory-", dir=parent))
     metadata = {
         "host": platform.platform(), "repetitions": args.repetitions, "smoke": args.smoke,
+        "total_variation": args.total_variation,
         "rustc": subprocess.check_output(["rustc", "-Vv"], text=True),
         "time": subprocess.check_output(["/usr/bin/time", "--version"], text=True),
         "cpu": subprocess.check_output(["lscpu"], text=True),
@@ -71,7 +76,11 @@ def main():
     with (output / "memory.csv").open("w", newline="") as stream:
         writer = csv.DictWriter(stream, fieldnames=FIELDS + ["repetition", "max_rss_kib"])
         writer.writeheader()
-        for operation, shape, size, n in cases(args.smoke):
+        workloads = ((operation, shape, size, 1)
+                     for shape in ["constant", "uniform", "skewed", "mixed"]
+                     for size in [10 * MIB, 100 * MIB]
+                     for operation in ["input", "total_variation"]) if args.total_variation else cases(args.smoke)
+        for operation, shape, size, n in workloads:
             print(f"Measuring {operation} {shape} {size} B n={n}", flush=True)
             for repetition in range(1, args.repetitions + 1):
                 rss = output / "rss.txt"
@@ -82,7 +91,7 @@ def main():
                 values, = list(csv.reader(io.StringIO(result.stdout)))
                 assert len(values) == len(FIELDS)
                 row = dict(zip(FIELDS, values))
-                if operation in ["input", "entropy", "extract", "reuse"]:
+                if operation in ["input", "entropy", "extract", "reuse", "total_variation"]:
                     assert int(row["peak_heap_bytes"]) == int(row["allocation_calls"]) == 0
                 else:
                     assert int(row["support"]) > 0 and int(row["peak_heap_bytes"]) > 0

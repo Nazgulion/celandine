@@ -2922,6 +2922,13 @@ That is enough for a meaningful v0.1.
 
 # 36. Suggested Development Order
 
+**Implementation priority update (2026-09-20, owner-directed):** prioritize
+breadth across categories. Defer joint distributions and additional entropies;
+implement total variation distance next using the existing byte distributions.
+This overrides the immediate ordering below, while retaining its dependency
+rationale and all per-metric quality gates. Further categories remain separately
+scoped increments rather than authorization to implement the whole roadmap.
+
 Do not develop in the order that sounds most exciting.
 
 Use this dependency order:

@@ -52,3 +52,10 @@ limit and explain the maximum-probability interpretation and verification.
   and [BTreeMap](https://doc.rust-lang.org/std/collections/struct.BTreeMap.html).
   Storage/iterator references for borrowed extraction and sorted counts;
   mathematical and empty-state conventions are documented separately.
+
+- David A. Levin and Yuval Peres, with contributions by Elizabeth L. Wilmer
+  (2017), *Markov Chains and Mixing Times*, second edition, AMS, Chapter 4,
+  Proposition 4.2 and Remark 4.3.
+  [Author-hosted book](https://pages.uoregon.edu/dlevin/MARKOV/mcmt2e.pdf).
+  [Total variation reference notes](references/total_variation.md) document the
+  half-L1 convention, exact count derivation, empty errors, and verification.

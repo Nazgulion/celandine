@@ -234,3 +234,25 @@ test acceptance criteria, not universal guarantees. Very imbalanced larger
 count tables retain the existing Shannon limitation: rounding the dominant
 probability to one loses that symbol's small entropy contribution. Unit
 conversion cannot recover it. The underlying counts remain exact.
+
+## Total variation distance
+
+The distance uses exact count arithmetic instead of subtracting probabilities
+rounded by `Distribution::probability`. For counts `a_i,b_i` and positive totals
+`N,M`, accumulate `max(a_i*M-b_i*N,0)` in `u128`, then divide its `f64` conversion
+by `(N*M) as f64`. The positive sum is bounded by `N*M`; all intermediate values
+fit on 32/64-bit count targets, even when both totals are `usize::MAX`.
+
+Only two integer conversions and one division introduce rounding. Swapping the
+inputs preserves the exact numerator and final bits. Identical or proportional
+laws yield positive zero, disjoint supports yield one, and a positive rational
+distance cannot underflow at these count limits. A distance just below one can
+round to one. No probabilities, distances, or count inputs are silently repaired.
+For `N=2^64-1`, counts `(N-1,1)` versus `(N-2,1)` give distance
+`1/(N*(N-1))`, approximately `2.94e-39`, retained by the integer subtraction.
+
+The independent Python reference evaluates rational half-L1 distance; small
+alphabets also use exhaustive event sets. There are 148 fixtures including empty
+errors, unequal totals, proportional laws, full supports, and extreme counts.
+Nonzero fixtures use `1e-15` relative tolerance; exact zeros are checked bitwise.
+This tolerance is validation evidence, not a universal correctly-rounded promise.

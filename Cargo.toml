@@ -55,3 +55,7 @@ harness = false
 [[bench]]
 name = "peak_memory"
 harness = false
+
+[[bench]]
+name = "total_variation"
+harness = false

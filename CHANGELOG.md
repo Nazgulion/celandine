@@ -1,6 +1,16 @@
 # Changelog
 
-## Unreleased — empirical entropy foundation
+## Unreleased — empirical entropy and distance foundations
+
+- Add allocation-free total variation distance for byte samples and reusable
+  distributions, with explicit errors for either empty input and support for
+  unequal sample sizes.
+- Use exact integer count comparisons before floating conversion to preserve
+  tiny differences, proportional-law zeros, and disjoint-support ones.
+- Add 148 independent rational fixtures, metric/event property tests, an example,
+  dedicated fuzz coverage, and measured paired-input and memory benchmarks.
+- Prioritize breadth across categories at the owner's request; defer joint
+  distributions and additional entropy measures.
 
 - Extend all entropy byte benchmark harnesses to 100 MiB and add a repeatable
   10/100 MiB comparison run that preserves historical baselines.

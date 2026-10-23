@@ -5,7 +5,9 @@
 //! Tsallis entropy uses a fixed scale agreeing with Shannon at order one.
 //! Shannon also accepts explicit logarithm bases greater than one through
 //! [`entropy::shannon_with_base`] and [`entropy::shannon_distribution_with_base`].
-//! Empty input returns zero by convention. No source model is assumed.
+//! Entropy of empty input returns zero by convention. No source model is assumed.
+//! [`divergence::total_variation_distance`] compares byte frequencies in two
+//! nonempty samples, returning a dimensionless distance in `[0, 1]`.
 //! Overlapping byte n-grams are available through [`transforms::ngrams`], with
 //! count-backed n-gram distributions in [`distribution`]. Extraction borrows
 //! the input without allocation; n-gram count tables allocate tree storage.
@@ -25,5 +27,6 @@
 #![forbid(unsafe_code)]
 
 pub mod distribution;
+pub mod divergence;
 pub mod entropy;
 pub mod transforms;

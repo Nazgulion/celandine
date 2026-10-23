@@ -44,7 +44,23 @@ def seeds():
         ("oversized", 6, b"ABABA"), ("huge", maximum, b"AB"),
     ]:
         yield "ngrams", name, struct.pack("<Q", n) + data
-    for target in ["byte_entropy", "count_entropy", "ngrams"]:
+    for name, left, right in [
+        ("worked", b"AAAB", b"AB"), ("equal", b"AABB", b"ABAB"),
+        ("disjoint", b"AAA", b"BB"), ("left_empty", b"", b"AB"),
+        ("right_empty", b"AB", b""),
+        ("maximum_bytes", bytes(range(256)) * 8, bytes(range(255, -1, -1)) * 8),
+    ]:
+        yield "total_variation", name, b"\0" + struct.pack("<Q", len(left)) + left + right
+    for name, pairs in [
+        ("tiny", [(maximum - 1, maximum - 2), (1, 1)]),
+        ("maximum_disjoint", [(maximum, 0), (0, maximum)]),
+        ("scaled", [(3, 9), (1, 3)]), ("count_empty", [(0, 1)]),
+        ("overflow", [(maximum, maximum), (1, 1)]),
+        ("full_support", [(i + 1, 256 - i) for i in range(256)]),
+    ]:
+        yield "total_variation", name, b"\1" + b"".join(struct.pack("<QQ", a, b) for a, b in pairs)
+    yield "total_variation", "bounded_counts", b"\2" + b"\xff" * 4096
+    for target in ["byte_entropy", "count_entropy", "ngrams", "total_variation"]:
         yield target, "short", b"\xff"
         yield target, "raw_empty", b""
 

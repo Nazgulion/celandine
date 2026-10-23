@@ -7,7 +7,7 @@ the roadmap does not authorize implementing later metrics automatically.
 
 ## Explore results
 
-Run the small entropy examples:
+Run the small library examples:
 
 ```sh
 cargo run --locked --example shannon
@@ -17,15 +17,17 @@ cargo run --locked --example collision
 cargo run --locked --example min_entropy
 cargo run --locked --example tsallis
 cargo run --locked --example ngrams
+cargo run --locked --example total_variation
 ```
 
 Edit the byte samples in `examples/shannon.rs`, `examples/hartley.rs`,
 `examples/renyi.rs`, `examples/collision.rs`, `examples/min_entropy.rs`,
-`examples/tsallis.rs`, or `examples/ngrams.rs` and rerun to inspect other inputs.
+`examples/tsallis.rs`, `examples/ngrams.rs`, or `examples/total_variation.rs` and rerun to inspect other inputs.
 The entropy comparison examples reuse one histogram per sample; Rényi and
 Tsallis also let you change the orders. The n-gram example lets you change the
 block length and reuses its count table to show probabilities. The Shannon
-example compares bits, nats, and decimal information units per symbol.
+example compares bits, nats, and decimal information units per symbol. The
+total variation example compares byte compositions and explains empty errors.
 Output appears immediately in the terminal. There is no file watcher or live
 interface; each run computes the current samples once. Display formatting is
 only for readability: the entropy calculation operates on the original bytes.
@@ -52,6 +54,7 @@ python3 scripts/reference_collision.py --check
 python3 scripts/reference_min_entropy.py --check
 python3 scripts/reference_tsallis.py --check
 python3 scripts/reference_ngrams.py --check
+python3 scripts/reference_total_variation.py --check
 ```
 
 `cargo test` checks canonical results, mathematical properties, independent
@@ -87,7 +90,7 @@ cargo test --manifest-path fuzz/Cargo.toml --locked --lib
 
 After installing the pinned fuzz tools documented there, run
 `python3 scripts/fuzz_campaign.py --runs 100000` for byte entropy, count imports
-with entropy parameters, and n-gram operations. Record the seed, limits, toolchain,
+with entropy parameters, n-gram operations, and total variation comparisons. Record the seed, limits, toolchain,
 and results. Preserve/minimize failures and add normal independently justified
 regression tests for defects. Fuzzing supplements numerical references and does
 not replace performance measurements.
@@ -184,7 +187,7 @@ applies until the user explicitly changes it.
 
 ## Measure algorithm and performance changes
 
-For the current entropy and n-gram implementations:
+For the current entropy, n-gram, and distance implementations:
 
 ```sh
 cargo bench --locked --bench shannon
@@ -195,6 +198,7 @@ cargo bench --locked --bench collision
 cargo bench --locked --bench min_entropy
 cargo bench --locked --bench tsallis
 cargo bench --locked --bench ngrams
+cargo bench --locked --bench total_variation
 cargo test --locked --release --test allocations
 ```
 
@@ -210,7 +214,8 @@ separately when evaluating changes. Follow the
 [min-entropy baseline](docs/benchmarks/min_entropy.md),
 [Tsallis baseline](docs/benchmarks/tsallis.md),
 [n-gram baseline](docs/benchmarks/ngrams.md), and
-[Shannon explicit-base baseline](docs/benchmarks/shannon_base.md).
+[Shannon explicit-base baseline](docs/benchmarks/shannon_base.md), and
+[total variation baseline](docs/benchmarks/total_variation.md).
 
 Performance measurements do not establish mathematical correctness. Continue
 to run correctness tests and check allocation promises. Example and prose-only

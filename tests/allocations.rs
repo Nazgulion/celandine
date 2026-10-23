@@ -2,6 +2,7 @@
 
 use celandine::distribution::{ByteHistogram, Distribution};
 use celandine::distribution::{NgramDistribution, ngram_counts, ngram_probabilities};
+use celandine::divergence::{total_variation_distance, total_variation_distance_distribution};
 use celandine::entropy::{
     collision_entropy, collision_entropy_distribution, hartley_entropy,
     hartley_entropy_distribution, min_entropy, min_entropy_distribution, renyi_entropy,
@@ -66,6 +67,25 @@ fn main() {
         black_box(histogram.support_size());
         let reconstructed = ByteHistogram::try_from_counts(*histogram.counts()).unwrap();
         let d = Distribution::from_counts(reconstructed);
+        let other = Distribution::from_bytes(b"AAAB");
+        assert_eq!(
+            black_box(total_variation_distance(
+                black_box(&data),
+                black_box(b"AAAB")
+            ))
+            .is_ok(),
+            size > 0
+        );
+        assert_eq!(
+            black_box(total_variation_distance_distribution(
+                black_box(&d),
+                black_box(&other)
+            ))
+            .is_ok(),
+            size > 0
+        );
+        assert!(total_variation_distance(black_box(&data), black_box(b"")).is_err());
+        assert!(total_variation_distance_distribution(&d, &Distribution::from_bytes(b"")).is_err());
         black_box(d.probabilities().sum::<f64>());
         black_box(d.probability(255));
         black_box(shannon_distribution(black_box(&d)));
