@@ -146,3 +146,6 @@ Performance methodology and retained results are in `docs/benchmarks/ngrams.md`.
   and [BTreeMap](https://doc.rust-lang.org/std/collections/struct.BTreeMap.html).
   These establish iterator and storage behavior; zero-length rejection and
   empty empirical states are Celandine conventions.
+
+For a configurable positive byte stride, use [sliding windows](transforms/windows.md).
+With step one it yields the same positional blocks as `ngrams`.

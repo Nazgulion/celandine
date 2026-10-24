@@ -346,3 +346,11 @@ are encoded normally; two zero individual compressed sizes error. Signed integer
 differences precede floating conversion; results are not clamped, symmetrized or
 forced to zero for identical inputs. Components expose C(x), C(y), C(xy). See
 [the definition, error conventions and limits](compression/ncd.md).
+
+## Sliding windows
+
+`windows(data, size, step)` selects complete byte slices at starts k*step for
+nonnegative integer k. Both parameters must be positive; size zero takes error
+precedence. Empty/undersized input yields none. Reverse traversal preserves the
+forward grid, duplicate occurrences remain, and no tail is padded. See the
+[formula, units and worked examples](transforms/windows.md).

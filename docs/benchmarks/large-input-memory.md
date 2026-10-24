@@ -231,3 +231,11 @@ operation accounting. `ncd_input` controls retain the same two buffers. Three
 repetitions give 96 process readings. `support` records C(xy) bytes; ngram length
 is unused. Concatenation is inside the measured scope, unlike the two resident
 inputs. See [NCD results](ncd.md).
+
+## Sliding windows
+
+`python3 scripts/measure_memory.py --windows` measures width-eight extraction at
+steps 1, 4, 8 and 16 on cycling bytes, at 16 B, 64 KiB, 10 MiB and 100 MiB.
+In these rows only, `ngram_length` stores the step and `support` the number of
+yielded windows. Paired `input` controls share each size/step. See the
+[baseline](windows.md); extraction does not read each window's contents.

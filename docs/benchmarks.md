@@ -102,3 +102,6 @@ operation heap measurement. Default consumers do not enable this backend.
 
 [Ordered NCD performance](benchmarks/ncd.md) measures paired byte inputs and
 component-only normalization, with separate concatenation heap/RSS measurements.
+
+The [sliding-window baseline](benchmarks/windows.md) measures borrowed traversal
+at four strides and constant-time access, with separate allocation and RSS data.

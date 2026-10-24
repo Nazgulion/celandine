@@ -12,6 +12,8 @@
 //! a mixture in bits; [`divergence::jensen_shannon_distance`] returns its square root.
 //! Overlapping byte n-grams are available through [`transforms::ngrams`], with
 //! count-backed n-gram distributions in [`distribution`].
+//! [`transforms::windows`] borrows complete windows at a positive byte width and
+//! stride, with exact length, reverse traversal and constant-time skips.
 //! [`complexity::subword_complexity`] counts distinct contiguous blocks exactly;
 //! [`complexity::subword_complexity_profile`] lazily covers lengths zero through L.
 //! [`complexity::lz76_complexity`] counts exhaustive LZ76 production phrases

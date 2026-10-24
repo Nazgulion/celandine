@@ -53,6 +53,25 @@ unsafe impl GlobalAlloc for CountingAllocator {
 static ALLOCATOR: CountingAllocator = CountingAllocator;
 
 fn main() {
+    use celandine::transforms::windows;
+    let window_data = vec![0; 10 * 1024 * 1024];
+    for width in [0, 1, 8, window_data.len() + 1, usize::MAX] {
+        for step in [0, 1, 4, usize::MAX] {
+            let before = ALLOCATIONS.load(Ordering::Relaxed);
+            if let Ok(iter) = windows(black_box(&window_data), black_box(width), black_box(step)) {
+                black_box(iter.len());
+                black_box(iter.clone().nth(usize::MAX));
+                black_box(iter.clone().nth_back(usize::MAX));
+                black_box(iter.clone().last());
+                black_box(iter.clone().count());
+                for block in iter.take(32) {
+                    black_box(block);
+                }
+            }
+            assert_eq!(ALLOCATIONS.load(Ordering::Relaxed), before);
+        }
+    }
+
     use celandine::compression::{
         CompressionDistanceComponents as Parts, Compressor, compression_distance_components,
         normalized_compression_distance,

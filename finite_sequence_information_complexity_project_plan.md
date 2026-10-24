@@ -2963,6 +2963,12 @@ statistical complexity, block entropy, conditional entropy by order, block-entro
 profiles, joint distributions/entropy, mutual information, and named normalized
 LZ76 variants. Each item requires its own validation/review/commit boundary.
 
+**Next transform increment (2026-10-24, owner-authorized):** implement sliding
+byte windows with explicit positive width and stride, borrowed complete slices,
+fallible zero-parameter validation, and no partial tail. Compose existing metrics
+through iteration; verify, measure, review, commit and push this increment alone.
+Fixed blocks and all later items remain separate increments.
+
 Do not develop in the order that sounds most exciting.
 
 Use this dependency order:

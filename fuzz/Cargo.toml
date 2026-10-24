@@ -79,3 +79,10 @@ path = "fuzz_targets/ncd.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+name = "windows"
+path = "fuzz_targets/windows.rs"
+test = false
+doc = false
+bench = false

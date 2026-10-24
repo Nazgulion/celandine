@@ -159,6 +159,16 @@ fn run(operation: &str, data: &[u8], n: usize) -> (usize, usize, usize) {
         "subword_profile" => subword_complexity_profile(black_box(data))
             .take(black_box(n))
             .fold(0usize, usize::wrapping_add),
+        "windows" => {
+            let mut count = 0;
+            for block in
+                celandine::transforms::windows(black_box(data), black_box(8), black_box(n)).unwrap()
+            {
+                black_box(block);
+                count += 1;
+            }
+            count
+        }
         "extract" => {
             for block in ngrams(black_box(data), black_box(n)).unwrap() {
                 black_box(block);
@@ -190,6 +200,7 @@ fn main() {
         assert_eq!(support, 2);
         assert!(peak > 0 && calls > 0);
         assert_eq!(run("extract", b"ABABA", 2).1, 0);
+        assert_eq!(run("windows", b"ABCDEFGHIJKLMNOP", 4), (3, 0, 0));
         assert_eq!(run("reuse", b"ABABA", 2).1, 0);
         assert_eq!(run("total_variation", b"AAAB", 1), (2, 0, 0));
         assert_eq!(run("jensen_shannon", b"AAAB", 1), (2, 0, 0));
@@ -242,6 +253,7 @@ fn main() {
             | "compression"
             | "ncd"
             | "ncd_input"
+            | "windows"
     ));
     assert!(matches!(
         shape.as_str(),

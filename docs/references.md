@@ -97,3 +97,10 @@ See [verification details](references/compression.md).
 [NCD definition and references](references/ncd.md): Cilibrasi and Vitányi (2005),
 ordered raw concatenation with inspectable sizes, exact-rational arithmetic checks,
 and independent stream decoding.
+
+## Sliding windows
+
+[Window conventions and rationale](transforms/windows.md#background-and-references)
+follow Rust 1.90 slice windows and iterator stride semantics. Independent Python
+position enumeration checks 1,728 cases, including zero validation and maximum
+parameters. This is positional infrastructure, with no historical metric claim.

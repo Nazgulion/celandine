@@ -17,6 +17,7 @@ cargo run --locked --example collision
 cargo run --locked --example min_entropy
 cargo run --locked --example tsallis
 cargo run --locked --example ngrams
+cargo run --locked --example windows
 cargo run --locked --example total_variation
 cargo run --locked --example jensen_shannon
 cargo run --locked --example subword
@@ -63,6 +64,7 @@ python3 scripts/reference_collision.py --check
 python3 scripts/reference_min_entropy.py --check
 python3 scripts/reference_tsallis.py --check
 python3 scripts/reference_ngrams.py --check
+python3 scripts/reference_windows.py --check
 python3 scripts/reference_total_variation.py --check
 python3 scripts/reference_jensen_shannon.py --check
 python3 scripts/reference_subword.py --check
@@ -292,3 +294,19 @@ sequentially. See [NCD performance](docs/benchmarks/ncd.md).
 Run `python3 scripts/test_measure_memory.py` when changing the measurement
 workflow. Its regression test protects historical workload definitions from
 accidentally acquiring the NCD-specific paired control. CI runs it too.
+
+## Sliding windows
+
+Run `cargo run --locked --example windows` and
+`python3 scripts/reference_windows.py --check`. The independent oracle enumerates
+1,728 input/width/stride combinations; stateful tests mix front/back operations
+and skips, including maximum machine integers. Retain the regression for fused
+iteration and bounded extreme skips on Rust 1.90. Allocation checks cover valid
+and invalid construction, traversal, clones and direct access.
+
+Run `python3 scripts/fuzz_campaign.py --target windows --runs 100000`, then
+`python3 scripts/benchmark_windows.py` and
+`python3 scripts/measure_memory.py --windows` sequentially. See
+[window performance](docs/benchmarks/windows.md) and
+[fuzz evidence](docs/fuzzing/windows.md). Run the memory-workload regression check
+when editing measurement scripts; historical operation sets must remain intact.

@@ -2,6 +2,12 @@
 
 ## Unreleased — entropy, distance, sequence, and compression foundations
 
+- Add allocation-free `transforms::windows(data, size, step)` with explicit zero
+  parameter errors, omitted partial tails, exact length, fused forward/reverse
+  iteration, and constant-time skips even at `usize::MAX`.
+- Add positional fixtures, stateful properties, extreme-skip regression tests,
+  local-entropy example, dedicated fuzzing, and latency/heap/RSS measurements.
+
 - Add ordered `normalized_compression_distance`, inspectable compressed sizes,
   and allocation-free normalization of components. Preserve signed differences
   before float conversion; retain nonmetric results and accept empty inputs.

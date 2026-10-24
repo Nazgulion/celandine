@@ -96,3 +96,7 @@ required-features = ["compression-deflate"]
 name = "ncd"
 harness = false
 required-features = ["compression-deflate"]
+
+[[bench]]
+name = "windows"
+harness = false

@@ -529,6 +529,76 @@ pub fn ncd(input: &[u8]) {
     assert_eq!(normalized_compression_distance(x, y, &Zlib).unwrap(), ratio);
 }
 
+/// Three u64 parameters, 32 operation bytes, then at most 256 payload bytes.
+pub fn windows(input: &[u8]) {
+    use celandine::transforms::{InvalidWindowParameters as Invalid, windows};
+    use std::collections::VecDeque;
+    let mut header = [0u8; 56];
+    let n = input.len().min(56);
+    header[..n].copy_from_slice(&input[..n]);
+    let value = |i| u64::from_le_bytes(header[i..i + 8].try_into().unwrap()) as usize;
+    let (width, step, skip) = (value(0), value(8), value(16));
+    let data = input.get(56..).unwrap_or(&[]);
+    let data = &data[..data.len().min(256)];
+    let result = windows(data, width, step);
+    if width == 0 {
+        assert_eq!(result.unwrap_err(), Invalid::ZeroSize);
+        return;
+    }
+    if step == 0 {
+        assert_eq!(result.unwrap_err(), Invalid::ZeroStep);
+        return;
+    }
+    let mut expected: VecDeque<_> = (0..data.len())
+        .filter(|&i| i % step == 0 && width <= data.len() - i)
+        .map(|i| &data[i..i + width])
+        .collect();
+    let mut actual = result.unwrap();
+    assert!(actual.clone().eq(expected.iter().copied()));
+    for &op in &header[24..] {
+        let k = if op & 4 == 0 {
+            usize::from(op >> 3)
+        } else {
+            skip
+        };
+        let wanted = match op % 4 {
+            0 => expected.pop_front(),
+            1 => expected.pop_back(),
+            2 => {
+                if k >= expected.len() {
+                    expected.clear();
+                    None
+                } else {
+                    expected.drain(..k);
+                    expected.pop_front()
+                }
+            }
+            _ => {
+                if k >= expected.len() {
+                    expected.clear();
+                    None
+                } else {
+                    expected.truncate(expected.len() - k);
+                    expected.pop_back()
+                }
+            }
+        };
+        let got = match op % 4 {
+            0 => actual.next(),
+            1 => actual.next_back(),
+            2 => actual.nth(k),
+            _ => actual.nth_back(k),
+        };
+        assert_eq!(got, wanted);
+        if let (Some(got), Some(wanted)) = (got, wanted) {
+            assert_eq!(got.as_ptr(), wanted.as_ptr());
+        }
+        assert_eq!(actual.len(), expected.len());
+        assert_eq!(actual.size_hint(), (expected.len(), Some(expected.len())));
+        assert!(actual.clone().eq(expected.iter().copied()));
+    }
+}
+
 #[cfg(test)]
 mod tests {
     #[test]
@@ -543,6 +613,7 @@ mod tests {
             ("lz76", super::lz76),
             ("compression", super::compression),
             ("ncd", super::ncd),
+            ("windows", super::windows),
         ] {
             let directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
                 .join("seeds")
