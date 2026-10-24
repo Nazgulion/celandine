@@ -2953,6 +2953,16 @@ examples, fuzzing, and measured-performance workflow. Keep default consumers fre
 of runtime dependencies. Additional backends, normalized compression distance,
 overhead calibration, normalized LZ76, CLI, and application layers remain deferred.
 
+**Next reviewed increment (2026-10-24, owner-authorized):** implement ordered NCD
+and inspectable C(x), C(y), C(xy), then test, review, commit and push before taking
+another item. Preserve raw framing, explicit empty/zero-denominator conventions,
+fallible concatenation, and accurate signed size differences. Keep symmetric NCD,
+new compressors and later items out of this increment. The agreed next-item list
+is NCD, sliding windows, fixed blocks, explicitly normalized Jensen–Shannon
+statistical complexity, block entropy, conditional entropy by order, block-entropy
+profiles, joint distributions/entropy, mutual information, and named normalized
+LZ76 variants. Each item requires its own validation/review/commit boundary.
+
 Do not develop in the order that sounds most exciting.
 
 Use this dependency order:

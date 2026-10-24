@@ -53,6 +53,44 @@ unsafe impl GlobalAlloc for CountingAllocator {
 static ALLOCATOR: CountingAllocator = CountingAllocator;
 
 fn main() {
+    use celandine::compression::{
+        CompressionDistanceComponents as Parts, Compressor, compression_distance_components,
+        normalized_compression_distance,
+    };
+    struct Literal;
+    impl Compressor for Literal {
+        type Error = std::convert::Infallible;
+        fn compressed_len(&self, data: &[u8]) -> Result<usize, Self::Error> {
+            Ok(data.len() + 1)
+        }
+    }
+    for (x, y, allocations) in [
+        (b"".as_slice(), b"".as_slice(), 0),
+        (b"", b"A", 0),
+        (b"A", b"", 0),
+        (b"AB", b"CD", 1),
+    ] {
+        let before = ALLOCATIONS.load(Ordering::Relaxed);
+        black_box(normalized_compression_distance(black_box(x), black_box(y), &Literal).unwrap());
+        assert_eq!(ALLOCATIONS.load(Ordering::Relaxed) - before, allocations);
+        let before = ALLOCATIONS.load(Ordering::Relaxed);
+        black_box(compression_distance_components(black_box(x), black_box(y), &Literal).unwrap());
+        assert_eq!(ALLOCATIONS.load(Ordering::Relaxed) - before, allocations);
+    }
+    let before = ALLOCATIONS.load(Ordering::Relaxed);
+    for parts in [
+        Parts { x: 0, y: 0, xy: 0 },
+        Parts { x: 3, y: 3, xy: 5 },
+        Parts {
+            x: usize::MAX,
+            y: usize::MAX,
+            xy: usize::MAX - 1,
+        },
+    ] {
+        let _ = black_box(black_box(parts).normalized_distance());
+    }
+    assert_eq!(ALLOCATIONS.load(Ordering::Relaxed), before);
+
     // Regression: skipping must not evaluate discarded block lengths. A Map
     // adapter ran the counting closure on skipped entries on Rust 1.90.
     let data = b"ABCDEFGHIJKLMNOP";

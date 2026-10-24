@@ -7,7 +7,7 @@ miss. Celandine uses LLVM's [libFuzzer](https://llvm.org/docs/LibFuzzer.html),
 through the Rust Fuzz project's [cargo-fuzz](https://rust-fuzz.github.io/book/cargo-fuzz/tutorial.html).
 It complements the independent high-precision fixtures and property tests.
 
-The eight test-only targets live in a separate `fuzz/` Cargo workspace. Their
+The nine test-only targets live in a separate `fuzz/` Cargo workspace. Their
 dependencies and nightly compiler requirements do not affect the public library
 or its Rust 1.90 minimum. The fuzz workspace explicitly enables the optional
 compression backend; ordinary consumers retain their own feature selection.
@@ -24,6 +24,13 @@ compression backend; ordinary consumers retain their own feature selection.
 | `subword` | One little-endian 64-bit length, then up to 64 bytes (72 total) | Scalar and complete profile against sorted explicit slices; empty word, oversized lengths, reversal/relabeling, forward/reverse iteration |
 | `lz76` | Up to 128 raw bytes, no header | Exhaustive count against substring-novelty parsing, integer bounds, bijective renaming, one-symbol extension |
 | `compression` | Up to 65,536 raw bytes, no header | Complete zlib length against materialized encoding, round-trip decoding, ratio formula, and empty error |
+| `ncd` | Three u64 sizes, a u16 split, up to 1024 bytes | Signed normalization, zero denominator, materialized ordered streams |
+
+NCD uses three little-endian u64 compressed sizes, a little-endian u16 split
+selector, and up to 1024 payload bytes (1050 total). It checks normalization
+against signed i128 arithmetic, materialized zlib sizes and the ordered formula.
+Ten seeds include zero denominators, negative/large values, one-byte gaps at
+usize::MAX, empty inputs and diverse bytes. See [the campaign](fuzzing/ncd.md).
 
 LZ76 has fourteen seeds covering empty/single inputs, overlapping constant and
 periodic strings, distinct labels, binary bytes, published examples, late novelty,

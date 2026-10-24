@@ -277,3 +277,18 @@ See the [compression baseline](docs/benchmarks/compression.md). The compression
 example explains byte units, the ratio formula, short-input expansion, and empty
 input errors. The separate fuzz workspace enables the optional backend explicitly;
 its dependency choices do not enable it for ordinary library consumers.
+
+## Ordered normalized compression distance
+
+Run `cargo run --locked --features compression-deflate --example ncd` and
+`python3 scripts/reference_ncd.py --check`. The checker verifies 542 exact-rational
+component triples plus 14 live zlib pairs through an independent C-zlib decoder.
+Byte-pair tests cover raw order, empty inputs, backend errors, and buffer boundaries;
+allocation checks cover concatenation and allocation-free component normalization.
+Run `python3 scripts/fuzz_campaign.py --target ncd --runs 100000`, then measure
+`python3 scripts/benchmark_ncd.py` and `python3 scripts/measure_memory.py --ncd`
+sequentially. See [NCD performance](docs/benchmarks/ncd.md).
+
+Run `python3 scripts/test_measure_memory.py` when changing the measurement
+workflow. Its regression test protects historical workload definitions from
+accidentally acquiring the NCD-specific paired control. CI runs it too.

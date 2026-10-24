@@ -337,3 +337,12 @@ No overhead subtraction or normalization is implicit. Generic failures preserve
 the backend's error. Optional `Zlib` fixes miniz_oxide 0.9.1, level 6, default
 strategy, a 32 KiB window, and no preset/shared dictionary. See the
 [definition, worked examples, limits, and references](compression.md).
+
+## Ordered NCD
+
+NCD(x,y) = [C(xy)-min(C(x),C(y))]/max(C(x),C(y)), in dimensionless units,
+uses fresh complete streams and raw left-then-right concatenation. Empty inputs
+are encoded normally; two zero individual compressed sizes error. Signed integer
+differences precede floating conversion; results are not clamped, symmetrized or
+forced to zero for identical inputs. Components expose C(x), C(y), C(xy). See
+[the definition, error conventions and limits](compression/ncd.md).

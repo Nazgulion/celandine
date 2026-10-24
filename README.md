@@ -9,7 +9,7 @@ Entropy, information, complexity, and distance for finite sequences.
 The library implements **empirical Shannon, Hartley, Rényi, collision, min-entropy,
 and Tsallis entropy over bytes**, plus **overlapping byte n-grams, counts, and
 empirical block probabilities**, and **total variation distance between byte
-distributions**, plus **Jensen–Shannon divergence and distance**, and **subword complexity and LZ76 complexity**, plus **optional compression measurements**.
+distributions**, plus **Jensen–Shannon divergence and distance**, and **subword complexity and LZ76 complexity**, plus **optional compression measurements and ordered normalized compression distance**.
 It is one Rust library crate, with no runtime dependencies by default and
 no unsafe library code. Feature `compression-deflate` adds a pinned pure-Rust
 zlib encoder; the compressor interface itself stays dependency-free. Single-byte entropy, implemented distribution comparisons, and n-gram
@@ -35,6 +35,7 @@ The broader project plan describes future work, not currently available APIs.
 | [Subword complexity](docs/complexity/subword.md) | Counts distinct contiguous blocks at a chosen byte length, with a lazy profile across lengths. | Reveals order-dependent pattern diversity without a probability model. |
 | [LZ76 complexity](docs/complexity/lz76.md) | Counts exhaustive production phrases with overlapping copies. | Describes sequential novelty beyond byte frequencies. |
 | [Compression measurements](docs/compression.md) | Counts complete encoded bytes and divides by input length; optional fixed zlib backend. | Measures encoder-specific compressibility, including overhead and sequential repetition. |
+| [Normalized compression distance](docs/compression/ncd.md) | Compares separate and concatenated encoded sizes. | Reveals compressor-detected shared structure with inspectable components and explicit order effects. |
 | [Validation workflow](CONTRIBUTING.md) | Checks known answers, properties, independent references, and allocations. | Detects mathematical mistakes and regressions. |
 | [Dedicated fuzzing](docs/fuzzing.md) | Mutates byte inputs, counts, parameters, and block lengths with independent checks. | Finds unusual combinations and retains failures for regression testing. |
 | [Continuous integration](.github/workflows/ci.yml) | Runs validation on pushes and pull requests. | Makes regressions visible automatically as the project grows. |
@@ -64,6 +65,26 @@ Run `cargo run --locked --features compression-deflate --example compression`.
 See the [definition and history](docs/compression.md),
 [measured baseline](docs/benchmarks/compression.md), and
 [fuzz evidence](docs/fuzzing/compression.md).
+
+## Normalized compression distance
+
+The dependency-free interface accepts any `Compressor`; enable `compression-deflate`
+for this zlib example:
+
+```rust
+use celandine::compression::{Zlib, compression_distance_components, normalized_compression_distance};
+let parts = compression_distance_components(b"", b"A", &Zlib).unwrap();
+assert_eq!((parts.x, parts.y, parts.xy), (8, 9, 9));
+assert_eq!(parts.normalized_distance().unwrap(), 1.0 / 9.0);
+assert_eq!(normalized_compression_distance(b"", b"", &Zlib).unwrap(), 0.0);
+```
+
+NCD = `[C(xy) - min(C(x), C(y))] / max(C(x), C(y))`, a dimensionless proxy.
+The order is left then right, with no separator. Results are not clamped or forced
+symmetric; two zero compressed sizes cause an error. A temporary concatenation
+buffer costs O(|x|+|y|) space when both inputs are nonempty. See the
+[definition, history, examples, and limits](docs/compression/ncd.md).
+Run `cargo run --locked --features compression-deflate --example ncd`.
 
 ## Public API
 

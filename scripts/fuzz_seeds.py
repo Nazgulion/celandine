@@ -105,6 +105,17 @@ def seeds():
         state ^= (state << 17) & ((1 << 64)-1)
         data.append(state >> 56)
     yield "compression", "mixed", bytes(data)
+    for name, a, b, c, split, data in [
+        ("empty",0,0,0,0,b""), ("zero_denominator",0,0,1,0,b"A"),
+        ("negative",10,10,5,2,b"ABAB"), ("above_one",1,1,10,1,b"AB"),
+        ("unit_gap",2**64-1,2**64-1,2**64-2,1,b"AA"),
+        ("large_positive",1,1,2**64-1,2,b"\0\xff\0"),
+        ("constant",3,3,5,128,b"A"*1024),
+        ("mixed",5,3,8,255,bytes(range(256))*4),
+    ]:
+        yield "ncd",name,struct.pack("<QQQH",a,b,c,split)+data
+    yield "ncd","short",b"\xff"
+    yield "ncd","raw_empty",b""
     k = 1 << 50
     for offset in [-2, -1, 0, 1, 2]:
         pairs = [(3*k+offset, k), (k, 3*k+offset)]

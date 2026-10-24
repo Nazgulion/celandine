@@ -91,3 +91,9 @@ and Deutsch, [RFC 1951 (May 1996)](https://www.rfc-editor.org/rfc/rfc1951).
 DEFLATE combines LZ77 and Huffman coding; zlib adds framing and Adler-32.
 The chosen encoder is [miniz_oxide 0.9.1](https://docs.rs/miniz_oxide/0.9.1/).
 See [verification details](references/compression.md).
+
+## Normalized compression distance
+
+[NCD definition and references](references/ncd.md): Cilibrasi and Vitányi (2005),
+ordered raw concatenation with inspectable sizes, exact-rational arithmetic checks,
+and independent stream decoding.

@@ -491,6 +491,44 @@ pub fn compression(input: &[u8]) {
     }
 }
 
+/// Up to 1050 bytes: three u64 sizes, one u16 split selector, and at most 1024 bytes.
+pub fn ncd(input: &[u8]) {
+    use celandine::compression::{
+        CompressionDistanceComponents as Parts, Zlib, compression_distance_components,
+        normalized_compression_distance,
+    };
+    let mut header = [0u8; 26];
+    let n = input.len().min(26);
+    header[..n].copy_from_slice(&input[..n]);
+    let size = |offset| u64::from_le_bytes(header[offset..offset + 8].try_into().unwrap()) as usize;
+    let (a, b, c) = (size(0), size(8), size(16));
+    let value = Parts { x: a, y: b, xy: c }.normalized_distance();
+    if a.max(b) == 0 {
+        assert!(value.is_err());
+    } else {
+        // Widen before signed subtraction: independent arithmetic route.
+        let expected = (c as i128 - a.min(b) as i128) as f64 / a.max(b) as f64;
+        assert_eq!(value.unwrap(), expected);
+    }
+    let data = input.get(26..).unwrap_or(&[]);
+    let data = &data[..data.len().min(1024)];
+    let split = usize::from(u16::from_le_bytes([header[24], header[25]])) % (data.len() + 1);
+    let (x, y) = data.split_at(split);
+    let enc = |bytes: &[u8]| miniz_oxide::deflate::compress_to_vec_zlib(bytes, 6).len();
+    let expected = Parts {
+        x: enc(x),
+        y: enc(y),
+        xy: enc(data),
+    };
+    assert_eq!(
+        compression_distance_components(x, y, &Zlib).unwrap(),
+        expected
+    );
+    let ratio = (expected.xy as i128 - expected.x.min(expected.y) as i128) as f64
+        / expected.x.max(expected.y) as f64;
+    assert_eq!(normalized_compression_distance(x, y, &Zlib).unwrap(), ratio);
+}
+
 #[cfg(test)]
 mod tests {
     #[test]
@@ -504,6 +542,7 @@ mod tests {
             ("subword", super::subword),
             ("lz76", super::lz76),
             ("compression", super::compression),
+            ("ncd", super::ncd),
         ] {
             let directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
                 .join("seeds")

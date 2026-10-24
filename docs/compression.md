@@ -88,3 +88,13 @@ Run `python3 scripts/reference_compression.py --check` to decode actual counted
 streams with Python's independently implemented C-zlib, verify complete stream
 termination, payloads, checksums, lengths and ratios. Cross-encoder sizes are not
 expected to agree. See `docs/benchmarks/compression.md` for measured performance.
+
+## Comparing two sequences
+
+`normalized_compression_distance`
+computes the ordered dimensionless NCD formula from three complete stream sizes.
+`compression_distance_components` exposes those sizes; its `normalized_distance()`
+method reuses them without recompression. Empty inputs are accepted, zero compressed
+denominators error, and results are not clamped. When both inputs are nonempty,
+a temporary concatenation buffer adds O(|x|+|y|) storage. See the NCD API for
+worked examples, history, and limits.

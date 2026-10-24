@@ -87,3 +87,12 @@ required-features = ["compression-deflate"]
 name = "compression"
 harness = false
 required-features = ["compression-deflate"]
+
+[[example]]
+name = "ncd"
+required-features = ["compression-deflate"]
+
+[[bench]]
+name = "ncd"
+harness = false
+required-features = ["compression-deflate"]

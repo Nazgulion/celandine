@@ -222,3 +222,12 @@ column contains complete compressed bytes; `ngram_length` is unused. Both the
 input and compressed output sizes are excluded from auxiliary heap: input is
 prepared first, and output is counted/discarded. Backend state allocations are
 included. See the [compression baseline](compression.md).
+
+## NCD paired memory
+
+`python3 scripts/measure_memory.py --ncd` measures 16 B, 64 KiB, 10 MiB and
+100 MiB per input across four shapes, with reversed right inputs created before
+operation accounting. `ncd_input` controls retain the same two buffers. Three
+repetitions give 96 process readings. `support` records C(xy) bytes; ngram length
+is unused. Concatenation is inside the measured scope, unlike the two resident
+inputs. See [NCD results](ncd.md).

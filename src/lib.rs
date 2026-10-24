@@ -17,7 +17,8 @@
 //! [`complexity::lz76_complexity`] counts exhaustive LZ76 production phrases
 //! with overlapping copies and a counted final suffix, without heap allocation.
 //! [`compression`] measures complete encoded byte lengths and ratios through a
-//! dependency-free compressor interface; `compression-deflate` enables fixed zlib.
+//! dependency-free compressor interface, including ordered normalized compression
+//! distance with inspectable component sizes; `compression-deflate` enables fixed zlib.
 //! Extraction borrows
 //! the input without allocation; n-gram count tables allocate tree storage.
 //!

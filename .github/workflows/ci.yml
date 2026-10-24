@@ -106,6 +106,7 @@ jobs:
 
       - name: Check memory measurement tooling
         run: |
+          python3 scripts/test_measure_memory.py
           python3 scripts/measure_memory.py --smoke --repetitions 1
           cargo bench --locked --all-features --bench peak_memory -- --self-check
 

@@ -104,6 +104,30 @@ fn run(operation: &str, data: &[u8], n: usize) -> (usize, usize, usize) {
             p.support_size()
         });
     }
+    #[cfg(feature = "compression-deflate")]
+    if operation == "ncd" {
+        // Equal-size reversed inputs, both prepared before operation accounting.
+        let other: Vec<_> = data.iter().rev().copied().collect();
+        black_box(&other);
+        return peak_allocator::measure(|| {
+            let parts = celandine::compression::compression_distance_components(
+                black_box(data),
+                black_box(&other),
+                &celandine::compression::Zlib,
+            )
+            .unwrap();
+            black_box(parts.normalized_distance().unwrap());
+            parts.xy
+        });
+    }
+    if operation == "ncd_input" {
+        let other: Vec<_> = data.iter().rev().copied().collect();
+        black_box(&other);
+        return peak_allocator::measure(|| {
+            black_box((&other, data));
+            0
+        });
+    }
     if operation == "reuse" {
         let d = ngram_probabilities(data, n).unwrap();
         return peak_allocator::measure(|| {
@@ -114,8 +138,8 @@ fn run(operation: &str, data: &[u8], n: usize) -> (usize, usize, usize) {
         });
     }
     #[cfg(not(feature = "compression-deflate"))]
-    assert_ne!(
-        operation, "compression",
+    assert!(
+        !matches!(operation, "compression" | "ncd"),
         "enable compression-deflate for this measurement"
     );
     peak_allocator::measure(|| match operation {
@@ -216,6 +240,8 @@ fn main() {
             | "subword_profile"
             | "lz76"
             | "compression"
+            | "ncd"
+            | "ncd_input"
     ));
     assert!(matches!(
         shape.as_str(),

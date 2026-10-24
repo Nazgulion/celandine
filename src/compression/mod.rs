@@ -2,6 +2,12 @@
 
 use std::{error::Error, fmt};
 
+mod ncd;
+pub use ncd::{
+    CompressionDistanceComponents, CompressionDistanceError, ZeroCompressedLength,
+    compression_distance_components, normalized_compression_distance,
+};
+
 #[cfg(feature = "compression-deflate")]
 mod deflate;
 #[cfg(feature = "compression-deflate")]

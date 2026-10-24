@@ -106,4 +106,53 @@ mod tests {
             );
         }
     }
+    #[test]
+    #[ignore = "run through scripts/reference_ncd.py --check"]
+    fn export_ncd_streams() {
+        use crate::compression::{
+            compression_distance_components, normalized_compression_distance,
+        };
+        let samples = [
+            vec![],
+            b"A".to_vec(),
+            b"ABABAB".to_vec(),
+            vec![0; 32769],
+            (0..32769).map(|i| i as u8).collect(),
+            (0..65536).map(|i| (i * 7) as u8).collect(),
+            b"\0\xff\0".to_vec(),
+        ];
+        fn hex(bytes: &[u8]) -> String {
+            use std::fmt::Write;
+            let mut result = String::new();
+            for byte in bytes {
+                write!(result, "{byte:02x}").unwrap();
+            }
+            result
+        }
+        for i in 0..samples.len() {
+            for j in [i, (i + 1) % samples.len()] {
+                let x = &samples[i];
+                let y = &samples[j];
+                let xy = [x.as_slice(), y.as_slice()].concat();
+                let stream = |data: &[u8]| {
+                    let mut out = Vec::new();
+                    encode(data, |bytes| out.extend_from_slice(bytes)).unwrap();
+                    hex(&out)
+                };
+                let parts = compression_distance_components(x, y, &Zlib).unwrap();
+                println!(
+                    "CELANDINE_NCD_REFERENCE\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}",
+                    hex(x),
+                    hex(y),
+                    stream(x),
+                    stream(y),
+                    stream(&xy),
+                    parts.x,
+                    parts.y,
+                    parts.xy,
+                    normalized_compression_distance(x, y, &Zlib).unwrap()
+                );
+            }
+        }
+    }
 }

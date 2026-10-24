@@ -2,6 +2,13 @@
 
 ## Unreleased — entropy, distance, sequence, and compression foundations
 
+- Add ordered `normalized_compression_distance`, inspectable compressed sizes,
+  and allocation-free normalization of components. Preserve signed differences
+  before float conversion; retain nonmetric results and accept empty inputs.
+- Report backend, zero-denominator, and fallible concatenation errors. Add exact
+  rational fixtures, independent pair-stream decoding, allocation checks, a
+  runnable example, bounded fuzzing, and paired latency/memory measurements.
+
 - Add a dependency-free `Compressor` interface, complete `compressed_length` in
   bytes, and dimensionless `compression_ratio` with an explicit empty-input error.
 - Add optional `compression-deflate`: pinned miniz_oxide 0.9.1, fixed level-6

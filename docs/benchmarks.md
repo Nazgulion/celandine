@@ -99,3 +99,6 @@ for the checked paths at every tested size from 0 B to 10 MiB.
 Optional compression has a [latency and memory baseline](benchmarks/compression.md)
 covering complete fresh zlib streams, with input buffers outside timing and
 operation heap measurement. Default consumers do not enable this backend.
+
+[Ordered NCD performance](benchmarks/ncd.md) measures paired byte inputs and
+component-only normalization, with separate concatenation heap/RSS measurements.

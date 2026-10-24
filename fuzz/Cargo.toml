@@ -72,3 +72,10 @@ path = "fuzz_targets/compression.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+name = "ncd"
+path = "fuzz_targets/ncd.rs"
+test = false
+doc = false
+bench = false
