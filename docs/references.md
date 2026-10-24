@@ -104,3 +104,10 @@ and independent stream decoding.
 follow Rust 1.90 slice windows and iterator stride semantics. Independent Python
 position enumeration checks 1,728 cases, including zero validation and maximum
 parameters. This is positional infrastructure, with no historical metric claim.
+
+## Fixed blocks
+
+[Fixed-block conventions](transforms/blocks.md) follow Rust 1.90 `chunks_exact`
+and its stable original remainder. Independent Python byte accumulation verifies
+325 partitions; no named metric or historical inventor is attributed to this
+sequence-processing primitive.

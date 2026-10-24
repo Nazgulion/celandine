@@ -86,3 +86,10 @@ path = "fuzz_targets/windows.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+name = "blocks"
+path = "fuzz_targets/blocks.rs"
+test = false
+doc = false
+bench = false

@@ -14,6 +14,7 @@
 //! count-backed n-gram distributions in [`distribution`].
 //! [`transforms::windows`] borrows complete windows at a positive byte width and
 //! stride, with exact length, reverse traversal and constant-time skips.
+//! [`transforms::blocks`] yields adjacent complete blocks with an inspectable tail.
 //! [`complexity::subword_complexity`] counts distinct contiguous blocks exactly;
 //! [`complexity::subword_complexity_profile`] lazily covers lengths zero through L.
 //! [`complexity::lz76_complexity`] counts exhaustive LZ76 production phrases

@@ -130,6 +130,18 @@ def seeds():
         yield "windows",name,struct.pack("<QQQ",width,step,skip)+actions+data
     yield "windows","raw_empty",b""
     yield "windows","short",b"\xff"
+    for name, width, skip, data in [
+        ("empty",1,0,b""), ("zero",0,0,b"A"), ("zero_empty",0,0,b""),
+        ("tail",3,0,b"ABCDEFGH"), ("exact",2,0,b"ABCDEFGH"),
+        ("oversized",9,0,b"ABCDEFGH"), ("single",1,0,b"AB"),
+        ("extreme_width",2**64-1,2**64-1,b"AB"),
+        ("extreme_skip",3,2**64-1,b"ABCDEFGH"),
+        ("binary",2,1,b"\0\xff\0\xff\0"),
+    ]:
+        actions = bytes([6,7,0,1])*8 if "extreme" in name else bytes(range(32))
+        yield "blocks",name,struct.pack("<QQ",width,skip)+actions+data
+    yield "blocks","raw_empty",b""
+    yield "blocks","short",b"\xff"
     k = 1 << 50
     for offset in [-2, -1, 0, 1, 2]:
         pairs = [(3*k+offset, k), (k, 3*k+offset)]

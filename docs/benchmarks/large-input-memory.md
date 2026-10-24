@@ -239,3 +239,11 @@ steps 1, 4, 8 and 16 on cycling bytes, at 16 B, 64 KiB, 10 MiB and 100 MiB.
 In these rows only, `ngram_length` stores the step and `support` the number of
 yielded windows. Paired `input` controls share each size/step. See the
 [baseline](windows.md); extraction does not read each window's contents.
+
+## Fixed blocks
+
+`python3 scripts/measure_memory.py --blocks` measures cycling input at 16 B,
+64 KiB, 10 MiB and 100 MiB, widths 1, 3, 8 and 64, with paired input controls.
+`ngram_length` stores block width and `support` the number of complete blocks.
+It inspects the tail and visits slices without reading their contents. See
+[the baseline](blocks.md).

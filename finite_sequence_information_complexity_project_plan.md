@@ -2969,6 +2969,11 @@ fallible zero-parameter validation, and no partial tail. Compose existing metric
 through iteration; verify, measure, review, commit and push this increment alone.
 Fixed blocks and all later items remain separate increments.
 
+**Next fixed-block increment (2026-10-24, owner-authorized):** implement adjacent
+complete byte blocks with a positive size and an inspectable incomplete suffix.
+Validate, measure, review, commit and push this increment alone. Statistical
+complexity and the remaining items stay deferred to their own increments.
+
 Do not develop in the order that sounds most exciting.
 
 Use this dependency order:

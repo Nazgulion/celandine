@@ -7,7 +7,7 @@
 Entropy, information, complexity, and distance for finite sequences.
 
 The library implements **empirical Shannon, Hartley, Rényi, collision, min-entropy,
-and Tsallis entropy over bytes**, plus **sliding byte windows, overlapping byte n-grams, counts, and
+and Tsallis entropy over bytes**, plus **fixed byte blocks, sliding byte windows, overlapping byte n-grams, counts, and
 empirical block probabilities**, and **total variation distance between byte
 distributions**, plus **Jensen–Shannon divergence and distance**, and **subword complexity and LZ76 complexity**, plus **optional compression measurements and ordered normalized compression distance**.
 It is one Rust library crate, with no runtime dependencies by default and
@@ -23,6 +23,7 @@ The broader project plan describes future work, not currently available APIs.
 | [Byte histogram](docs/distribution.md#byte-histogram-what-it-is-and-why-it-matters) | Counts occurrences of each byte exactly. | Gives metrics a reusable foundation with fixed storage. |
 | [Empirical distribution](docs/distribution.md#empirical-distribution-what-it-is-and-why-it-matters) | Divides counts by sample size to obtain observed probabilities. | Makes frequency balance comparable and lets metrics share one histogram. |
 | [Overlapping n-grams](docs/ngrams.md) | Extracts every complete block of a chosen byte length, counts repeated blocks, and derives their probabilities. | Reveals local patterns that single-byte frequencies discard. |
+| [Fixed blocks](docs/transforms/blocks.md) | Partitions bytes into complete adjacent slices and exposes the incomplete tail. | Enables disjoint local measurements with explicit tail handling. |
 | [Sliding windows](docs/transforms/windows.md) | Borrows complete byte slices at a positive width and stride. | Composes existing metrics into local measurements without copying data. |
 | [Shannon entropy](docs/entropy/shannon.md) | Averages symbol surprise, weighted by frequency, in bits or explicitly selected units. | Distinguishes balanced from uneven frequencies on the same support. |
 | [Hartley entropy](docs/entropy/hartley.md) | Takes the logarithm of the observed support size. | Measures the number of possibilities and bounds Shannon entropy from above. |
@@ -250,6 +251,24 @@ order. These distributions describe observed local patterns; the current entropy
 APIs still accept single-byte distributions. See the [definition, rationale,
 worked example, and limits](docs/ngrams.md).
 
+### Fixed blocks
+
+```rust
+use celandine::transforms::blocks;
+let iter = blocks(b"ABCDEFGH", 3).unwrap();
+assert_eq!(iter.remainder(), b"GH");
+assert_eq!(iter.collect::<Vec<_>>(), vec![b"ABC", b"DEF"]);
+```
+
+For L input bytes and positive size b, there are `floor(L/b)` complete blocks
+and `L mod b` tail bytes. Blocks are adjacent and borrow without allocation.
+The original tail remains accessible through `.remainder()` even after consuming
+or skipping blocks. Zero size returns `InvalidBlockSize`; oversized blocks leave
+all input as remainder. Reverse iteration preserves the left-aligned partition.
+Use `.map(shannon)` to measure each block's byte frequencies; this is distinct
+from entropy over block-valued symbols. See the [definition and example](docs/transforms/blocks.md)
+and run `cargo run --locked --example blocks`.
+
 ### Sliding windows
 
 ```rust
@@ -316,6 +335,7 @@ cargo run --locked --example min_entropy
 cargo run --locked --example tsallis
 cargo run --locked --example ngrams
 cargo run --locked --example windows
+cargo run --locked --example blocks
 cargo run --locked --example total_variation
 cargo run --locked --example jensen_shannon
 cargo run --locked --example subword
@@ -508,7 +528,10 @@ Sliding windows add 1,728 independent positional fixtures, stateful iterator
 properties, extreme-skip regression coverage, allocation checks, and dedicated
 fuzz and performance measurements.
 
-The six core entropy measures, n-gram primitives, sliding windows, total variation,
+Fixed blocks add 325 independent partitions, reconstruction and remainder checks,
+stateful properties, allocation tests, fuzzing, and latency/memory measurements.
+
+The six core entropy measures, n-gram primitives, fixed blocks, sliding windows, total variation,
 Jensen–Shannon comparisons, subword complexity, raw LZ76 complexity, and optional
 compression measurements and ordered NCD are implemented, including explicit Shannon logarithm bases. The [v0.1 readiness review](docs/releases/v0.1-readiness.md)
 records passing validation and remaining release-scope decisions. Dedicated fuzz
@@ -517,7 +540,7 @@ now supplement the property tests. Publishing stays disabled until the remaining
 release gates are resolved.
 Development now prioritizes breadth across categories, with total variation and
 Jensen–Shannon comparisons followed by subword and LZ76 complexity for sequence structure, then optional
-compression length, ratio, ordered NCD, and sliding windows. Joint distributions and additional entropies are deferred; other
+compression length, ratio, ordered NCD, sliding windows, and fixed blocks. Joint distributions and additional entropies are deferred; other
 metrics, a CLI, and bindings remain future work.
 
 ## License

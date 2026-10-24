@@ -100,3 +100,7 @@ required-features = ["compression-deflate"]
 [[bench]]
 name = "windows"
 harness = false
+
+[[bench]]
+name = "blocks"
+harness = false

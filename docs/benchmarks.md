@@ -105,3 +105,6 @@ component-only normalization, with separate concatenation heap/RSS measurements.
 
 The [sliding-window baseline](benchmarks/windows.md) measures borrowed traversal
 at four strides and constant-time access, with separate allocation and RSS data.
+
+The [fixed-block baseline](benchmarks/blocks.md) measures traversal at four byte
+widths, direct access and remainder inspection, with separate heap/RSS evidence.

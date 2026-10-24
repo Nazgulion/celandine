@@ -13,7 +13,7 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[1]
 TOOLCHAIN = "nightly-2025-10-25"
 TARGETS = {"byte_entropy": 4112, "count_entropy": 2064, "ngrams": 520,
-           "total_variation": 4105, "jensen_shannon": 4105, "subword": 72, "lz76": 128, "compression": 65536, "ncd": 1050, "windows": 312}
+           "total_variation": 4105, "jensen_shannon": 4105, "subword": 72, "lz76": 128, "compression": 65536, "ncd": 1050, "windows": 312, "blocks": 304}
 
 
 def positive(value):

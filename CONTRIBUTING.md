@@ -18,6 +18,7 @@ cargo run --locked --example min_entropy
 cargo run --locked --example tsallis
 cargo run --locked --example ngrams
 cargo run --locked --example windows
+cargo run --locked --example blocks
 cargo run --locked --example total_variation
 cargo run --locked --example jensen_shannon
 cargo run --locked --example subword
@@ -65,6 +66,7 @@ python3 scripts/reference_min_entropy.py --check
 python3 scripts/reference_tsallis.py --check
 python3 scripts/reference_ngrams.py --check
 python3 scripts/reference_windows.py --check
+python3 scripts/reference_blocks.py --check
 python3 scripts/reference_total_variation.py --check
 python3 scripts/reference_jensen_shannon.py --check
 python3 scripts/reference_subword.py --check
@@ -310,3 +312,15 @@ Run `python3 scripts/fuzz_campaign.py --target windows --runs 100000`, then
 [window performance](docs/benchmarks/windows.md) and
 [fuzz evidence](docs/fuzzing/windows.md). Run the memory-workload regression check
 when editing measurement scripts; historical operation sets must remain intact.
+
+## Fixed blocks
+
+Run `cargo run --locked --example blocks` and
+`python3 scripts/reference_blocks.py --check`. The independent Python oracle
+accumulates bytes into complete groups and preserves the unfinished tail (325
+cases). Normal tests cover reconstruction, borrowing, tail stability, errors and
+mixed iterator operations, including maximum skips. Run the allocation executable
+in debug/release and `python3 scripts/fuzz_campaign.py --target blocks --runs 100000`.
+Then measure `python3 scripts/benchmark_blocks.py` and
+`python3 scripts/measure_memory.py --blocks` sequentially. See
+[performance](docs/benchmarks/blocks.md) and [fuzz evidence](docs/fuzzing/blocks.md).

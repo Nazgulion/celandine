@@ -7,7 +7,7 @@ miss. Celandine uses LLVM's [libFuzzer](https://llvm.org/docs/LibFuzzer.html),
 through the Rust Fuzz project's [cargo-fuzz](https://rust-fuzz.github.io/book/cargo-fuzz/tutorial.html).
 It complements the independent high-precision fixtures and property tests.
 
-The ten test-only targets live in a separate `fuzz/` Cargo workspace. Their
+The eleven test-only targets live in a separate `fuzz/` Cargo workspace. Their
 dependencies and nightly compiler requirements do not affect the public library
 or its Rust 1.90 minimum. The fuzz workspace explicitly enables the optional
 compression backend; ordinary consumers retain their own feature selection.
@@ -26,6 +26,9 @@ compression backend; ordinary consumers retain their own feature selection.
 | `compression` | Up to 65,536 raw bytes, no header | Complete zlib length against materialized encoding, round-trip decoding, ratio formula, and empty error |
 | `ncd` | Three u64 sizes, a u16 split, up to 1024 bytes | Signed normalization, zero denominator, materialized ordered streams |
 | `windows` | Three little-endian u64 values (width, step, skip), 32 operation bytes, up to 256 bytes | Positional oracle, mixed front/back/skips, exact length, borrowed pointers, validation |
+| `blocks` | Two little-endian u64 values (width, skip), 32 operation bytes, up to 256 bytes | Complete partitions, original tail stability, mixed iterator operations, borrowing, errors |
+
+Blocks use at most 304 bytes and twelve starting seeds. See [the campaign](fuzzing/blocks.md).
 
 Windows use 312 bytes at most; 14 seeds include gaps, overlap, reverse traversal,
 zero parameters and maximum skips. See [the campaign](fuzzing/windows.md).
@@ -104,7 +107,7 @@ The [Rust Fuzz setup guide](https://rust-fuzz.github.io/book/cargo-fuzz/setup.ht
 explains the nightly/sanitizer requirement. The committed fuzz lockfile pins
 `libfuzzer-sys` and transitive dependencies separately from the library lockfile.
 
-Replay the 152 generated seeds plus one retained oracle regression seed with the supported stable compiler:
+Replay the 164 generated seeds plus one retained oracle regression seed with the supported stable compiler:
 
 ```sh
 python3 scripts/fuzz_seeds.py --check

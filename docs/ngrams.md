@@ -149,3 +149,6 @@ Performance methodology and retained results are in `docs/benchmarks/ngrams.md`.
 
 For a configurable positive byte stride, use [sliding windows](transforms/windows.md).
 With step one it yields the same positional blocks as `ngrams`.
+
+[Fixed blocks](transforms/blocks.md) partition into complete adjacent slices
+and expose the original incomplete tail. They do not overlap.

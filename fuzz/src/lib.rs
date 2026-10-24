@@ -599,6 +599,77 @@ pub fn windows(input: &[u8]) {
     }
 }
 
+/// Two u64 parameters, 32 operation bytes, then at most 256 payload bytes.
+pub fn blocks(input: &[u8]) {
+    use celandine::transforms::{InvalidBlockSize, blocks};
+    use std::collections::VecDeque;
+    let mut header = [0u8; 48];
+    let n = input.len().min(48);
+    header[..n].copy_from_slice(&input[..n]);
+    let value = |i| u64::from_le_bytes(header[i..i + 8].try_into().unwrap()) as usize;
+    let (width, skip) = (value(0), value(8));
+    let data = input.get(48..).unwrap_or(&[]);
+    let data = &data[..data.len().min(256)];
+    let result = blocks(data, width);
+    if width == 0 {
+        assert_eq!(result.unwrap_err(), InvalidBlockSize);
+        return;
+    }
+    let mut expected: VecDeque<_> = (0..data.len())
+        .filter(|&i| i % width == 0 && width <= data.len() - i)
+        .map(|i| &data[i..i + width])
+        .collect();
+    let covered = expected.iter().map(|s| s.len()).sum::<usize>();
+    let tail = &data[covered..];
+    let mut actual = result.unwrap();
+    assert_eq!(actual.remainder(), tail);
+    assert!(actual.clone().eq(expected.iter().copied()));
+    for &op in &header[16..] {
+        let k = if op & 4 == 0 {
+            usize::from(op >> 3)
+        } else {
+            skip
+        };
+        let wanted = match op % 4 {
+            0 => expected.pop_front(),
+            1 => expected.pop_back(),
+            2 => {
+                if k >= expected.len() {
+                    expected.clear();
+                    None
+                } else {
+                    expected.drain(..k);
+                    expected.pop_front()
+                }
+            }
+            _ => {
+                if k >= expected.len() {
+                    expected.clear();
+                    None
+                } else {
+                    expected.truncate(expected.len() - k);
+                    expected.pop_back()
+                }
+            }
+        };
+        let got = match op % 4 {
+            0 => actual.next(),
+            1 => actual.next_back(),
+            2 => actual.nth(k),
+            _ => actual.nth_back(k),
+        };
+        assert_eq!(got, wanted);
+        if let (Some(got), Some(wanted)) = (got, wanted) {
+            assert_eq!(got.as_ptr(), wanted.as_ptr());
+        }
+        assert_eq!(actual.remainder(), tail);
+        assert_eq!(actual.remainder().as_ptr(), tail.as_ptr());
+        assert_eq!(actual.len(), expected.len());
+        assert_eq!(actual.size_hint(), (expected.len(), Some(expected.len())));
+        assert!(actual.clone().eq(expected.iter().copied()));
+    }
+}
+
 #[cfg(test)]
 mod tests {
     #[test]
@@ -614,6 +685,7 @@ mod tests {
             ("compression", super::compression),
             ("ncd", super::ncd),
             ("windows", super::windows),
+            ("blocks", super::blocks),
         ] {
             let directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
                 .join("seeds")

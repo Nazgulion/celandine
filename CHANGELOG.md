@@ -2,6 +2,12 @@
 
 ## Unreleased — entropy, distance, sequence, and compression foundations
 
+- Add `transforms::blocks(data, size)` for complete adjacent byte slices with
+  an inspectable original remainder and fallible zero-size validation. Reuse
+  Rust's exact-chunk iterator without copying bytes or allocating.
+- Add independent partition fixtures, stateful/reconstruction tests, a runnable
+  example, fuzzing, and measured latency/heap/RSS evidence.
+
 - Add allocation-free `transforms::windows(data, size, step)` with explicit zero
   parameter errors, omitted partial tails, exact length, fused forward/reverse
   iteration, and constant-time skips even at `usize::MAX`.

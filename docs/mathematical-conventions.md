@@ -354,3 +354,11 @@ nonnegative integer k. Both parameters must be positive; size zero takes error
 precedence. Empty/undersized input yields none. Reverse traversal preserves the
 forward grid, duplicate occurrences remain, and no tail is padded. See the
 [formula, units and worked examples](transforms/windows.md).
+
+## Fixed blocks
+
+`blocks(data, b)` requires positive b bytes, yields floor(L/b) complete adjacent
+blocks, and exposes the original L mod b suffix through `.remainder()`. Zero size
+is an error even on empty input. Reversing preserves the forward partition;
+consuming or skipping never changes that original tail. See the
+[definition and worked examples](transforms/blocks.md).
