@@ -108,3 +108,7 @@ harness = false
 [[bench]]
 name = "statistical_complexity"
 harness = false
+
+[[bench]]
+name = "block_entropy"
+harness = false

@@ -21,6 +21,8 @@ class MemoryWorkloadTests(unittest.TestCase):
                 self.assertNotIn('windows', operations)
                 self.assertNotIn('blocks', operations)
                 self.assertNotIn('statistical_complexity', operations)
+                self.assertNotIn('block_entropy', operations)
+                self.assertNotIn('block_entropy_reuse', operations)
                 self.assertIn('input', operations)
 
 

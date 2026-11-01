@@ -2,6 +2,12 @@
 
 ## Unreleased — entropy, distance, sequence, and compression foundations
 
+- Add overlapping `block_entropy` and `block_entropy_distribution`, in bits per
+  n-byte block, with explicit zero-length errors and empty-observation convention.
+- Reuse n-gram tables, compensate entropy summation, and retain allocation-free
+  single-byte/full-length/oversized paths. Add 1,254 independent high-precision
+  fixtures, seeded properties, runnable examples, fuzz and performance evidence.
+
 - Add `normalized_jensen_shannon_complexity` and its distribution API, with an
   explicit alphabet size, separately normalized Shannon/JS factors, no heap
   allocation, and defined empty/invalid/support errors.

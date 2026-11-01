@@ -53,6 +53,21 @@ unsafe impl GlobalAlloc for CountingAllocator {
 static ALLOCATOR: CountingAllocator = CountingAllocator;
 
 fn main() {
+    use celandine::entropy::{block_entropy, block_entropy_distribution};
+    for data in [b"".as_slice(), b"A", b"ABABA", b"AAAA", b"AABBA"] {
+        for n in [0, 1, data.len().max(1), data.len() + 1, usize::MAX] {
+            let before = ALLOCATIONS.load(Ordering::Relaxed);
+            let _ = black_box(block_entropy(black_box(data), black_box(n)));
+            assert_eq!(ALLOCATIONS.load(Ordering::Relaxed), before);
+        }
+        for n in [1, 2, 3, usize::MAX] {
+            let d = ngram_probabilities(data, n).unwrap();
+            let before = ALLOCATIONS.load(Ordering::Relaxed);
+            black_box(block_entropy_distribution(black_box(&d)));
+            assert_eq!(ALLOCATIONS.load(Ordering::Relaxed), before);
+        }
+    }
+
     use celandine::complexity::{
         normalized_jensen_shannon_complexity as complexity,
         normalized_jensen_shannon_complexity_distribution as reuse,

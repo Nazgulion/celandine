@@ -127,5 +127,5 @@ numerical limitations near base one.
 [`crate::entropy::hartley_entropy`] measures observed support and upper-bounds
 empirical Shannon entropy. [`crate::entropy::renyi_entropy`] generalizes Shannon
 through an order parameter, with exact order one delegating to this function.
-Block entropy and entropy-rate estimators remain future work and address sequence
-dependence.
+[`crate::entropy::block_entropy`] applies Shannon entropy to overlapping byte
+blocks to reveal local arrangements. Source entropy-rate estimators remain future work.

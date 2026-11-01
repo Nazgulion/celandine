@@ -117,3 +117,9 @@ sequence-processing primitive.
 [Primary sources and verification](references/statistical_complexity.md) cover
 the LMC starting point (1995), Lamberti et al. (2004), explicit normalized
 factors, and the distinction between byte frequencies and ordinal patterns.
+
+## Block entropy
+
+[Definition, source and independent verification](references/block_entropy.md):
+Shannon (1948), section 7, Theorem 5, with explicit empirical overlapping-block
+sampling and bits-per-block units.

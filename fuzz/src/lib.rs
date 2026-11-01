@@ -747,6 +747,58 @@ pub fn statistical_complexity(input: &[u8]) {
     // high-precision fixtures establish tiny-value relative accuracy separately.
 }
 
+/// Decode a raw or bounded order, then compare with a sorted-block oracle.
+pub fn block_entropy(input: &[u8]) {
+    use celandine::entropy::block_entropy as entropy;
+    let raw = word(input, 1);
+    let data = input.get(9..).unwrap_or_default();
+    let n = if input.first().copied().unwrap_or(0) & 1 == 0 {
+        usize::try_from(raw).unwrap_or(usize::MAX)
+    } else {
+        (raw % (data.len() as u64 + 2)) as usize
+    };
+    let actual = entropy(data, n);
+    if n == 0 {
+        assert!(actual.is_err());
+        return;
+    }
+    let actual = actual.unwrap();
+    let mut blocks = Vec::new();
+    if n <= data.len() {
+        for i in 0..=data.len() - n {
+            blocks.push(&data[i..i + n]);
+        }
+    }
+    blocks.sort_unstable();
+    let mut i = 0;
+    let mut reference = 0.0;
+    let mut support = 0;
+    while i < blocks.len() {
+        let mut end = i + 1;
+        while end < blocks.len() && blocks[end] == blocks[i] {
+            end += 1;
+        }
+        let p = (end - i) as f64 / blocks.len() as f64;
+        reference -= p * p.ln() / LN_2;
+        support += 1;
+        i = end;
+    }
+    close(actual, reference);
+    close(
+        actual,
+        block_entropy_distribution(&ngram_probabilities(data, n).unwrap()),
+    );
+    assert!(actual >= 0.0 && actual <= (support.max(1) as f64).log2() + 1e-11);
+    if support <= 1 {
+        assert_eq!(actual.to_bits(), 0.0_f64.to_bits());
+    }
+    let reverse: Vec<_> = data.iter().rev().copied().collect();
+    close(actual, entropy(&reverse, n).unwrap());
+    let renamed: Vec<_> = data.iter().map(|b| b.wrapping_add(137)).collect();
+    close(actual, entropy(&renamed, n).unwrap());
+    close(entropy(data, 1).unwrap(), shannon(data));
+}
+
 #[cfg(test)]
 mod tests {
     #[test]
@@ -764,6 +816,7 @@ mod tests {
             ("windows", super::windows),
             ("blocks", super::blocks),
             ("statistical_complexity", super::statistical_complexity),
+            ("block_entropy", super::block_entropy),
         ] {
             let directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
                 .join("seeds")

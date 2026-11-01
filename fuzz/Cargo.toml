@@ -100,3 +100,10 @@ path = "fuzz_targets/statistical_complexity.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+name = "block_entropy"
+path = "fuzz_targets/block_entropy.rs"
+test = false
+doc = false
+bench = false

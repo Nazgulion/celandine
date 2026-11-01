@@ -2981,6 +2981,12 @@ APIs, and the established independent numerical, example, fuzz and measured
 performance workflow. Review, commit and push this increment alone. Block
 entropy, ordinal transforms and later items remain separate work.
 
+**Next block-entropy increment (2026-11-01, owner-authorized):** implement
+Shannon entropy of overlapping n-byte blocks, with positive block length,
+bits-per-block units, explicit empty-observation behavior and reusable n-gram
+laws. Test, review, measure, commit and push this increment. Conditional entropy
+by order, profiles and the remaining list stay deferred.
+
 Do not develop in the order that sounds most exciting.
 
 Use this dependency order:

@@ -38,7 +38,7 @@ sum can differ slightly from one.
 ## Empty and constant inputs
 
 The following entropy conventions refer to single-byte distributions. For
-overlapping n-gram empty states, see the n-gram section below.
+overlapping n-gram empty states and block entropy, see their sections below.
 
 An empty histogram/distribution has sample size zero, support size zero, and
 returns zero for each probability query. This is an **empty empirical state**,
@@ -369,3 +369,14 @@ consuming or skipping never changes that original tail. See the
 unobserved states. Validation checks K, nonempty input, then support <=K. It is
 dimensionless, frequency-based, and separately normalizes both factors, not the
 maximum product. See the [complete convention](complexity/jensen_shannon.md).
+
+## Overlapping block entropy
+
+`block_entropy(data,n)` applies Shannon entropy to overlapping complete n-byte
+blocks; `block_entropy_distribution` reuses their count table. Units are bits
+per block, without dividing by n. Zero n is invalid even for empty input;
+no observations or one distinct block returns positive zero. Single-byte blocks
+agree with Shannon. There is no padding, wraparound, smoothing or source-rate
+claim. Different n use different observation sets, so finite empirical H_n is
+not necessarily monotonic and adjacent differences are not automatically
+conditional entropy. See [the definition and worked example](entropy/block.md).

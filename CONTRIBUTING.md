@@ -20,6 +20,7 @@ cargo run --locked --example ngrams
 cargo run --locked --example windows
 cargo run --locked --example blocks
 cargo run --locked --example statistical_complexity
+cargo run --locked --example block_entropy
 cargo run --locked --example total_variation
 cargo run --locked --example jensen_shannon
 cargo run --locked --example subword
@@ -69,6 +70,7 @@ python3 scripts/reference_ngrams.py --check
 python3 scripts/reference_windows.py --check
 python3 scripts/reference_blocks.py --check
 python3 scripts/reference_statistical_complexity.py --check
+python3 scripts/reference_block_entropy.py --check
 python3 scripts/reference_total_variation.py --check
 python3 scripts/reference_jensen_shannon.py --check
 python3 scripts/reference_subword.py --check
@@ -329,7 +331,8 @@ Then measure `python3 scripts/benchmark_blocks.py` and
 
 ## Normalized Jensen–Shannon statistical complexity
 
-Run `cargo run --locked --example statistical_complexity` and
+Run `cargo run --locked --example statistical_complexity
+cargo run --locked --example block_entropy` and
 `python3 scripts/reference_statistical_complexity.py --check`. The 853 fixtures
 use 160-digit direct entropy mixtures, with relative checks on tiny nonzero
 values. Preserve the near-certainty regression and explicit alphabet semantics.
@@ -339,3 +342,16 @@ then `python3 scripts/benchmark_statistical_complexity.py` and
 See [references](docs/references/statistical_complexity.md),
 [fuzzing](docs/fuzzing/statistical_complexity.md), and
 [performance](docs/benchmarks/statistical_complexity.md).
+
+## Block entropy
+
+Run `cargo run --locked --example block_entropy` and
+`python3 scripts/reference_block_entropy.py --check`. The 1,254 fixtures use
+sorted blocks, run-length counts and 100-digit Decimal logarithms. Tests cover
+finite boundaries, overlap, units, empty states, large support, rare transitions,
+byte/reuse agreement, reversal and bijective byte renaming. Run the isolated
+allocation executable and `python3 scripts/fuzz_campaign.py --target block_entropy --runs 100000`.
+Then run `python3 scripts/benchmark_block_entropy.py` and
+`python3 scripts/measure_memory.py --block-entropy` sequentially. See
+[references](docs/references/block_entropy.md), [fuzzing](docs/fuzzing/block_entropy.md),
+and [performance](docs/benchmarks/block_entropy.md).

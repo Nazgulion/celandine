@@ -159,6 +159,17 @@ def seeds():
     yield "statistical_complexity","bounded",b"\2"+struct.pack("<Q",256)+b"\xff"*2048
     yield "statistical_complexity","raw_empty",b""
     yield "statistical_complexity","short",b"\xff"
+    for name, n, data in [
+        ("empty",1,b""),("zero_empty",0,b""),("zero",0,b"AB"),
+        ("single",1,b"ABABA"),("overlap",2,b"ABABA"),("distinct",2,b"AABBA"),
+        ("boundary",2,b"AABB"),("constant",2,b"AAAA"),("whole",5,b"ABABA"),
+        ("oversized",6,b"ABABA"),("maximum",2**64-1,b"ABABA"),
+        ("rare",2,b"A"*1023+b"B"),("diverse",4,bytes(range(256))*4),
+    ]:
+        yield "block_entropy",name,b"\0"+struct.pack("<Q",n)+data
+    yield "block_entropy","bounded",b"\1"+struct.pack("<Q",2**64-1)+bytes(range(256))
+    yield "block_entropy","raw_empty",b""
+    yield "block_entropy","short",b"\xff"
     k = 1 << 50
     for offset in [-2, -1, 0, 1, 2]:
         pairs = [(3*k+offset, k), (k, 3*k+offset)]

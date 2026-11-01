@@ -77,6 +77,21 @@ fn entropy(data: &[u8]) -> usize {
 }
 
 fn run(operation: &str, data: &[u8], n: usize) -> (usize, usize, usize) {
+    if operation == "block_entropy" {
+        return peak_allocator::measure(|| {
+            black_box(block_entropy(black_box(data), black_box(n)).unwrap());
+            // The byte API exposes no support count. Do not recount in the probe.
+            0
+        });
+    }
+    if operation == "block_entropy_reuse" {
+        let d = ngram_probabilities(data, n).unwrap();
+        return peak_allocator::measure(|| {
+            black_box(block_entropy_distribution(black_box(&d)));
+            d.support_size()
+        });
+    }
+
     if matches!(operation, "total_variation" | "jensen_shannon") {
         // Two overlapping views share the one resident input allocation.
         let other = &data[data.len().min(1)..];
@@ -221,6 +236,10 @@ fn main() {
         assert_eq!(support, 2);
         assert!(peak > 0 && calls > 0);
         assert_eq!(run("extract", b"ABABA", 2).1, 0);
+        assert!(run("block_entropy", b"ABABA", 2).1 > 0);
+        assert_eq!(run("block_entropy", b"ABABA", 1), (0, 0, 0));
+        assert_eq!(run("block_entropy", b"ABABA", usize::MAX), (0, 0, 0));
+        assert_eq!(run("block_entropy_reuse", b"ABABA", 2), (2, 0, 0));
         assert_eq!(run("statistical_complexity", b"AAAB", 1), (2, 0, 0));
         assert_eq!(run("blocks", b"ABCDEFGH", 3), (2, 0, 0));
         assert_eq!(run("windows", b"ABCDEFGHIJKLMNOP", 4), (3, 0, 0));
@@ -279,6 +298,8 @@ fn main() {
             | "windows"
             | "blocks"
             | "statistical_complexity"
+            | "block_entropy"
+            | "block_entropy_reuse"
     ));
     assert!(matches!(
         shape.as_str(),

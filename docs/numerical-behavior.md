@@ -207,7 +207,7 @@ is constructed.
 For nonempty n-gram tables, probabilities use `count as f64 / total as f64`.
 Their units are dimensionless fractions of complete block occurrences. The
 integer-to-float caveat above applies; no logarithms or probability summation
-are performed by the library. Callers summing many distinct blocks can accrue
+are performed by the distribution accessors. Callers summing many distinct blocks can accrue
 rounding error beyond the single-byte path's 256 terms. No normalization or
 clamping is applied. Tests use `1e-12` absolute tolerance on bounded fixtures.
 Empty table queries return positive zero and probability iteration is empty.
@@ -285,3 +285,14 @@ The normalized JS statistical-complexity API retains complementary counts when
 evaluating a majority entropy term and reuses exact count differences for JS.
 This preserves small positive results near certainty and uniformity. It leaves
 standalone Shannon behavior unchanged. See [the regression and reference checks](references/statistical_complexity.md).
+
+## Block entropy
+
+The block distribution API accumulates `-p*log2(p)` with compensated summation;
+for a majority count it computes the logarithm from the integer complement
+using `ln_1p`. Counts remain exact before conversion, including the complement.
+Empty/single-outcome laws return positive zero. The n=1 byte path reuses existing
+Shannon evaluation and can differ from reuse in final rounding bits. No clamping
+or smoothing is applied. The 100-digit independent fixtures use `1e-12` absolute
+bit tolerance, a validation threshold rather than a universal error guarantee.
+See [details](entropy/block.md) and [references](references/block_entropy.md).
