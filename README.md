@@ -9,7 +9,7 @@ Entropy, information, complexity, and distance for finite sequences.
 The library implements **empirical Shannon, Hartley, Rényi, collision, min-entropy,
 and Tsallis entropy over bytes**, plus **fixed byte blocks, sliding byte windows, overlapping byte n-grams, counts, and
 empirical block probabilities**, and **total variation distance between byte
-distributions**, plus **Jensen–Shannon divergence and distance**, and **subword complexity and LZ76 complexity**, plus **optional compression measurements and ordered normalized compression distance**.
+distributions**, plus **Jensen–Shannon divergence and distance**, and **subword complexity and LZ76 complexity**, plus **normalized Jensen–Shannon statistical complexity**, and **optional compression measurements and ordered normalized compression distance**.
 It is one Rust library crate, with no runtime dependencies by default and
 no unsafe library code. Feature `compression-deflate` adds a pinned pure-Rust
 zlib encoder; the compressor interface itself stays dependency-free. Single-byte entropy, implemented distribution comparisons, and n-gram
@@ -35,6 +35,7 @@ The broader project plan describes future work, not currently available APIs.
 | [Jensen–Shannon divergence](docs/divergence/jensen_shannon.md) | Compares two laws to their equal mixture, in bits. | Quantifies the mixture’s extra ideal coding cost, with finite results for disjoint supports. |
 | [Jensen–Shannon distance](docs/divergence/jensen_shannon_distance.md) | Takes the square root of Jensen–Shannon divergence. | Supplies a metric on probability laws, including the triangle inequality. |
 | [Subword complexity](docs/complexity/subword.md) | Counts distinct contiguous blocks at a chosen byte length, with a lazy profile across lengths. | Reveals order-dependent pattern diversity without a probability model. |
+| [Normalized Jensen–Shannon statistical complexity](docs/complexity/jensen_shannon.md) | Multiplies normalized byte entropy by normalized departure from uniformity on an explicit alphabet. | Distinguishes intermediate frequency laws from point masses and full-alphabet uniformity. |
 | [LZ76 complexity](docs/complexity/lz76.md) | Counts exhaustive production phrases with overlapping copies. | Describes sequential novelty beyond byte frequencies. |
 | [Compression measurements](docs/compression.md) | Counts complete encoded bytes and divides by input length; optional fixed zlib backend. | Measures encoder-specific compressibility, including overhead and sequential repetition. |
 | [Normalized compression distance](docs/compression/ncd.md) | Compares separate and concatenated encoded sizes. | Reveals compressor-detected shared structure with inspectable components and explicit order effects. |
@@ -306,6 +307,25 @@ count table, and long complete profiles can be expensive. Zero, one, full-length
 and oversized scalar cases allocate no heap. See the [definition, worked example,
 history, and limits](docs/complexity/subword.md).
 
+### Normalized Jensen–Shannon statistical complexity
+
+```rust
+use celandine::complexity::normalized_jensen_shannon_complexity as complexity;
+assert_eq!(complexity(b"AAAA", 2), Ok(0.0));
+assert_eq!(complexity(b"AABB", 2), Ok(0.0));
+assert!((complexity(b"AAAB", 2).unwrap() - 0.127173305349489).abs() < 1e-14);
+```
+
+`C = (H(P)/log2(K)) * (J(P,U_K)/Jmax(K))` is dimensionless: H is byte entropy,
+U_K is uniform over the declared K states, and Jmax is the point-mass divergence
+against U_K. Choose K explicitly from 2 through 256, including unobserved states.
+The alphabet contains all observed bytes; their numeric labels need not be below K.
+Empty input, invalid K, or observed support larger than K is an error. K=256
+uses the full byte alphabet. `AABB` has positive complexity for K=4 despite
+being uniform for K=2. This frequency-based quantity ignores ordering and is
+not a randomness or temporal-structure detector. The `_distribution` API reuses
+counts without allocation. See the [definition, history, examples and limits](docs/complexity/jensen_shannon.md).
+
 ### LZ76 complexity
 
 ```rust
@@ -336,6 +356,7 @@ cargo run --locked --example tsallis
 cargo run --locked --example ngrams
 cargo run --locked --example windows
 cargo run --locked --example blocks
+cargo run --locked --example statistical_complexity
 cargo run --locked --example total_variation
 cargo run --locked --example jensen_shannon
 cargo run --locked --example subword
@@ -531,8 +552,12 @@ fuzz and performance measurements.
 Fixed blocks add 325 independent partitions, reconstruction and remainder checks,
 stateful properties, allocation tests, fuzzing, and latency/memory measurements.
 
+Normalized Jensen–Shannon statistical complexity adds explicit alphabet semantics,
+853 high-precision reference cases, a near-certainty regression, properties,
+fuzzing and allocation/performance measurements.
+
 The six core entropy measures, n-gram primitives, fixed blocks, sliding windows, total variation,
-Jensen–Shannon comparisons, subword complexity, raw LZ76 complexity, and optional
+Jensen–Shannon comparisons, subword complexity, raw LZ76 complexity, normalized Jensen–Shannon statistical complexity, and optional
 compression measurements and ordered NCD are implemented, including explicit Shannon logarithm bases. The [v0.1 readiness review](docs/releases/v0.1-readiness.md)
 records passing validation and remaining release-scope decisions. Dedicated fuzz
 campaigns, 100 MiB entropy benchmarks, and controlled peak-memory measurements
@@ -540,7 +565,7 @@ now supplement the property tests. Publishing stays disabled until the remaining
 release gates are resolved.
 Development now prioritizes breadth across categories, with total variation and
 Jensen–Shannon comparisons followed by subword and LZ76 complexity for sequence structure, then optional
-compression length, ratio, ordered NCD, sliding windows, and fixed blocks. Joint distributions and additional entropies are deferred; other
+compression length, ratio, ordered NCD, sliding windows, fixed blocks, and statistical complexity. Joint distributions and additional entropies are deferred; other
 metrics, a CLI, and bindings remain future work.
 
 ## License

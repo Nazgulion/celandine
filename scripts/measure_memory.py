@@ -74,6 +74,7 @@ def main():
                         help="measure only TV and input controls at 10/100 MiB")
     parser.add_argument("--jensen-shannon", action="store_true",
                         help="measure only JS and input controls at 10/100 MiB")
+    parser.add_argument("--statistical-complexity", action="store_true", help="normalized JS complexity with K=256")
     parser.add_argument("--blocks", action="store_true", help="fixed blocks at four byte widths")
     parser.add_argument("--windows", action="store_true", help="window extraction at four byte strides")
     parser.add_argument("--ncd", action="store_true", help="NCD paired input and concatenation memory")
@@ -84,8 +85,8 @@ def main():
     args = parser.parse_args()
     if args.repetitions < 1:
         parser.error("repetitions must be positive")
-    if sum([args.smoke, args.total_variation, args.jensen_shannon, args.subword, args.lz76, args.compression, args.ncd, args.windows, args.blocks]) > 1:
-        parser.error("choose one of --smoke, --total-variation, --jensen-shannon, --subword, --lz76, --compression, --ncd, --windows, or --blocks")
+    if sum([args.smoke, args.total_variation, args.jensen_shannon, args.subword, args.lz76, args.compression, args.ncd, args.windows, args.blocks, args.statistical_complexity]) > 1:
+        parser.error("choose one of --smoke, --total-variation, --jensen-shannon, --subword, --lz76, --compression, --ncd, --windows, --blocks, or --statistical-complexity")
     if platform.system() != "Linux":
         parser.error("process RSS units and evidence currently target Linux")
     build_command = ["cargo", "bench", "--locked", "--bench", "peak_memory",
@@ -102,7 +103,7 @@ def main():
     output = Path(tempfile.mkdtemp(prefix="peak-memory-", dir=parent))
     metadata = {
         "host": platform.platform(), "repetitions": args.repetitions, "smoke": args.smoke,
-        "blocks": args.blocks, "windows": args.windows, "ncd": args.ncd, "compression": args.compression, "build_command": build_command,
+        "statistical_complexity": args.statistical_complexity, "blocks": args.blocks, "windows": args.windows, "ncd": args.ncd, "compression": args.compression, "build_command": build_command,
         "lz76": args.lz76, "subword": args.subword, "total_variation": args.total_variation, "jensen_shannon": args.jensen_shannon,
         "rustc": subprocess.check_output(["rustc", "-Vv"], text=True),
         "time": subprocess.check_output(["/usr/bin/time", "--version"], text=True),
@@ -129,6 +130,11 @@ def main():
                          for shape in ["constant", "uniform", "skewed", "mixed"]
                          for size in [16, 65536, 10*MIB, 100*MIB]
                          for operation in ["input", "compression"])
+        if args.statistical_complexity:
+            workloads = ((operation, shape, size, 1)
+                         for shape in ["constant", "uniform", "skewed", "mixed"]
+                         for size in [16, 65536, 10*MIB, 100*MIB]
+                         for operation in ["input", "statistical_complexity"])
         if args.blocks:
             workloads = ((operation, "uniform", size, width)
                          for size in [16, 65536, 10*MIB, 100*MIB]
@@ -159,7 +165,7 @@ def main():
                 values, = list(csv.reader(io.StringIO(result.stdout)))
                 assert len(values) == len(FIELDS)
                 row = dict(zip(FIELDS, values))
-                no_heap = (operation in ["blocks", "windows", "ncd_input", "input", "entropy", "extract", "reuse", "total_variation", "jensen_shannon", "lz76"]
+                no_heap = (operation in ["statistical_complexity", "blocks", "windows", "ncd_input", "input", "entropy", "extract", "reuse", "total_variation", "jensen_shannon", "lz76"]
                            or (operation == "subword" and (n <= 1 or n >= size))
                            or (operation == "subword_profile" and (n <= 2 or size <= 2)))
                 if no_heap:

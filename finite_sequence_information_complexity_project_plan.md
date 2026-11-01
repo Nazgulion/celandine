@@ -2974,6 +2974,13 @@ complete byte blocks with a positive size and an inspectable incomplete suffix.
 Validate, measure, review, commit and push this increment alone. Statistical
 complexity and the remaining items stay deferred to their own increments.
 
+**Next statistical increment (2026-11-01, owner-authorized):** implement the
+normalized Shannon-times-Jensen–Shannon statistical complexity with explicit
+alphabet cardinality 2..=256 (including unobserved states), byte/distribution
+APIs, and the established independent numerical, example, fuzz and measured
+performance workflow. Review, commit and push this increment alone. Block
+entropy, ordinal transforms and later items remain separate work.
+
 Do not develop in the order that sounds most exciting.
 
 Use this dependency order:

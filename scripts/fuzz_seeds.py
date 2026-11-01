@@ -142,6 +142,23 @@ def seeds():
         yield "blocks",name,struct.pack("<QQ",width,skip)+actions+data
     yield "blocks","raw_empty",b""
     yield "blocks","short",b"\xff"
+    for name, alphabet, data in [
+        ("empty",2,b""),("constant",2,b"AAAA"),("uniform",2,b"AABB"),
+        ("worked",2,b"AAAB"),("partial",4,b"AABB"),("full",256,bytes(range(256))),
+        ("zero_alphabet",0,b"AB"),("singleton",1,b"A"),("large",257,b"A"),
+        ("maximum",2**64-1,b"A"),("support",2,b"ABC"),
+    ]:
+        yield "statistical_complexity",name,b"\0"+struct.pack("<Q",alphabet)+data
+    for name, alphabet, counts in [
+        ("regression_rare",2,[2**64-2,1]),
+        ("near_uniform",2,[2**63-1,2**63]),
+        ("overflow",256,[2**64-1,1]),
+        ("wide_full",256,[2**56-1]*256),
+    ]:
+        yield "statistical_complexity",name,b"\1"+struct.pack("<Q",alphabet)+b"".join(struct.pack("<Q",n) for n in counts)
+    yield "statistical_complexity","bounded",b"\2"+struct.pack("<Q",256)+b"\xff"*2048
+    yield "statistical_complexity","raw_empty",b""
+    yield "statistical_complexity","short",b"\xff"
     k = 1 << 50
     for offset in [-2, -1, 0, 1, 2]:
         pairs = [(3*k+offset, k), (k, 3*k+offset)]

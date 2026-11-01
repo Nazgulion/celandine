@@ -19,6 +19,8 @@
 //! [`complexity::subword_complexity_profile`] lazily covers lengths zero through L.
 //! [`complexity::lz76_complexity`] counts exhaustive LZ76 production phrases
 //! with overlapping copies and a counted final suffix, without heap allocation.
+//! [`complexity::normalized_jensen_shannon_complexity`] combines normalized byte
+//! entropy and departure from uniformity on a caller-declared alphabet.
 //! [`compression`] measures complete encoded byte lengths and ratios through a
 //! dependency-free compressor interface, including ordered normalized compression
 //! distance with inspectable component sizes; `compression-deflate` enables fixed zlib.

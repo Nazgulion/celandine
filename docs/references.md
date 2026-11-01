@@ -111,3 +111,9 @@ parameters. This is positional infrastructure, with no historical metric claim.
 and its stable original remainder. Independent Python byte accumulation verifies
 325 partitions; no named metric or historical inventor is attributed to this
 sequence-processing primitive.
+
+## Normalized Jensen–Shannon statistical complexity
+
+[Primary sources and verification](references/statistical_complexity.md) cover
+the LMC starting point (1995), Lamberti et al. (2004), explicit normalized
+factors, and the distinction between byte frequencies and ordinal patterns.

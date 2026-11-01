@@ -2,6 +2,13 @@
 
 ## Unreleased — entropy, distance, sequence, and compression foundations
 
+- Add `normalized_jensen_shannon_complexity` and its distribution API, with an
+  explicit alphabet size, separately normalized Shannon/JS factors, no heap
+  allocation, and defined empty/invalid/support errors.
+- Retain tiny deviations from uniformity through count-based JS evaluation and
+  near-certainty entropy through complementary counts. Add 853 high-precision
+  cases, a numerical regression, properties, an example, fuzzing and measurements.
+
 - Add `transforms::blocks(data, size)` for complete adjacent byte slices with
   an inspectable original remainder and fallible zero-size validation. Reuse
   Rust's exact-chunk iterator without copying bytes or allocating.

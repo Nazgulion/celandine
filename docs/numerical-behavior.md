@@ -278,3 +278,10 @@ neighbors, maximum-width products, differing supports, and tiny nonzero values.
 Nonzero results use `1e-12` relative tolerance. The floating entropy-identity
 oracle uses pairwise summation and `2e-14` absolute tolerance; it cannot validate
 relative error for tiny values, so the high-precision fixtures remain necessary.
+
+## Statistical-complexity product
+
+The normalized JS statistical-complexity API retains complementary counts when
+evaluating a majority entropy term and reuses exact count differences for JS.
+This preserves small positive results near certainty and uniformity. It leaves
+standalone Shannon behavior unchanged. See [the regression and reference checks](references/statistical_complexity.md).

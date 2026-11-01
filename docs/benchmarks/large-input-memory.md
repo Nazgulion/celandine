@@ -247,3 +247,11 @@ yielded windows. Paired `input` controls share each size/step. See the
 `ngram_length` stores block width and `support` the number of complete blocks.
 It inspects the tail and visits slices without reading their contents. See
 [the baseline](blocks.md).
+
+## Normalized Jensen–Shannon statistical complexity
+
+`python3 scripts/measure_memory.py --statistical-complexity` measures four shapes
+at 16 B, 64 KiB, 10 MiB and 100 MiB, with paired input controls, K=256 and three
+repetitions. Histogram construction and distribution evaluation are inside
+operation accounting. `support` is observed byte support; `ngram_length` is
+unused. See [results](statistical_complexity.md).

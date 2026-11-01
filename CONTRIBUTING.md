@@ -19,6 +19,7 @@ cargo run --locked --example tsallis
 cargo run --locked --example ngrams
 cargo run --locked --example windows
 cargo run --locked --example blocks
+cargo run --locked --example statistical_complexity
 cargo run --locked --example total_variation
 cargo run --locked --example jensen_shannon
 cargo run --locked --example subword
@@ -67,6 +68,7 @@ python3 scripts/reference_tsallis.py --check
 python3 scripts/reference_ngrams.py --check
 python3 scripts/reference_windows.py --check
 python3 scripts/reference_blocks.py --check
+python3 scripts/reference_statistical_complexity.py --check
 python3 scripts/reference_total_variation.py --check
 python3 scripts/reference_jensen_shannon.py --check
 python3 scripts/reference_subword.py --check
@@ -324,3 +326,16 @@ in debug/release and `python3 scripts/fuzz_campaign.py --target blocks --runs 10
 Then measure `python3 scripts/benchmark_blocks.py` and
 `python3 scripts/measure_memory.py --blocks` sequentially. See
 [performance](docs/benchmarks/blocks.md) and [fuzz evidence](docs/fuzzing/blocks.md).
+
+## Normalized Jensen–Shannon statistical complexity
+
+Run `cargo run --locked --example statistical_complexity` and
+`python3 scripts/reference_statistical_complexity.py --check`. The 853 fixtures
+use 160-digit direct entropy mixtures, with relative checks on tiny nonzero
+values. Preserve the near-certainty regression and explicit alphabet semantics.
+Run `python3 scripts/fuzz_campaign.py --target statistical_complexity --runs 100000`,
+then `python3 scripts/benchmark_statistical_complexity.py` and
+`python3 scripts/measure_memory.py --statistical-complexity` sequentially.
+See [references](docs/references/statistical_complexity.md),
+[fuzzing](docs/fuzzing/statistical_complexity.md), and
+[performance](docs/benchmarks/statistical_complexity.md).

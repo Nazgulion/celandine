@@ -104,3 +104,7 @@ harness = false
 [[bench]]
 name = "blocks"
 harness = false
+
+[[bench]]
+name = "statistical_complexity"
+harness = false

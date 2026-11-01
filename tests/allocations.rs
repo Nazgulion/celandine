@@ -53,6 +53,20 @@ unsafe impl GlobalAlloc for CountingAllocator {
 static ALLOCATOR: CountingAllocator = CountingAllocator;
 
 fn main() {
+    use celandine::complexity::{
+        normalized_jensen_shannon_complexity as complexity,
+        normalized_jensen_shannon_complexity_distribution as reuse,
+    };
+    for data in [b"".as_slice(), b"AAAA", b"AAAB", b"ABCD"] {
+        let d = celandine::distribution::Distribution::from_bytes(data);
+        for k in [0, 1, 2, 3, 4, 256, 257, usize::MAX] {
+            let before = ALLOCATIONS.load(Ordering::Relaxed);
+            let _ = black_box(complexity(black_box(data), black_box(k)));
+            let _ = black_box(reuse(black_box(&d), black_box(k)));
+            assert_eq!(ALLOCATIONS.load(Ordering::Relaxed), before);
+        }
+    }
+
     use celandine::transforms::blocks;
     let block_data = vec![0; 10 * 1024 * 1024];
     for size in [0, 1, 3, 8, block_data.len() + 1, usize::MAX] {

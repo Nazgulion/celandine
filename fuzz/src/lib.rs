@@ -670,6 +670,83 @@ pub fn blocks(input: &[u8]) {
     }
 }
 
+/// Mode byte, u64 alphabet size, then byte data or 256 u64 counts.
+pub fn statistical_complexity(input: &[u8]) {
+    use celandine::complexity::{
+        StatisticalComplexityError as Error, normalized_jensen_shannon_complexity as complexity,
+        normalized_jensen_shannon_complexity_distribution as reuse,
+    };
+    let k = word(input, 1) as usize;
+    let payload = input.get(9..).unwrap_or(&[]);
+    let mode = input.first().copied().unwrap_or(0) % 3;
+    let d = if mode == 0 {
+        Distribution::from_bytes(&payload[..payload.len().min(4096)])
+    } else {
+        let counts = std::array::from_fn(|i| {
+            let n = word(payload, i * 8) as usize;
+            if mode == 2 { n / 256 } else { n }
+        });
+        let total = counts.iter().map(|&c| c as u128).sum::<u128>();
+        let imported = ByteHistogram::try_from_counts(counts);
+        assert_eq!(imported.is_ok(), total <= usize::MAX as u128);
+        let Ok(histogram) = imported else {
+            return;
+        };
+        Distribution::from_counts(histogram)
+    };
+    let result = reuse(&d, k);
+    if mode == 0 {
+        assert_eq!(result, complexity(&payload[..payload.len().min(4096)], k));
+    }
+    let error = if !(2..=256).contains(&k) {
+        Some(Error::InvalidAlphabetSize)
+    } else if d.is_empty() {
+        Some(Error::EmptyDistribution)
+    } else if d.support_size() > k {
+        Some(Error::AlphabetTooSmall)
+    } else {
+        None
+    };
+    if let Some(error) = error {
+        assert_eq!(result, Err(error));
+        return;
+    }
+    let c = result.unwrap();
+    assert!(c.is_finite() && (0.0..=1.0 + 1e-13).contains(&c));
+    let counts: Vec<_> = d
+        .histogram()
+        .counts()
+        .iter()
+        .copied()
+        .filter(|&c| c > 0)
+        .collect();
+    if counts.len() == 1 || (counts.len() == k && counts.iter().all(|&n| n == counts[0])) {
+        assert_eq!(c.to_bits(), 0.0_f64.to_bits());
+    } else {
+        assert!(c > 0.0);
+    }
+    let mut p: Vec<_> = counts
+        .iter()
+        .map(|&n| n as f64 / d.sample_size() as f64)
+        .collect();
+    p.resize(k, 0.0);
+    let h = |p: &[f64]| {
+        -p.iter()
+            .filter(|&&x| x > 0.0)
+            .map(|x| x * x.log2())
+            .sum::<f64>()
+    };
+    let u = 1.0 / k as f64;
+    let mixture: Vec<_> = p.iter().map(|p| (p + u) / 2.0).collect();
+    let point_mixture: Vec<_> = (0..k).map(|i| (f64::from(i == 0) + u) / 2.0).collect();
+    let log = (k as f64).log2();
+    let reference =
+        h(&p) / log * (h(&mixture) - (h(&p) + log) / 2.0) / (h(&point_mixture) - log / 2.0);
+    assert!((c - reference).abs() < 2e-12);
+    // The f64 entropy-difference oracle is intentionally only an absolute check;
+    // high-precision fixtures establish tiny-value relative accuracy separately.
+}
+
 #[cfg(test)]
 mod tests {
     #[test]
@@ -686,6 +763,7 @@ mod tests {
             ("ncd", super::ncd),
             ("windows", super::windows),
             ("blocks", super::blocks),
+            ("statistical_complexity", super::statistical_complexity),
         ] {
             let directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
                 .join("seeds")

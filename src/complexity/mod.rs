@@ -1,9 +1,17 @@
-//! Exact combinatorial measures of observed finite byte sequences.
+//! Combinatorial and statistical measures of observed finite byte sequences.
 //!
 //! Subword complexity counts distinct contiguous blocks, preserving local order.
 //! See [`subword_complexity`] for its definition, history, and limits.
 //! [`lz76_complexity`] counts phrases in an exhaustive left-to-right history.
 
+//! [`normalized_jensen_shannon_complexity`] combines normalized byte entropy
+//! with departure from uniformity on an explicit alphabet; it ignores ordering.
+
+mod jensen_shannon;
+pub use jensen_shannon::{
+    StatisticalComplexityError, normalized_jensen_shannon_complexity,
+    normalized_jensen_shannon_complexity_distribution,
+};
 mod lz76;
 pub use lz76::lz76_complexity;
 

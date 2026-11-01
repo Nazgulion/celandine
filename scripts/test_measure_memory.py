@@ -20,6 +20,7 @@ class MemoryWorkloadTests(unittest.TestCase):
                 self.assertNotIn('ncd', operations)
                 self.assertNotIn('windows', operations)
                 self.assertNotIn('blocks', operations)
+                self.assertNotIn('statistical_complexity', operations)
                 self.assertIn('input', operations)
 
 

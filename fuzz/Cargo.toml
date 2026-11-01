@@ -93,3 +93,10 @@ path = "fuzz_targets/blocks.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+name = "statistical_complexity"
+path = "fuzz_targets/statistical_complexity.rs"
+test = false
+doc = false
+bench = false

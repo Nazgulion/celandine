@@ -362,3 +362,10 @@ blocks, and exposes the original L mod b suffix through `.remainder()`. Zero siz
 is an error even on empty input. Reversing preserves the forward partition;
 consuming or skipping never changes that original tail. See the
 [definition and worked examples](transforms/blocks.md).
+
+## Normalized Jensen–Shannon statistical complexity
+
+`C = (H(P)/log2(K))*(J(P,U_K)/Jmax(K))` uses explicit K in 2..=256, including
+unobserved states. Validation checks K, nonempty input, then support <=K. It is
+dimensionless, frequency-based, and separately normalizes both factors, not the
+maximum product. See the [complete convention](complexity/jensen_shannon.md).

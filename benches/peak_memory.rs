@@ -147,6 +147,17 @@ fn run(operation: &str, data: &[u8], n: usize) -> (usize, usize, usize) {
             black_box(data);
             0
         }
+        "statistical_complexity" => {
+            let d = Distribution::from_bytes(black_box(data));
+            black_box(
+                celandine::complexity::normalized_jensen_shannon_complexity_distribution(
+                    black_box(&d),
+                    black_box(256),
+                )
+                .unwrap(),
+            );
+            d.support_size()
+        }
         "entropy" => entropy(data),
         "lz76" => lz76_complexity(black_box(data)),
         #[cfg(feature = "compression-deflate")]
@@ -210,6 +221,7 @@ fn main() {
         assert_eq!(support, 2);
         assert!(peak > 0 && calls > 0);
         assert_eq!(run("extract", b"ABABA", 2).1, 0);
+        assert_eq!(run("statistical_complexity", b"AAAB", 1), (2, 0, 0));
         assert_eq!(run("blocks", b"ABCDEFGH", 3), (2, 0, 0));
         assert_eq!(run("windows", b"ABCDEFGHIJKLMNOP", 4), (3, 0, 0));
         assert_eq!(run("reuse", b"ABABA", 2).1, 0);
@@ -266,6 +278,7 @@ fn main() {
             | "ncd_input"
             | "windows"
             | "blocks"
+            | "statistical_complexity"
     ));
     assert!(matches!(
         shape.as_str(),
