@@ -14,6 +14,7 @@
 //! count-backed n-gram distributions in [`distribution`].
 //! [`distribution::JointDistribution`] retains aligned byte pairs and both marginals.
 //! [`entropy::joint_entropy`] measures their combined uncertainty in bits per pair.
+//! [`information::mutual_information`] measures their shared information in bits per pair.
 //! [`entropy::block_entropy`] measures their Shannon entropy in bits per block.
 //! [`entropy::block_entropy_profile`] lazily evaluates a bounded range of block lengths.
 //! [`entropy::conditional_entropy_order`] measures next-byte uncertainty given
@@ -52,4 +53,5 @@ pub mod compression;
 pub mod distribution;
 pub mod divergence;
 pub mod entropy;
+pub mod information;
 pub mod transforms;

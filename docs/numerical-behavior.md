@@ -328,3 +328,17 @@ The byte/reuse paths agree bit-for-bit; coordinate swapping and diagonal
 identity with the existing byte Shannon path are checked within 1e-12 bits,
 not promised bit-for-bit. Empty and constant pair laws return positive zero.
 See [the definition](entropy/joint.md) and [independent checks](references/joint.md).
+
+## Mutual information near independence
+
+The implementation avoids subtracting rounded entropies. With q equal to the
+product of exact marginals, it sums the nonnegative terms `p*ln(p/q)-p+q`,
+including absent-cell product mass, then converts nats to bits. Count products
+and differences use u128; integer products fit on the supported 32/64-bit targets.
+For relative difference magnitude at most 1/4, a power series avoids quadratic
+cancellation; other terms use the direct expression. Summation is compensated.
+Exact empirical independence yields positive zero without a tolerance cutoff.
+Independent 100-digit fixtures check small results relatively; tests also retain
+unit product gaps near 2^120 that would disappear if products were first rounded
+to f64. See [mutual information](information/mutual.md) and
+[verification](references/mutual.md) for the derivation and limits.

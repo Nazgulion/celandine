@@ -24,6 +24,7 @@ cargo run --locked --example block_entropy
 cargo run --locked --example conditional_order
 cargo run --locked --example block_profile
 cargo run --locked --example joint
+cargo run --locked --example mutual
 cargo run --locked --example total_variation
 cargo run --locked --example jensen_shannon
 cargo run --locked --example subword
@@ -77,6 +78,7 @@ python3 scripts/reference_block_entropy.py --check
 python3 scripts/reference_conditional_order.py --check
 python3 scripts/reference_block_profile.py --check
 python3 scripts/reference_joint.py --check
+python3 scripts/reference_mutual.py --check
 python3 scripts/reference_total_variation.py --check
 python3 scripts/reference_jensen_shannon.py --check
 python3 scripts/reference_subword.py --check
@@ -401,3 +403,15 @@ Run `python3 scripts/fuzz_campaign.py --target joint --runs 100000`, then
 `python3 scripts/benchmark_joint.py` and `python3 scripts/measure_memory.py --joint`
 sequentially. See [verification](docs/references/joint.md),
 [fuzzing](docs/fuzzing/joint.md) and [performance](docs/benchmarks/joint.md).
+
+## Mutual information
+
+Run `cargo run --locked --example mutual` and `python3 scripts/reference_mutual.py --check`.
+The 1,389 fixtures use independent high-precision entropy differences; tiny
+nonzero results receive relative checks. Preserve exact independence, marginal
+bounds, diagonal identity, count-product precision and allocation-free reuse.
+Run `python3 scripts/fuzz_campaign.py --target mutual --runs 100000`, then
+`python3 scripts/benchmark_mutual.py` and `python3 scripts/measure_memory.py --mutual`
+sequentially. The memory-workload regression must protect the existing joint
+case list. See [verification](docs/references/mutual.md),
+[fuzzing](docs/fuzzing/mutual.md) and [performance](docs/benchmarks/mutual.md).

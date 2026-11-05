@@ -14,6 +14,7 @@ use celandine::divergence::{
     total_variation_distance_distribution,
 };
 use celandine::entropy::*;
+use celandine::information::{mutual_information, mutual_information_distribution};
 use celandine::transforms::ngrams;
 use std::hint::black_box;
 
@@ -80,10 +81,15 @@ fn entropy(data: &[u8]) -> usize {
 
 fn run_joint(operation: &str, x: &[u8], y: &[u8]) -> (usize, usize, usize) {
     use celandine::distribution::{joint_counts, joint_probabilities};
-    if matches!(operation, "joint_reuse" | "joint_marginals") {
+    if matches!(
+        operation,
+        "joint_reuse" | "joint_marginals" | "mutual_reuse"
+    ) {
         let d = joint_probabilities(x, y).unwrap();
         return peak_allocator::measure(|| {
-            if operation == "joint_reuse" {
+            if operation == "mutual_reuse" {
+                black_box(mutual_information_distribution(black_box(&d)));
+            } else if operation == "joint_reuse" {
                 black_box(joint_entropy_distribution(black_box(&d)));
             } else {
                 black_box(black_box(&d).marginal_x());
@@ -93,7 +99,11 @@ fn run_joint(operation: &str, x: &[u8], y: &[u8]) -> (usize, usize, usize) {
         });
     }
     peak_allocator::measure(|| match operation {
-        "joint_input" => 0,
+        "joint_input" | "mutual_input" => 0,
+        "mutual" => {
+            black_box(mutual_information(black_box(x), black_box(y)).unwrap());
+            0
+        }
         "joint_counts" => {
             black_box(joint_counts(black_box(x), black_box(y)).unwrap()).support_size()
         }
@@ -307,6 +317,10 @@ fn main() {
         assert_eq!(run("extract", b"ABABA", 2).1, 0);
         assert!(run("block_entropy", b"ABABA", 2).1 > 0);
         assert_eq!(run_joint("joint_input", b"AB", b"XY"), (0, 0, 0));
+        assert_eq!(run_joint("mutual_input", b"AB", b"XY"), (0, 0, 0));
+        assert_eq!(run_joint("mutual", b"", b""), (0, 0, 0));
+        assert!(run_joint("mutual", b"AB", b"XY").1 > 0);
+        assert_eq!(run_joint("mutual_reuse", b"AB", b"XY"), (2, 0, 0));
         assert_eq!(run_joint("joint_counts", b"", b""), (0, 0, 0));
         assert!(run_joint("joint_counts", b"AB", b"XY").1 > 0);
         assert!(run_joint("joint_entropy", b"AB", b"XY").1 > 0);
@@ -369,7 +383,10 @@ fn main() {
     let shape = &args[1];
     assert!(matches!(
         operation.as_str(),
-        "joint_input"
+        "mutual"
+            | "mutual_input"
+            | "mutual_reuse"
+            | "joint_input"
             | "joint_counts"
             | "joint_entropy"
             | "joint_reuse"
@@ -418,7 +435,12 @@ fn main() {
                     | "block_profile_select"
             )
     );
-    if operation.starts_with("joint_") {
+    if operation.starts_with("joint_")
+        || matches!(
+            operation.as_str(),
+            "mutual" | "mutual_input" | "mutual_reuse"
+        )
+    {
         let (mut x, mut y) = joint_input::input(size, shape);
         for data in [&mut x, &mut y] {
             for byte in data.iter_mut().step_by(4096) {

@@ -8,7 +8,7 @@ Entropy, information, complexity, and distance for finite sequences.
 
 The library implements **empirical Shannon, Hartley, Rényi, collision, min-entropy,
 and Tsallis entropy over bytes**, plus **fixed byte blocks, sliding byte windows, overlapping byte n-grams, counts, and
-empirical joint byte laws, joint entropy, block probabilities, block entropy, block-entropy profiles and conditional entropy by order**, and **total variation distance between byte
+empirical joint byte laws, joint entropy, mutual information, block probabilities, block entropy, block-entropy profiles and conditional entropy by order**, and **total variation distance between byte
 distributions**, plus **Jensen–Shannon divergence and distance**, and **subword complexity and LZ76 complexity**, plus **normalized Jensen–Shannon statistical complexity**, and **optional compression measurements and ordered normalized compression distance**.
 It is one Rust library crate, with no runtime dependencies by default and
 no unsafe library code. Feature `compression-deflate` adds a pinned pure-Rust
@@ -26,6 +26,7 @@ The broader project plan describes future work, not currently available APIs.
 | [Fixed blocks](docs/transforms/blocks.md) | Partitions bytes into complete adjacent slices and exposes the incomplete tail. | Enables disjoint local measurements with explicit tail handling. |
 | [Sliding windows](docs/transforms/windows.md) | Borrows complete byte slices at a positive width and stride. | Composes existing metrics into local measurements without copying data. |
 | [Conditional entropy by order](docs/entropy/conditional_order.md) | Measures next-byte uncertainty given the preceding k bytes, using matched observations. | Reveals local predictability beyond frequency balance. |
+| [Mutual information](docs/information/mutual.md) | Measures shared information in aligned byte observations, in bits per pair. | Detects empirical dependence using stable joint/marginal counts. |
 | [Joint distributions and entropy](docs/entropy/joint.md) | Counts position-aligned byte pairs, exposes both marginals and measures their joint uncertainty. | Distinguishes pairings hidden by separate histograms; rejects unequal lengths. |
 | [Block-entropy profiles](docs/entropy/block_profile.md) | Lazily yields block entropy across positive lengths up to a caller-selected maximum, capped at input length. | Compares observed patterns at different scales while allowing bounded work. |
 | [Block entropy](docs/entropy/block.md) | Computes Shannon entropy of overlapping n-byte block frequencies, in bits per block. | Distinguishes local arrangements with the same byte histogram. |
@@ -277,6 +278,24 @@ zero by convention. For reuse, pass `(order+1)`-grams. The first `order` bytes
 provide context and are excluded as targets. See [definition and history](docs/entropy/conditional_order.md),
 [verification](docs/references/conditional_order.md), and [performance](docs/benchmarks/conditional_order.md).
 
+### Mutual information
+
+```rust
+use celandine::information::mutual_information;
+assert_eq!(mutual_information(b"AABB", b"XYXY").unwrap(), 0.0);
+assert!((mutual_information(b"AABB", b"XXYY").unwrap() - 1.0).abs() < 1e-12);
+```
+
+Mutual information is `sum p(a,b)*log2(p(a,b)/(p_x(a)*p_y(b)))`, in bits
+per aligned pair. The first example has independent empirical coordinates;
+the second shares one bit despite having the same separate histograms.
+`mutual_information_distribution` reuses a `JointDistribution` without new heap
+allocation. Unequal lengths are rejected; empty/empty gives zero by convention.
+The calculation retains tiny departures from independence without subtracting
+nearly equal entropies. It does not establish causation or source independence.
+See [definition and history](docs/information/mutual.md),
+[verification](docs/references/mutual.md) and [measurements](docs/benchmarks/mutual.md).
+
 ### Joint distributions and entropy
 
 ```rust
@@ -444,6 +463,7 @@ cargo run --locked --example block_entropy
 cargo run --locked --example conditional_order
 cargo run --locked --example block_profile
 cargo run --locked --example joint
+cargo run --locked --example mutual
 cargo run --locked --example total_variation
 cargo run --locked --example jensen_shannon
 cargo run --locked --example subword
@@ -655,7 +675,10 @@ properties, allocation checks for laziness, fuzzing and bounded measurements.
 Joint distributions and entropy add 1,387 independent paired fixtures, marginal
 and entropy properties, full-alphabet tests, allocation checks and dedicated fuzzing.
 
-The six byte entropy measures, joint entropy and reusable joint laws, block entropy and its lazy profiles, conditional entropy by order, n-gram primitives, fixed blocks, sliding windows, total variation,
+Mutual information adds 1,389 high-precision cases, tiny-value relative checks,
+exact independence tests, properties, allocation checks, fuzzing and measurements.
+
+The six byte entropy measures, mutual information, joint entropy and reusable joint laws, block entropy and its lazy profiles, conditional entropy by order, n-gram primitives, fixed blocks, sliding windows, total variation,
 Jensen–Shannon comparisons, subword complexity, raw LZ76 complexity, normalized Jensen–Shannon statistical complexity, and optional
 compression measurements and ordered NCD are implemented, including explicit Shannon logarithm bases. The [v0.1 readiness review](docs/releases/v0.1-readiness.md)
 records passing validation and remaining release-scope decisions. Dedicated fuzz
@@ -666,7 +689,8 @@ Development now prioritizes breadth across categories, with total variation and
 Jensen–Shannon comparisons followed by subword and LZ76 complexity for sequence structure, then optional
 compression length, ratio, ordered NCD, sliding windows, fixed blocks, statistical complexity, and block entropy.
 Conditional entropy by order and block-entropy profiles are implemented. Joint
-distributions and joint entropy are implemented; mutual information is the next scoped increment. Other metrics, a
+distributions, joint entropy and mutual information are implemented; named
+normalized LZ76 variants are the next scoped increment. Other metrics, a
 CLI, and bindings remain future work.
 
 ## License

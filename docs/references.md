@@ -139,3 +139,8 @@ Shannon's block entropy to the finite, capped, lazy sequence of scalar values.
 
 See [joint references and verification](references/joint.md), including Shannon
 section 6, aligned-pair conventions, exact marginals and independent fixtures.
+
+## Mutual information
+
+See [mutual information references and verification](references/mutual.md):
+Shannon's transmission-rate identities, empirical conventions and stable evaluation.

@@ -204,9 +204,18 @@ def seeds():
         ("rare",b"A"*511+b"B",b"X"*512),("binary",b"\0\xff\0",b"\xff\0\0"),
     ]:
         yield "joint",name,b"\0"+struct.pack("<Q",len(x))+x+y
+        yield "mutual",name,b"\0"+struct.pack("<Q",len(x))+x+y
     yield "joint","midpoint",b"\1"+struct.pack("<Q",2**64-1)+b"AABBXYXY"
     yield "joint","raw_empty",b""
     yield "joint","short",b"\xff"
+    yield "mutual","midpoint",b"\1"+struct.pack("<Q",2**64-1)+b"AABBXYXY"
+    yield "mutual","raw_empty",b""
+    yield "mutual","short",b"\xff"
+    for name,counts in [("near_independent",[65,63,63,65]),("nonuniform_independent",[6,3,2,1]),("series_boundary",[80,48,48,80])]:
+        pairs=[(0,0),(0,1),(1,0),(1,1)]
+        x=b"".join(bytes([a])*c for (a,b),c in zip(pairs,counts))
+        y=b"".join(bytes([b])*c for (a,b),c in zip(pairs,counts))
+        yield "mutual",name,b"\0"+struct.pack("<Q",len(x))+x+y
     k = 1 << 50
     for offset in [-2, -1, 0, 1, 2]:
         pairs = [(3*k+offset, k), (k, 3*k+offset)]

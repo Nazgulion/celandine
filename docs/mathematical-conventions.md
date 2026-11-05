@@ -412,3 +412,12 @@ sum the same exact joint counts. Empty/empty is an empty empirical state with
 zero query probabilities and entropy zero by convention. Joint entropy uses
 base two, bits per pair, with observed support at most 65,536. See
 [joint distributions](joint-distributions.md) and [joint entropy](entropy/joint.md).
+
+## Mutual information
+
+Mutual information uses the same aligned equal-length sample as the joint law:
+`I=sum p(a,b)*log2(p(a,b)/(p_x(a)*p_y(b)))`, in bits per pair. Empty/empty
+returns zero; unequal lengths return `LengthMismatch`. A positive joint cell
+always has positive marginals; zero joint cells contribute zero to the defining
+sum. No normalization, smoothing, bias correction or source model is implicit.
+See [the definition](information/mutual.md) for bounds and limitations.

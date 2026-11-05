@@ -3008,6 +3008,13 @@ empirical law with entropy zero, and preserve the independent verification,
 example, fuzz, measurement and review workflow, then commit and push. Mutual
 information and named normalized LZ76 remain separate increments.
 
+**Next information increment (2026-11-05, owner-authorized):** implement
+mutual information for aligned byte pairs and existing joint distributions,
+in bits per pair, retaining length errors and the empty convention. Validate
+near-independence numerical behavior independently, test identities and reuse,
+run fuzzing and performance measurements, review, commit and push. Named
+normalized LZ76 and later information APIs remain separate increments.
+
 Do not develop in the order that sounds most exciting.
 
 Use this dependency order:

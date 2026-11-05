@@ -128,3 +128,10 @@ path = "fuzz_targets/joint.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+name = "mutual"
+path = "fuzz_targets/mutual.rs"
+test = false
+doc = false
+bench = false

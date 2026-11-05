@@ -133,6 +133,15 @@ def joint_cases():
         yield operation,"mixed",0,1
 
 
+def mutual_cases():
+    for shape in ["constant","uniform","skewed","mixed"]:
+        for size in [16,65536,10*MIB,100*MIB]:
+            for operation in ["mutual_input","mutual","mutual_reuse"]:
+                yield operation,shape,size,1
+    for operation in ["mutual_input","mutual","mutual_reuse"]:
+        yield operation,"mixed",0,1
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--smoke", action="store_true", help="small instrument/workflow check")
@@ -140,6 +149,7 @@ def main():
                         help="measure only TV and input controls at 10/100 MiB")
     parser.add_argument("--jensen-shannon", action="store_true",
                         help="measure only JS and input controls at 10/100 MiB")
+    parser.add_argument("--mutual", action="store_true", help="mutual information and joint-law reuse")
     parser.add_argument("--joint", action="store_true", help="paired joint counts, entropy and marginals")
     parser.add_argument("--block-profile", action="store_true", help="bounded block-entropy profiles and lazy access")
     parser.add_argument("--conditional-order", action="store_true", help="conditional entropy by order and reuse")
@@ -155,8 +165,8 @@ def main():
     args = parser.parse_args()
     if args.repetitions < 1:
         parser.error("repetitions must be positive")
-    if sum([args.smoke, args.total_variation, args.jensen_shannon, args.subword, args.lz76, args.compression, args.ncd, args.windows, args.blocks, args.statistical_complexity, args.block_entropy, args.conditional_order, args.block_profile, args.joint]) > 1:
-        parser.error("choose one of --smoke, --total-variation, --jensen-shannon, --subword, --lz76, --compression, --ncd, --windows, --blocks, --statistical-complexity, --block-entropy, --conditional-order, --block-profile, or --joint")
+    if sum([args.smoke, args.total_variation, args.jensen_shannon, args.subword, args.lz76, args.compression, args.ncd, args.windows, args.blocks, args.statistical_complexity, args.block_entropy, args.conditional_order, args.block_profile, args.joint, args.mutual]) > 1:
+        parser.error("choose one of --smoke, --total-variation, --jensen-shannon, --subword, --lz76, --compression, --ncd, --windows, --blocks, --statistical-complexity, --block-entropy, --conditional-order, --block-profile, --joint, or --mutual")
     if platform.system() != "Linux":
         parser.error("process RSS units and evidence currently target Linux")
     build_command = ["cargo", "bench", "--locked", "--bench", "peak_memory",
@@ -173,7 +183,7 @@ def main():
     output = Path(tempfile.mkdtemp(prefix="peak-memory-", dir=parent))
     metadata = {
         "host": platform.platform(), "repetitions": args.repetitions, "smoke": args.smoke,
-        "joint": args.joint, "block_profile": args.block_profile, "conditional_order": args.conditional_order, "block_entropy": args.block_entropy, "statistical_complexity": args.statistical_complexity, "blocks": args.blocks, "windows": args.windows, "ncd": args.ncd, "compression": args.compression, "build_command": build_command,
+        "mutual": args.mutual, "joint": args.joint, "block_profile": args.block_profile, "conditional_order": args.conditional_order, "block_entropy": args.block_entropy, "statistical_complexity": args.statistical_complexity, "blocks": args.blocks, "windows": args.windows, "ncd": args.ncd, "compression": args.compression, "build_command": build_command,
         "lz76": args.lz76, "subword": args.subword, "total_variation": args.total_variation, "jensen_shannon": args.jensen_shannon,
         "rustc": subprocess.check_output(["rustc", "-Vv"], text=True),
         "time": subprocess.check_output(["/usr/bin/time", "--version"], text=True),
@@ -205,6 +215,8 @@ def main():
                          for shape in ["constant", "uniform", "skewed", "mixed"]
                          for size in [16, 65536, 10*MIB, 100*MIB]
                          for operation in ["input", "statistical_complexity"])
+        if args.mutual:
+            workloads = mutual_cases()
         if args.joint:
             workloads = joint_cases()
         if args.block_profile:
@@ -243,9 +255,9 @@ def main():
                 values, = list(csv.reader(io.StringIO(result.stdout)))
                 assert len(values) == len(FIELDS)
                 row = dict(zip(FIELDS, values))
-                no_heap = (operation in ["joint_input", "joint_reuse", "joint_marginals", "block_profile_metadata", "conditional_order_reuse", "block_entropy_reuse", "statistical_complexity", "blocks", "windows", "ncd_input", "input", "entropy", "extract", "reuse", "total_variation", "jensen_shannon", "lz76"]
+                no_heap = (operation in ["mutual_input", "mutual_reuse", "joint_input", "joint_reuse", "joint_marginals", "block_profile_metadata", "conditional_order_reuse", "block_entropy_reuse", "statistical_complexity", "blocks", "windows", "ncd_input", "input", "entropy", "extract", "reuse", "total_variation", "jensen_shannon", "lz76"]
                            or (operation in ["block_entropy", "conditional_order"] and (n == 1 or n >= size))
-                           or (operation in ["joint_counts", "joint_entropy"] and size == 0)
+                           or (operation in ["joint_counts", "joint_entropy", "mutual"] and size == 0)
                            or (operation == "block_profile_select" and (n <= 1 or n >= size or size <= 2))
                            or (operation == "block_profile" and (n <= 1 or size <= 2))
                            or (operation == "subword" and (n <= 1 or n >= size))
@@ -253,7 +265,7 @@ def main():
                 if no_heap:
                     assert int(row["peak_heap_bytes"]) == int(row["allocation_calls"]) == 0
                 else:
-                    assert (operation in ["block_entropy", "conditional_order", "joint_entropy"] or int(row["support"]) > 0) and int(row["peak_heap_bytes"]) > 0
+                    assert (operation in ["block_entropy", "conditional_order", "joint_entropy", "mutual"] or int(row["support"]) > 0) and int(row["peak_heap_bytes"]) > 0
                 row.update(repetition=repetition, max_rss_kib=int(rss.read_text().strip()))
                 writer.writerow(row)
                 stream.flush()

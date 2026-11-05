@@ -1013,6 +1013,84 @@ pub fn joint(input: &[u8]) {
     assert!((0.0..=16.0 + 1e-11).contains(&h));
 }
 
+/// Mutual information checked by independent marginal and sorted-pair entropies.
+pub fn mutual(input: &[u8]) {
+    use celandine::{
+        distribution::{LengthMismatch, joint_probabilities},
+        information::{mutual_information, mutual_information_distribution},
+    };
+    let payload = input.get(9..).unwrap_or_default();
+    let split = if input.first().copied().unwrap_or(0) % 2 == 0 {
+        (word(input, 1) % (payload.len() as u64 + 1)) as usize
+    } else {
+        payload.len() / 2
+    };
+    let (x, y) = payload.split_at(split);
+    if x.len() != y.len() {
+        assert_eq!(
+            mutual_information(x, y),
+            Err(LengthMismatch {
+                x_len: x.len(),
+                y_len: y.len()
+            })
+        );
+        return;
+    }
+    let mut mx = [0usize; 256];
+    let mut my = [0usize; 256];
+    for &a in x {
+        mx[a as usize] += 1;
+    }
+    for &b in y {
+        my[b as usize] += 1;
+    }
+    let entropy = |counts: &[usize]| {
+        counts
+            .iter()
+            .filter(|&&c| c > 0)
+            .map(|&c| {
+                let p = c as f64 / x.len() as f64;
+                -p * p.ln() / LN_2
+            })
+            .sum::<f64>()
+    };
+    let mut pairs: Vec<_> = x
+        .iter()
+        .zip(y)
+        .map(|(&a, &b)| (u16::from(a) << 8) | u16::from(b))
+        .collect();
+    pairs.sort_unstable();
+    let mut frequencies = Vec::new();
+    let mut i = 0;
+    while i < pairs.len() {
+        let mut end = i + 1;
+        while end < pairs.len() && pairs[i] == pairs[end] {
+            end += 1;
+        }
+        frequencies.push(end - i);
+        i = end;
+    }
+    let hx = entropy(&mx);
+    let hy = entropy(&my);
+    let expected = hx + hy - entropy(&frequencies);
+    let d = joint_probabilities(x, y).unwrap();
+    let actual = mutual_information_distribution(&d);
+    close(actual, expected);
+    assert!(actual >= 0.0 && actual <= hx.min(hy) + 1e-11);
+    assert_eq!(
+        actual.to_bits(),
+        mutual_information(x, y).unwrap().to_bits()
+    );
+    close(actual, mutual_information(y, x).unwrap());
+    close(mutual_information(x, x).unwrap(), hx);
+    if x.is_empty()
+        || mx.iter().filter(|&&c| c > 0).count() <= 1
+        || my.iter().filter(|&&c| c > 0).count() <= 1
+    {
+        assert_eq!(actual.to_bits(), 0.0f64.to_bits());
+    }
+}
+
 #[cfg(test)]
 mod tests {
     #[test]
@@ -1034,6 +1112,7 @@ mod tests {
             ("conditional_order", super::conditional_order),
             ("block_profile", super::block_profile),
             ("joint", super::joint),
+            ("mutual", super::mutual),
         ] {
             let directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
                 .join("seeds")

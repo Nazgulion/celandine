@@ -2,6 +2,14 @@
 
 ## Unreleased — entropy, distance, sequence, and compression foundations
 
+- Add `information::mutual_information` and joint-distribution reuse, in bits
+  per aligned pair. Preserve length validation and empty conventions; use exact
+  count products and a stable divergence calculation near independence.
+- Add independent references, tiny-value and integer-precision tests, an example,
+  properties, fuzzing and measured latency/memory evidence. Protect historical
+  joint memory workloads with a regression check.
+
+
 - Add owned aligned-byte `JointCounts`/`JointDistribution`, count/probability
   constructors and exact integer-derived marginals. Reject unequal lengths with
   `LengthMismatch` before counting; retain explicit empty empirical states.

@@ -124,3 +124,7 @@ harness = false
 [[bench]]
 name = "joint"
 harness = false
+
+[[bench]]
+name = "mutual"
+harness = false

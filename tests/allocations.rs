@@ -55,6 +55,7 @@ static ALLOCATOR: CountingAllocator = CountingAllocator;
 fn main() {
     use celandine::distribution::{JointDistribution, joint_counts, joint_probabilities};
     use celandine::entropy::{joint_entropy, joint_entropy_distribution};
+    use celandine::information::{mutual_information, mutual_information_distribution};
     for (x, y) in [(b"".as_slice(), b"".as_slice()), (b"AABB", b"XYXY")] {
         let counts = joint_counts(x, y).unwrap();
         let before = ALLOCATIONS.load(Ordering::Relaxed);
@@ -66,6 +67,7 @@ fn main() {
         black_box(d.marginal_x());
         black_box(d.marginal_y());
         black_box(joint_entropy_distribution(&d));
+        black_box(mutual_information_distribution(&d));
         assert_eq!(
             ALLOCATIONS.load(Ordering::Relaxed),
             before,
@@ -76,6 +78,8 @@ fn main() {
     black_box(joint_counts(b"", b"")).unwrap();
     black_box(joint_probabilities(b"", b"")).unwrap();
     assert_eq!(joint_entropy(b"", b""), Ok(0.0));
+    assert_eq!(mutual_information(b"", b""), Ok(0.0));
+    assert!(black_box(mutual_information(b"AB", b"X")).is_err());
     assert!(black_box(joint_counts(b"AB", b"X")).is_err());
     assert!(black_box(joint_probabilities(b"", b"X")).is_err());
     assert!(black_box(joint_entropy(b"X", b"")).is_err());
