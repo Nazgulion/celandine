@@ -114,3 +114,10 @@ path = "fuzz_targets/conditional_order.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+name = "block_profile"
+path = "fuzz_targets/block_profile.rs"
+test = false
+doc = false
+bench = false

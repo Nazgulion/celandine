@@ -843,6 +843,102 @@ pub fn conditional_order(input: &[u8]) {
     assert_eq!(conditional_entropy_order(data, 0), shannon(data));
 }
 
+/// Stateful bounded profiles checked against independently sorted block counts.
+pub fn block_profile(input: &[u8]) {
+    use std::collections::VecDeque;
+    let maximum = usize::try_from(word(input, 0)).unwrap_or(usize::MAX);
+    let skip = usize::try_from(word(input, 8)).unwrap_or(usize::MAX);
+    let actions = input.get(16..input.len().min(32)).unwrap_or_default();
+    let data = input.get(32..).unwrap_or_default();
+    let mut reference = VecDeque::new();
+    for n in 1..=data.len().min(maximum) {
+        let mut blocks: Vec<_> = (0..=data.len() - n).map(|i| &data[i..i + n]).collect();
+        blocks.sort_unstable();
+        let mut entropy = 0.0;
+        let mut i = 0;
+        while i < blocks.len() {
+            let mut end = i + 1;
+            while end < blocks.len() && blocks[end] == blocks[i] {
+                end += 1;
+            }
+            let p = (end - i) as f64 / blocks.len() as f64;
+            entropy -= p * p.ln() / LN_2;
+            i = end;
+        }
+        reference.push_back(entropy);
+    }
+    let compare = |a: Option<f64>, b: Option<f64>| match (a, b) {
+        (Some(a), Some(b)) => close(a, b),
+        (None, None) => {}
+        pair => panic!("{pair:?}"),
+    };
+    let mut iter = block_entropy_profile(data, maximum);
+    for &action in actions {
+        assert_eq!(iter.len(), reference.len());
+        assert_eq!(iter.size_hint(), (reference.len(), Some(reference.len())));
+        let step = if action & 8 == 0 {
+            skip
+        } else {
+            (action >> 4) as usize
+        };
+        match action % 8 {
+            0 => compare(iter.next(), reference.pop_front()),
+            1 => compare(iter.next_back(), reference.pop_back()),
+            2 | 3 => {
+                let expected = if step >= reference.len() {
+                    reference.clear();
+                    None
+                } else {
+                    for _ in 0..step {
+                        if action % 8 == 2 {
+                            reference.pop_front();
+                        } else {
+                            reference.pop_back();
+                        }
+                    }
+                    if action % 8 == 2 {
+                        reference.pop_front()
+                    } else {
+                        reference.pop_back()
+                    }
+                };
+                compare(
+                    if action % 8 == 2 {
+                        iter.nth(step)
+                    } else {
+                        iter.nth_back(step)
+                    },
+                    expected,
+                );
+            }
+            4 => {
+                let values: Vec<_> = iter.clone().collect();
+                assert_eq!(values.len(), reference.len());
+                for (a, &b) in values.into_iter().zip(&reference) {
+                    close(a, b);
+                }
+            }
+            5 => assert_eq!(iter.clone().count(), reference.len()),
+            6 => compare(iter.clone().last(), reference.back().copied()),
+            _ => {
+                let values: Vec<_> = iter.clone().rev().collect();
+                assert_eq!(values.len(), reference.len());
+                for (a, &b) in values.into_iter().zip(reference.iter().rev()) {
+                    close(a, b);
+                }
+            }
+        }
+    }
+    assert_eq!(iter.len(), reference.len());
+    for b in reference {
+        compare(iter.next(), Some(b));
+    }
+    assert_eq!(iter.next(), None);
+    assert_eq!(iter.next_back(), None);
+    assert_eq!(iter.nth(usize::MAX), None);
+    assert_eq!(iter.nth_back(usize::MAX), None);
+}
+
 #[cfg(test)]
 mod tests {
     #[test]
@@ -862,6 +958,7 @@ mod tests {
             ("statistical_complexity", super::statistical_complexity),
             ("block_entropy", super::block_entropy),
             ("conditional_order", super::conditional_order),
+            ("block_profile", super::block_profile),
         ] {
             let directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
                 .join("seeds")

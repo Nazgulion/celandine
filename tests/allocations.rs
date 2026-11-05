@@ -53,6 +53,29 @@ unsafe impl GlobalAlloc for CountingAllocator {
 static ALLOCATOR: CountingAllocator = CountingAllocator;
 
 fn main() {
+    use celandine::entropy::block_entropy_profile;
+    for size in [0usize, 1, 16, 64, 65536, 10 * 1024 * 1024] {
+        let data: Vec<_> = (0..size).map(|i| i as u8).collect();
+        for maximum in [0, 1, usize::MAX] {
+            let before = ALLOCATIONS.load(Ordering::Relaxed);
+            let p = block_entropy_profile(black_box(&data), black_box(maximum));
+            black_box(p.len());
+            black_box(p.size_hint());
+            black_box(p.clone().count());
+            black_box(p.clone().last());
+            black_box(p.clone().nth(usize::MAX));
+            black_box(p.clone().nth_back(usize::MAX));
+            black_box(p.clone().nth(size.saturating_sub(1)));
+            black_box(p.clone().nth_back(size.saturating_sub(1)));
+            black_box(p.take(1).sum::<f64>());
+            assert_eq!(
+                ALLOCATIONS.load(Ordering::Relaxed),
+                before,
+                "profile evaluated discarded orders"
+            );
+        }
+    }
+
     use celandine::entropy::{conditional_entropy_order, conditional_entropy_order_distribution};
     for data in [b"".as_slice(), b"A", b"ABABAB", b"AAB", b"AABA"] {
         for order in [0, data.len().saturating_sub(1), data.len(), usize::MAX] {

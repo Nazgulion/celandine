@@ -392,3 +392,13 @@ positive zero. Every usize order is accepted, including maximum values.
 Reuse takes `(k+1)`-grams and infers k. There is no smoothing or source-rate
 claim; finite estimates need not decrease across orders with changing target
 sets. See [formula and examples](entropy/conditional_order.md).
+
+## Block-entropy profiles
+
+`block_entropy_profile(data,max_order)` yields H_1 through H_r, with
+r=min(max_order,input length). Units at length n are bits per n-byte block.
+An empty input or zero maximum gives an empty iterator; there is no H_0 or
+unobserved-length tail. This does not change the scalar empty/oversized zero
+convention. Each value uses the existing scalar byte API exactly. The finite
+profile need not be monotonic or concave, and adjacent differences are not
+generally conditional entropy. See [definition and iterator contract](entropy/block_profile.md).

@@ -308,3 +308,13 @@ other terms use compensated summation and complementary integer counts with
 to Shannon; reuse can differ in final rounding. The 2,419 Decimal references
 use absolute `1e-12` bit tolerance and a rare-transition analytic test also
 checks relative error. See [the metric](entropy/conditional_order.md).
+
+## Block-entropy profiles
+
+Each profile entry delegates to the scalar byte block-entropy function and
+agrees with it bit-for-bit. The iterator adds no arithmetic, normalization or
+clamping. Independent 100-digit fixtures check values at `1e-12` absolute bit
+tolerance. Construction and metadata operations have no numeric evaluation;
+`nth`, `nth_back` and `last` evaluate only a selected entry. Collecting or summing
+performs the requested scalar evaluations and may add caller-side rounding.
+See [profile semantics and limits](entropy/block_profile.md).

@@ -2994,6 +2994,13 @@ conventions. Include n-gram reuse, independent verification, examples, fuzzing,
 measurements and review, then commit and push. Block-entropy profiles, joint
 entropy and later list items remain separate increments.
 
+**Next profile increment (2026-11-05, owner-authorized):** implement lazy
+`block_entropy_profile(data,max_order)` for positive lengths through
+min(max_order,input length), with empty/zero-limit semantics, exact iterator
+length and skips that avoid discarded entropy calculations. Verify independent
+profile values and stateful traversal, measure bounded work, review, commit and
+push. Joint distributions/entropy and later list items remain separate increments.
+
 Do not develop in the order that sounds most exciting.
 
 Use this dependency order:

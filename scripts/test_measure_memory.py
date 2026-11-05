@@ -25,12 +25,18 @@ class MemoryWorkloadTests(unittest.TestCase):
                 self.assertNotIn('block_entropy_reuse', operations)
                 self.assertNotIn('conditional_order', operations)
                 self.assertNotIn('conditional_order_reuse', operations)
+                self.assertTrue({'block_profile','block_profile_metadata','block_profile_select'}.isdisjoint(operations))
                 self.assertIn('input', operations)
 
 
     def test_conditional_operations_do_not_change_block_entropy_workloads(self):
         operations = {case[0] for case in measure_memory.block_entropy_cases()}
         self.assertEqual(operations, {'input', 'block_entropy', 'block_entropy_reuse'})
+
+
+    def test_profiles_do_not_change_conditional_workloads(self):
+        operations = {case[0] for case in measure_memory.conditional_order_cases()}
+        self.assertEqual(operations, {'input','conditional_order','conditional_order_reuse'})
 
 
 if __name__ == '__main__': unittest.main()

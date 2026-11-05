@@ -77,6 +77,31 @@ fn entropy(data: &[u8]) -> usize {
 }
 
 fn run(operation: &str, data: &[u8], n: usize) -> (usize, usize, usize) {
+    if matches!(
+        operation,
+        "block_profile" | "block_profile_metadata" | "block_profile_select"
+    ) {
+        return peak_allocator::measure(|| {
+            let p = block_entropy_profile(black_box(data), black_box(n));
+            let len = p.len();
+            match operation {
+                "block_profile" => {
+                    black_box(p.sum::<f64>());
+                }
+                "block_profile_metadata" => {
+                    black_box(p.size_hint());
+                    black_box(p.clone().count());
+                }
+                _ => {
+                    black_box(p.clone().last());
+                    black_box(p.clone().nth(len.saturating_sub(1)));
+                    black_box(p.clone().nth_back(len.saturating_sub(1)));
+                }
+            }
+            len
+        });
+    }
+
     if operation == "conditional_order" {
         return peak_allocator::measure(|| {
             // n records the joint block length; the context order is n-1.
@@ -253,6 +278,14 @@ fn main() {
         assert_eq!(run("extract", b"ABABA", 2).1, 0);
         assert!(run("block_entropy", b"ABABA", 2).1 > 0);
         assert!(run("conditional_order", b"AABA", 2).1 > 0);
+        assert!(run("block_profile", b"AABB", 4).1 > 0);
+        assert_eq!(run("block_profile", b"AABB", 0), (0, 0, 0));
+        assert_eq!(run("block_profile", b"AABB", 1), (1, 0, 0));
+        assert_eq!(
+            run("block_profile_metadata", b"AABB", usize::MAX),
+            (4, 0, 0)
+        );
+        assert_eq!(run("block_profile_select", b"AABB", usize::MAX), (4, 0, 0));
         assert_eq!(run("conditional_order", b"AABA", 1), (0, 0, 0));
         assert_eq!(run("conditional_order", b"AABA", 4), (0, 0, 0));
         assert_eq!(run("conditional_order", b"AABA", usize::MAX), (0, 0, 0));
@@ -322,6 +355,9 @@ fn main() {
             | "block_entropy_reuse"
             | "conditional_order"
             | "conditional_order_reuse"
+            | "block_profile"
+            | "block_profile_metadata"
+            | "block_profile_select"
     ));
     assert!(matches!(
         shape.as_str(),
@@ -330,7 +366,18 @@ fn main() {
     let size: usize = args[2].parse().unwrap();
     let n: usize = args[3].parse().unwrap();
     assert!(size <= 100 * 1024 * 1024);
-    assert!(n > 0 || matches!(operation.as_str(), "subword" | "subword_profile"));
+    assert!(
+        n > 0
+            || matches!(
+                operation.as_str(),
+                "input"
+                    | "subword"
+                    | "subword_profile"
+                    | "block_profile"
+                    | "block_profile_metadata"
+                    | "block_profile_select"
+            )
+    );
     let mut data = input(size, shape);
     // Force writes to each 4 KiB page even for zero-filled buffers, then read all
     // bytes. Input RSS must not be hidden by lazily mapped shared zero pages.

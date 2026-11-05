@@ -22,6 +22,7 @@ cargo run --locked --example blocks
 cargo run --locked --example statistical_complexity
 cargo run --locked --example block_entropy
 cargo run --locked --example conditional_order
+cargo run --locked --example block_profile
 cargo run --locked --example total_variation
 cargo run --locked --example jensen_shannon
 cargo run --locked --example subword
@@ -73,6 +74,7 @@ python3 scripts/reference_blocks.py --check
 python3 scripts/reference_statistical_complexity.py --check
 python3 scripts/reference_block_entropy.py --check
 python3 scripts/reference_conditional_order.py --check
+python3 scripts/reference_block_profile.py --check
 python3 scripts/reference_total_variation.py --check
 python3 scripts/reference_jensen_shannon.py --check
 python3 scripts/reference_subword.py --check
@@ -371,3 +373,17 @@ Then measure `python3 scripts/benchmark_conditional_order.py` and
 [references](docs/references/conditional_order.md),
 [fuzz evidence](docs/fuzzing/conditional_order.md), and
 [performance](docs/benchmarks/conditional_order.md).
+
+## Block-entropy profiles
+
+Run `cargo run --locked --example block_profile` and
+`python3 scripts/reference_block_profile.py --check`. The 1,831 profiles use
+100-digit independent block entropies and explicit caps. Normal tests check
+limits, scalar agreement and mixed front/back/skip/clone/count/last operations;
+allocation checks ensure discarded orders are not evaluated. Run
+`python3 scripts/fuzz_campaign.py --target block_profile --runs 100000`, then
+`python3 scripts/benchmark_block_profile.py` and
+`python3 scripts/measure_memory.py --block-profile` sequentially. Full-profile
+workloads stay short; large inputs use bounded prefixes or selected entries.
+See [references](docs/references/block_profile.md),
+[fuzzing](docs/fuzzing/block_profile.md), and [performance](docs/benchmarks/block_profile.md).

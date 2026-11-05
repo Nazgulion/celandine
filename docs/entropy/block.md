@@ -78,3 +78,10 @@ rounding near probability one. The byte `n=1` path retains existing Shannon
 rounding, so distribution reuse may differ in the last few bits. Independent
 100-digit fixtures use absolute tolerance `1e-12` bits; this is a test tolerance,
 not a universal error bound for arbitrary hardware or inputs. No result is clamped.
+
+## Profiles
+
+`block_entropy_profile(data, max_order)` lazily yields scalar values for positive
+lengths up to the smaller of max_order and input length. Zero limits or empty
+input yield no entries; oversized limits do not append unobserved zero values.
+Each consumed entry has the scalar cost above, and a full profile can be expensive.

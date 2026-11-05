@@ -183,6 +183,19 @@ def seeds():
     yield "conditional_order","small",b"\2"+struct.pack("<Q",1)+b"AABA"*128
     yield "conditional_order","raw_empty",b""
     yield "conditional_order","short",b"\xff"
+    for name, maximum, skip, data in [
+        ("empty",8,0,b""),("zero_limit",0,0,b"ABCD"),("singleton",1,0,b"A"),
+        ("constant",4,0,b"AAAA"),("worked",4,0,b"AABB"),("nonmonotone",5,0,b"ABABA"),
+        ("prefix",2,0,b"AABB"),("oversized",100,0,b"ABCD"),
+        ("max_limit",2**64-1,0,b"AABB"),("max_skip",2**64-1,2**64-1,b"ABCD"),
+        ("skip_tail",2**64-1,3,b"AABB"),("binary",4,0,b"\0\xff\0\xff"),
+        ("diverse",32,0,bytes(range(32))),
+    ]:
+        actions=bytes([4,5,6,7,0,1,2,3])*2
+        if name in ["max_skip","skip_tail"]: actions=bytes([2,3,0,1])*4
+        yield "block_profile",name,struct.pack("<QQ",maximum,skip)+actions+data
+    yield "block_profile","raw_empty",b""
+    yield "block_profile","short",b"\xff"
     k = 1 << 50
     for offset in [-2, -1, 0, 1, 2]:
         pairs = [(3*k+offset, k), (k, 3*k+offset)]

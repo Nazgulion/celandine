@@ -2,6 +2,13 @@
 
 ## Unreleased — entropy, distance, sequence, and compression foundations
 
+- Add lazy `block_entropy_profile(data, max_order)` over lengths 1 through
+  min(max_order, input length), with empty/zero-limit behavior and no padded tail.
+- Support exact-size, fused, cloneable, double-ended traversal; skipping and
+  counting avoid discarded computations, and last evaluates only its result.
+  Add independent profile fixtures, stateful/heap checks, an example, fuzzing
+  and measured bounded-prefix/full-profile performance.
+
 - Add `conditional_entropy_order` and n-gram distribution reuse, measuring the
   next byte given a preceding context in bits per predicted byte. Derive prefix
   marginals from matched observations, with order-zero Shannon and explicit

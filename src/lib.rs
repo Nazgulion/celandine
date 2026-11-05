@@ -13,6 +13,7 @@
 //! Overlapping byte n-grams are available through [`transforms::ngrams`], with
 //! count-backed n-gram distributions in [`distribution`].
 //! [`entropy::block_entropy`] measures their Shannon entropy in bits per block.
+//! [`entropy::block_entropy_profile`] lazily evaluates a bounded range of block lengths.
 //! [`entropy::conditional_entropy_order`] measures next-byte uncertainty given
 //! preceding context, using matched observations and bits per predicted byte.
 //! [`transforms::windows`] borrows complete windows at a positive byte width and

@@ -1,6 +1,7 @@
 //! Empirical entropy of byte and overlapping byte-block distributions.
 
 mod block;
+mod block_profile;
 mod collision;
 mod conditional;
 mod hartley;
@@ -10,6 +11,7 @@ mod shannon;
 mod tsallis;
 
 pub use block::{block_entropy, block_entropy_distribution};
+pub use block_profile::block_entropy_profile;
 pub use collision::{collision_entropy, collision_entropy_distribution};
 pub use conditional::{conditional_entropy_order, conditional_entropy_order_distribution};
 pub use hartley::{hartley_entropy, hartley_entropy_distribution};

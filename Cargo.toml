@@ -116,3 +116,7 @@ harness = false
 [[bench]]
 name = "conditional_order"
 harness = false
+
+[[bench]]
+name = "block_profile"
+harness = false

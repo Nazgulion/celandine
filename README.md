@@ -8,7 +8,7 @@ Entropy, information, complexity, and distance for finite sequences.
 
 The library implements **empirical Shannon, Hartley, Rényi, collision, min-entropy,
 and Tsallis entropy over bytes**, plus **fixed byte blocks, sliding byte windows, overlapping byte n-grams, counts, and
-empirical block probabilities, block entropy and conditional entropy by order**, and **total variation distance between byte
+empirical block probabilities, block entropy, block-entropy profiles and conditional entropy by order**, and **total variation distance between byte
 distributions**, plus **Jensen–Shannon divergence and distance**, and **subword complexity and LZ76 complexity**, plus **normalized Jensen–Shannon statistical complexity**, and **optional compression measurements and ordered normalized compression distance**.
 It is one Rust library crate, with no runtime dependencies by default and
 no unsafe library code. Feature `compression-deflate` adds a pinned pure-Rust
@@ -26,6 +26,7 @@ The broader project plan describes future work, not currently available APIs.
 | [Fixed blocks](docs/transforms/blocks.md) | Partitions bytes into complete adjacent slices and exposes the incomplete tail. | Enables disjoint local measurements with explicit tail handling. |
 | [Sliding windows](docs/transforms/windows.md) | Borrows complete byte slices at a positive width and stride. | Composes existing metrics into local measurements without copying data. |
 | [Conditional entropy by order](docs/entropy/conditional_order.md) | Measures next-byte uncertainty given the preceding k bytes, using matched observations. | Reveals local predictability beyond frequency balance. |
+| [Block-entropy profiles](docs/entropy/block_profile.md) | Lazily yields block entropy across positive lengths up to a caller-selected maximum, capped at input length. | Compares observed patterns at different scales while allowing bounded work. |
 | [Block entropy](docs/entropy/block.md) | Computes Shannon entropy of overlapping n-byte block frequencies, in bits per block. | Distinguishes local arrangements with the same byte histogram. |
 | [Shannon entropy](docs/entropy/shannon.md) | Averages symbol surprise, weighted by frequency, in bits or explicitly selected units. | Distinguishes balanced from uneven frequencies on the same support. |
 | [Hartley entropy](docs/entropy/hartley.md) | Takes the logarithm of the observed support size. | Measures the number of possibilities and bounds Shannon entropy from above. |
@@ -275,6 +276,26 @@ zero by convention. For reuse, pass `(order+1)`-grams. The first `order` bytes
 provide context and are excluded as targets. See [definition and history](docs/entropy/conditional_order.md),
 [verification](docs/references/conditional_order.md), and [performance](docs/benchmarks/conditional_order.md).
 
+### Block-entropy profiles
+
+```rust
+use celandine::entropy::block_entropy_profile;
+let h: Vec<_> = block_entropy_profile(b"AABB", 4).collect();
+assert_eq!(h[0], 1.0);
+assert!((h[1] - 3.0_f64.log2()).abs() < 1e-12);
+assert_eq!(&h[2..], &[1.0, 0.0]);
+assert_eq!(block_entropy_profile(b"AABB", usize::MAX).len(), 4);
+```
+
+The profile yields `H_1, ..., H_min(max_order,L)` for input length `L`, where
+`H_n` is overlapping-block Shannon entropy in bits per n-byte block. Zero limits
+and empty inputs yield no entries. Construction and counting entries allocate
+nothing; each consumed value has the scalar metric's cost. Reverse traversal,
+cloning and skips are supported, with discarded orders left unevaluated.
+Full profiles can be expensive; use a small maximum on large inputs.
+See [definition, example and limits](docs/entropy/block_profile.md),
+[verification](docs/references/block_profile.md), and [measurements](docs/benchmarks/block_profile.md).
+
 ### Block entropy
 
 ```rust
@@ -400,6 +421,7 @@ cargo run --locked --example blocks
 cargo run --locked --example statistical_complexity
 cargo run --locked --example block_entropy
 cargo run --locked --example conditional_order
+cargo run --locked --example block_profile
 cargo run --locked --example total_variation
 cargo run --locked --example jensen_shannon
 cargo run --locked --example subword
@@ -605,7 +627,10 @@ invariance checks, allocation checks, dedicated fuzzing and performance evidence
 Conditional entropy by order adds 2,419 high-precision matched-sample fixtures,
 boundary and full-successor tests, properties, fuzzing and performance evidence.
 
-The six byte entropy measures, block entropy, conditional entropy by order, n-gram primitives, fixed blocks, sliding windows, total variation,
+Block-entropy profiles add 1,831 high-precision profile cases, stateful traversal
+properties, allocation checks for laziness, fuzzing and bounded measurements.
+
+The six byte entropy measures, block entropy and its lazy profiles, conditional entropy by order, n-gram primitives, fixed blocks, sliding windows, total variation,
 Jensen–Shannon comparisons, subword complexity, raw LZ76 complexity, normalized Jensen–Shannon statistical complexity, and optional
 compression measurements and ordered NCD are implemented, including explicit Shannon logarithm bases. The [v0.1 readiness review](docs/releases/v0.1-readiness.md)
 records passing validation and remaining release-scope decisions. Dedicated fuzz
@@ -615,8 +640,9 @@ release gates are resolved.
 Development now prioritizes breadth across categories, with total variation and
 Jensen–Shannon comparisons followed by subword and LZ76 complexity for sequence structure, then optional
 compression length, ratio, ordered NCD, sliding windows, fixed blocks, statistical complexity, and block entropy.
-Conditional entropy by order is implemented; block-entropy profiles are the next scoped increment. Joint distributions and other
-metrics, a CLI, and bindings remain future work.
+Conditional entropy by order and block-entropy profiles are implemented. Joint
+distributions and joint entropy are the next scoped increment. Other metrics, a
+CLI, and bindings remain future work.
 
 ## License
 

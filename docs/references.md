@@ -129,3 +129,8 @@ sampling and bits-per-block units.
 [Definition and independent verification](references/conditional_order.md)
 cover Shannon (1948), section 7, Theorem 6, with finite-sample matched prefix
 marginals and explicit order/target conventions.
+
+## Block-entropy profiles
+
+[Profile references and verification](references/block_profile.md) connect
+Shannon's block entropy to the finite, capped, lazy sequence of scalar values.
