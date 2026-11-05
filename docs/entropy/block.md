@@ -57,6 +57,8 @@ No smoothing, bias correction, source entropy rate, or normalization is inferred
 Finite-sample `H_n` need not increase with `n`: `ABABA` has `H_2=1` but `H_5=0`.
 Subtracting entropies at different lengths does not automatically yield a valid
 conditional entropy, because their observation sets and boundary marginals differ.
+Use `conditional_entropy_order` for a calculation with matched context/target
+observations.
 
 This differs from measuring byte entropy *inside* each sliding window, and from
 partitioning a sequence into non-overlapping fixed blocks.

@@ -2987,6 +2987,13 @@ bits-per-block units, explicit empty-observation behavior and reusable n-gram
 laws. Test, review, measure, commit and push this increment. Conditional entropy
 by order, profiles and the remaining list stay deferred.
 
+**Next conditional-entropy increment (2026-11-05, owner-authorized):** implement
+conditional entropy by sequence order, using matched context/next-byte
+observations, order-zero Shannon behavior and documented insufficient-data
+conventions. Include n-gram reuse, independent verification, examples, fuzzing,
+measurements and review, then commit and push. Block-entropy profiles, joint
+entropy and later list items remain separate increments.
+
 Do not develop in the order that sounds most exciting.
 
 Use this dependency order:

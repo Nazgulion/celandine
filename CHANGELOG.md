@@ -2,6 +2,14 @@
 
 ## Unreleased — entropy, distance, sequence, and compression foundations
 
+- Add `conditional_entropy_order` and n-gram distribution reuse, measuring the
+  next byte given a preceding context in bits per predicted byte. Derive prefix
+  marginals from matched observations, with order-zero Shannon and explicit
+  empty/insufficient-data conventions.
+- Evaluate weighted conditional terms directly with compensated summation, a
+  fixed 256-count buffer and no new heap on reuse. Add 2,419 independent Decimal
+  fixtures, boundary/full-successor tests, an example, fuzzing and measurements.
+
 - Add overlapping `block_entropy` and `block_entropy_distribution`, in bits per
   n-byte block, with explicit zero-length errors and empty-observation convention.
 - Reuse n-gram tables, compensate entropy summation, and retain allocation-free

@@ -799,6 +799,50 @@ pub fn block_entropy(input: &[u8]) {
     close(entropy(data, 1).unwrap(), shannon(data));
 }
 
+/// Raw, bounded, or small context orders checked against a matched chain rule.
+pub fn conditional_order(input: &[u8]) {
+    use std::collections::HashMap;
+    let raw = word(input, 1);
+    let data = input.get(9..).unwrap_or_default();
+    let order = match input.first().copied().unwrap_or(0) % 3 {
+        0 => usize::try_from(raw).unwrap_or(usize::MAX),
+        1 => (raw % (data.len() as u64 + 2)) as usize,
+        _ => (raw % 5) as usize,
+    };
+    let actual = conditional_entropy_order(data, order);
+    let mut joint = HashMap::new();
+    let mut context = HashMap::new();
+    for t in order..data.len() {
+        *joint.entry(&data[t - order..=t]).or_insert(0usize) += 1;
+        *context.entry(&data[t - order..t]).or_insert(0usize) += 1;
+    }
+    let entropy = |counts: HashMap<&[u8], usize>| {
+        let total = counts.values().sum::<usize>() as f64;
+        counts
+            .values()
+            .map(|&c| {
+                let p = c as f64 / total;
+                -p * p.ln() / LN_2
+            })
+            .sum::<f64>()
+    };
+    close(actual, entropy(joint) - entropy(context));
+    assert!((0.0..=8.0 + 1e-11).contains(&actual));
+    assert!(actual <= shannon(&data[order.min(data.len())..]) + 1e-11);
+    if order >= data.len().saturating_sub(1) {
+        assert_eq!(actual.to_bits(), 0.0_f64.to_bits());
+    }
+    if let Some(n) = order.checked_add(1) {
+        close(
+            actual,
+            conditional_entropy_order_distribution(&ngram_probabilities(data, n).unwrap()),
+        );
+    }
+    let renamed: Vec<_> = data.iter().map(|b| b.wrapping_add(137)).collect();
+    close(actual, conditional_entropy_order(&renamed, order));
+    assert_eq!(conditional_entropy_order(data, 0), shannon(data));
+}
+
 #[cfg(test)]
 mod tests {
     #[test]
@@ -817,6 +861,7 @@ mod tests {
             ("blocks", super::blocks),
             ("statistical_complexity", super::statistical_complexity),
             ("block_entropy", super::block_entropy),
+            ("conditional_order", super::conditional_order),
         ] {
             let directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
                 .join("seeds")

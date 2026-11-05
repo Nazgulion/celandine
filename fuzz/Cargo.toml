@@ -107,3 +107,10 @@ path = "fuzz_targets/block_entropy.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+name = "conditional_order"
+path = "fuzz_targets/conditional_order.rs"
+test = false
+doc = false
+bench = false

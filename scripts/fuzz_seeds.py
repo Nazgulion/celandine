@@ -170,6 +170,19 @@ def seeds():
     yield "block_entropy","bounded",b"\1"+struct.pack("<Q",2**64-1)+bytes(range(256))
     yield "block_entropy","raw_empty",b""
     yield "block_entropy","short",b"\xff"
+    for name, order, data in [
+        ("empty",0,b""),("empty_context",1,b""),("zero",0,b"ABABAB"),
+        ("alternating",1,b"ABABAB"),("boundary",1,b"AAB"),("weighted",1,b"AABA"),
+        ("constant",2,b"AAAA"),("one",3,b"ABAB"),("none",4,b"ABAB"),
+        ("maximum",2**64-1,b"AB"),("rare",1,b"A"*1023+b"BA"),
+        ("all_bytes",0,bytes(range(256))),
+        ("successors",1,b"\0"+b"".join(bytes([b,0]) for b in range(256))),
+    ]:
+        yield "conditional_order",name,b"\0"+struct.pack("<Q",order)+data
+    yield "conditional_order","bounded",b"\1"+struct.pack("<Q",2**64-1)+bytes(range(256))
+    yield "conditional_order","small",b"\2"+struct.pack("<Q",1)+b"AABA"*128
+    yield "conditional_order","raw_empty",b""
+    yield "conditional_order","short",b"\xff"
     k = 1 << 50
     for offset in [-2, -1, 0, 1, 2]:
         pairs = [(3*k+offset, k), (k, 3*k+offset)]

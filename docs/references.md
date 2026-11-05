@@ -123,3 +123,9 @@ factors, and the distinction between byte frequencies and ordinal patterns.
 [Definition, source and independent verification](references/block_entropy.md):
 Shannon (1948), section 7, Theorem 5, with explicit empirical overlapping-block
 sampling and bits-per-block units.
+
+## Conditional entropy by sequence order
+
+[Definition and independent verification](references/conditional_order.md)
+cover Shannon (1948), section 7, Theorem 6, with finite-sample matched prefix
+marginals and explicit order/target conventions.

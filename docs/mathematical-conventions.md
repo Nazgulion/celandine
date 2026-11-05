@@ -380,3 +380,15 @@ agree with Shannon. There is no padding, wraparound, smoothing or source-rate
 claim. Different n use different observation sets, so finite empirical H_n is
 not necessarily monotonic and adjacent differences are not automatically
 conditional entropy. See [the definition and worked example](entropy/block.md).
+
+## Conditional entropy by sequence order
+
+For order k, use targets at positions k through L-1 and their preceding k-byte
+contexts. Both joint and context counts come from these same L-k observations;
+exclude a terminal context with no following byte. The result is the weighted
+conditional Shannon entropy in bits per predicted byte. Order zero equals
+byte Shannon; no observations or deterministic observed transitions give
+positive zero. Every usize order is accepted, including maximum values.
+Reuse takes `(k+1)`-grams and infers k. There is no smoothing or source-rate
+claim; finite estimates need not decrease across orders with changing target
+sets. See [formula and examples](entropy/conditional_order.md).

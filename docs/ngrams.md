@@ -16,7 +16,7 @@ See the [authors' textbook section](https://nlp.stanford.edu/IR-book/html/htmled
 
 N-gram counts describe which local patterns occur and how often. Relative
 frequencies make samples with different numbers of complete blocks comparable.
-These primitives feed `entropy::block_entropy_distribution`; they do not themselves
+These primitives feed block entropy and conditional entropy by order; they do not themselves
 calculate entropy or estimate a source entropy rate.
 
 ## Definition and formula explained
@@ -100,7 +100,9 @@ blocks are not proof of impossible source events. Histograms discard positions
 after counting; they do not reconstruct the original sequence in general.
 
 `entropy::block_entropy_distribution` accepts `NgramDistribution` and computes
-Shannon entropy in bits per block. The other entropy APIs accept the single-byte
+Shannon entropy in bits per block. `entropy::conditional_entropy_order_distribution`
+uses the same table to condition its last byte on the preceding bytes, in bits
+per predicted byte. The other entropy APIs accept the single-byte
 `Distribution`.
 
 ## Ownership, complexity, and numerical behavior

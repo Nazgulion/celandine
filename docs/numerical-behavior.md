@@ -296,3 +296,15 @@ Shannon evaluation and can differ from reuse in final rounding bits. No clamping
 or smoothing is applied. The 100-digit independent fixtures use `1e-12` absolute
 bit tolerance, a validation threshold rather than a universal error guarantee.
 See [details](entropy/block.md) and [references](references/block_entropy.md).
+
+## Conditional entropy by order
+
+Compute `-sum [N(c,a)/m]*log2[N(c,a)/N(c)]` directly; each context total is an
+exact integer sum of its observed successor counts. This avoids cancellation
+in an entropy difference and enforces matching boundaries. A fixed 256-count
+buffer suffices for each context. Deterministic contexts contribute exact zero;
+other terms use compensated summation and complementary integer counts with
+`ln_1p` for majority successors. Results are not clamped. Order zero delegates
+to Shannon; reuse can differ in final rounding. The 2,419 Decimal references
+use absolute `1e-12` bit tolerance and a rare-transition analytic test also
+checks relative error. See [the metric](entropy/conditional_order.md).

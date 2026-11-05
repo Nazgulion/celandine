@@ -77,6 +77,21 @@ fn entropy(data: &[u8]) -> usize {
 }
 
 fn run(operation: &str, data: &[u8], n: usize) -> (usize, usize, usize) {
+    if operation == "conditional_order" {
+        return peak_allocator::measure(|| {
+            // n records the joint block length; the context order is n-1.
+            black_box(conditional_entropy_order(black_box(data), black_box(n - 1)));
+            0 // Unreported support: avoid another counting pass.
+        });
+    }
+    if operation == "conditional_order_reuse" {
+        let d = ngram_probabilities(data, n).unwrap();
+        return peak_allocator::measure(|| {
+            black_box(conditional_entropy_order_distribution(black_box(&d)));
+            d.support_size()
+        });
+    }
+
     if operation == "block_entropy" {
         return peak_allocator::measure(|| {
             black_box(block_entropy(black_box(data), black_box(n)).unwrap());
@@ -237,6 +252,11 @@ fn main() {
         assert!(peak > 0 && calls > 0);
         assert_eq!(run("extract", b"ABABA", 2).1, 0);
         assert!(run("block_entropy", b"ABABA", 2).1 > 0);
+        assert!(run("conditional_order", b"AABA", 2).1 > 0);
+        assert_eq!(run("conditional_order", b"AABA", 1), (0, 0, 0));
+        assert_eq!(run("conditional_order", b"AABA", 4), (0, 0, 0));
+        assert_eq!(run("conditional_order", b"AABA", usize::MAX), (0, 0, 0));
+        assert_eq!(run("conditional_order_reuse", b"AABA", 2), (3, 0, 0));
         assert_eq!(run("block_entropy", b"ABABA", 1), (0, 0, 0));
         assert_eq!(run("block_entropy", b"ABABA", usize::MAX), (0, 0, 0));
         assert_eq!(run("block_entropy_reuse", b"ABABA", 2), (2, 0, 0));
@@ -300,6 +320,8 @@ fn main() {
             | "statistical_complexity"
             | "block_entropy"
             | "block_entropy_reuse"
+            | "conditional_order"
+            | "conditional_order_reuse"
     ));
     assert!(matches!(
         shape.as_str(),

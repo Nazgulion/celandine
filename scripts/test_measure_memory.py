@@ -23,7 +23,14 @@ class MemoryWorkloadTests(unittest.TestCase):
                 self.assertNotIn('statistical_complexity', operations)
                 self.assertNotIn('block_entropy', operations)
                 self.assertNotIn('block_entropy_reuse', operations)
+                self.assertNotIn('conditional_order', operations)
+                self.assertNotIn('conditional_order_reuse', operations)
                 self.assertIn('input', operations)
+
+
+    def test_conditional_operations_do_not_change_block_entropy_workloads(self):
+        operations = {case[0] for case in measure_memory.block_entropy_cases()}
+        self.assertEqual(operations, {'input', 'block_entropy', 'block_entropy_reuse'})
 
 
 if __name__ == '__main__': unittest.main()

@@ -21,6 +21,7 @@ cargo run --locked --example windows
 cargo run --locked --example blocks
 cargo run --locked --example statistical_complexity
 cargo run --locked --example block_entropy
+cargo run --locked --example conditional_order
 cargo run --locked --example total_variation
 cargo run --locked --example jensen_shannon
 cargo run --locked --example subword
@@ -71,6 +72,7 @@ python3 scripts/reference_windows.py --check
 python3 scripts/reference_blocks.py --check
 python3 scripts/reference_statistical_complexity.py --check
 python3 scripts/reference_block_entropy.py --check
+python3 scripts/reference_conditional_order.py --check
 python3 scripts/reference_total_variation.py --check
 python3 scripts/reference_jensen_shannon.py --check
 python3 scripts/reference_subword.py --check
@@ -331,8 +333,7 @@ Then measure `python3 scripts/benchmark_blocks.py` and
 
 ## Normalized Jensen–Shannon statistical complexity
 
-Run `cargo run --locked --example statistical_complexity
-cargo run --locked --example block_entropy` and
+Run `cargo run --locked --example statistical_complexity` and
 `python3 scripts/reference_statistical_complexity.py --check`. The 853 fixtures
 use 160-digit direct entropy mixtures, with relative checks on tiny nonzero
 values. Preserve the near-certainty regression and explicit alphabet semantics.
@@ -355,3 +356,18 @@ Then run `python3 scripts/benchmark_block_entropy.py` and
 `python3 scripts/measure_memory.py --block-entropy` sequentially. See
 [references](docs/references/block_entropy.md), [fuzzing](docs/fuzzing/block_entropy.md),
 and [performance](docs/benchmarks/block_entropy.md).
+
+## Conditional entropy by order
+
+Run `cargo run --locked --example conditional_order` and
+`python3 scripts/reference_conditional_order.py --check`. The 2,419 fixtures
+compute a matched-sample chain rule with 100-digit Decimal arithmetic. Normal
+tests cover boundaries, weights, all 256 successors, rare transitions, order
+zero, maximum orders, target-entropy bounds, byte renaming and reuse.
+Run isolated allocation checks and
+`python3 scripts/fuzz_campaign.py --target conditional_order --runs 100000`.
+Then measure `python3 scripts/benchmark_conditional_order.py` and
+`python3 scripts/measure_memory.py --conditional-order` sequentially. See
+[references](docs/references/conditional_order.md),
+[fuzz evidence](docs/fuzzing/conditional_order.md), and
+[performance](docs/benchmarks/conditional_order.md).
