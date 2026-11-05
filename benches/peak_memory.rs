@@ -116,6 +116,15 @@ fn run_joint(operation: &str, x: &[u8], y: &[u8]) -> (usize, usize, usize) {
 }
 
 fn run(operation: &str, data: &[u8], n: usize) -> (usize, usize, usize) {
+    use celandine::complexity::{Lz76Summary, lz76_complexity_asymptotic, lz76_phrase_density};
+    if operation == "lz76_normalized_reuse" {
+        let summary = Lz76Summary::from_bytes(data);
+        return peak_allocator::measure(|| {
+            let s = black_box(&summary);
+            black_box((s.phrase_density(), s.asymptotic(black_box(256)).unwrap()));
+            s.support_size()
+        });
+    }
     if matches!(
         operation,
         "block_profile" | "block_profile_metadata" | "block_profile_select"
@@ -254,6 +263,15 @@ fn run(operation: &str, data: &[u8], n: usize) -> (usize, usize, usize) {
         }
         "entropy" => entropy(data),
         "lz76" => lz76_complexity(black_box(data)),
+        "lz76_density" => {
+            black_box(lz76_phrase_density(black_box(data)));
+            0
+        }
+        "lz76_asymptotic" => {
+            black_box(lz76_complexity_asymptotic(black_box(data), black_box(256)).unwrap());
+            0
+        }
+        "lz76_summary" => black_box(Lz76Summary::from_bytes(black_box(data))).support_size(),
         #[cfg(feature = "compression-deflate")]
         "compression" => celandine::compression::compressed_length(
             black_box(data),
@@ -348,6 +366,16 @@ fn main() {
         assert_eq!(run("reuse", b"ABABA", 2).1, 0);
         assert_eq!(run("total_variation", b"AAAB", 1), (2, 0, 0));
         assert_eq!(run("jensen_shannon", b"AAAB", 1), (2, 0, 0));
+        for op in [
+            "lz76_density",
+            "lz76_asymptotic",
+            "lz76_summary",
+            "lz76_normalized_reuse",
+        ] {
+            assert_eq!(run(op, b"", 1), (0, 0, 0));
+            let (_, peak, calls) = run(op, b"ABAB", 1);
+            assert_eq!((peak, calls), (0, 0));
+        }
         assert_eq!(run("lz76", b"", 1), (0, 0, 0));
         assert_eq!(run("lz76", b"A", 1), (1, 0, 0));
         assert_eq!(run("lz76", b"AAAA", 1), (2, 0, 0));
@@ -402,6 +430,10 @@ fn main() {
             | "subword"
             | "subword_profile"
             | "lz76"
+            | "lz76_density"
+            | "lz76_asymptotic"
+            | "lz76_summary"
+            | "lz76_normalized_reuse"
             | "compression"
             | "ncd"
             | "ncd_input"

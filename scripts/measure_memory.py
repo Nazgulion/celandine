@@ -142,6 +142,14 @@ def mutual_cases():
         yield operation,"mixed",0,1
 
 
+def lz76_normalized_cases():
+    for shape in ["constant", "uniform", "skewed", "mixed"]:
+        for size in [0, 16, 65536, 10*MIB, 100*MIB]:
+            if shape == "mixed" and size > 65536: continue
+            for operation in ["input", "lz76_density", "lz76_asymptotic", "lz76_summary", "lz76_normalized_reuse"]:
+                yield operation, shape, size, 1
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--smoke", action="store_true", help="small instrument/workflow check")
@@ -159,14 +167,15 @@ def main():
     parser.add_argument("--windows", action="store_true", help="window extraction at four byte strides")
     parser.add_argument("--ncd", action="store_true", help="NCD paired input and concatenation memory")
     parser.add_argument("--compression", action="store_true", help="zlib heap/RSS at small and 10/100 MiB sizes")
+    parser.add_argument("--lz76-normalized", action="store_true", help="explicit LZ76 scales, summaries and reuse")
     parser.add_argument("--lz76", action="store_true", help="LZ76 scalar memory with bounded diverse inputs")
     parser.add_argument("--subword", action="store_true", help="subword scalar and bounded profile memory")
     parser.add_argument("--repetitions", type=int, default=3)
     args = parser.parse_args()
     if args.repetitions < 1:
         parser.error("repetitions must be positive")
-    if sum([args.smoke, args.total_variation, args.jensen_shannon, args.subword, args.lz76, args.compression, args.ncd, args.windows, args.blocks, args.statistical_complexity, args.block_entropy, args.conditional_order, args.block_profile, args.joint, args.mutual]) > 1:
-        parser.error("choose one of --smoke, --total-variation, --jensen-shannon, --subword, --lz76, --compression, --ncd, --windows, --blocks, --statistical-complexity, --block-entropy, --conditional-order, --block-profile, --joint, or --mutual")
+    if sum([args.smoke, args.total_variation, args.jensen_shannon, args.subword, args.lz76, args.compression, args.ncd, args.windows, args.blocks, args.statistical_complexity, args.block_entropy, args.conditional_order, args.block_profile, args.joint, args.mutual, args.lz76_normalized]) > 1:
+        parser.error("choose one of --smoke, --total-variation, --jensen-shannon, --subword, --lz76, --compression, --ncd, --windows, --blocks, --statistical-complexity, --block-entropy, --conditional-order, --block-profile, --joint, --mutual, or --lz76-normalized")
     if platform.system() != "Linux":
         parser.error("process RSS units and evidence currently target Linux")
     build_command = ["cargo", "bench", "--locked", "--bench", "peak_memory",
@@ -184,7 +193,7 @@ def main():
     metadata = {
         "host": platform.platform(), "repetitions": args.repetitions, "smoke": args.smoke,
         "mutual": args.mutual, "joint": args.joint, "block_profile": args.block_profile, "conditional_order": args.conditional_order, "block_entropy": args.block_entropy, "statistical_complexity": args.statistical_complexity, "blocks": args.blocks, "windows": args.windows, "ncd": args.ncd, "compression": args.compression, "build_command": build_command,
-        "lz76": args.lz76, "subword": args.subword, "total_variation": args.total_variation, "jensen_shannon": args.jensen_shannon,
+        "lz76_normalized": args.lz76_normalized, "lz76": args.lz76, "subword": args.subword, "total_variation": args.total_variation, "jensen_shannon": args.jensen_shannon,
         "rustc": subprocess.check_output(["rustc", "-Vv"], text=True),
         "time": subprocess.check_output(["/usr/bin/time", "--version"], text=True),
         "cpu": subprocess.check_output(["lscpu"], text=True),
@@ -215,6 +224,8 @@ def main():
                          for shape in ["constant", "uniform", "skewed", "mixed"]
                          for size in [16, 65536, 10*MIB, 100*MIB]
                          for operation in ["input", "statistical_complexity"])
+        if args.lz76_normalized:
+            workloads = lz76_normalized_cases()
         if args.mutual:
             workloads = mutual_cases()
         if args.joint:
@@ -255,7 +266,7 @@ def main():
                 values, = list(csv.reader(io.StringIO(result.stdout)))
                 assert len(values) == len(FIELDS)
                 row = dict(zip(FIELDS, values))
-                no_heap = (operation in ["mutual_input", "mutual_reuse", "joint_input", "joint_reuse", "joint_marginals", "block_profile_metadata", "conditional_order_reuse", "block_entropy_reuse", "statistical_complexity", "blocks", "windows", "ncd_input", "input", "entropy", "extract", "reuse", "total_variation", "jensen_shannon", "lz76"]
+                no_heap = (operation in ["lz76_density", "lz76_asymptotic", "lz76_summary", "lz76_normalized_reuse", "mutual_input", "mutual_reuse", "joint_input", "joint_reuse", "joint_marginals", "block_profile_metadata", "conditional_order_reuse", "block_entropy_reuse", "statistical_complexity", "blocks", "windows", "ncd_input", "input", "entropy", "extract", "reuse", "total_variation", "jensen_shannon", "lz76"]
                            or (operation in ["block_entropy", "conditional_order"] and (n == 1 or n >= size))
                            or (operation in ["joint_counts", "joint_entropy", "mutual"] and size == 0)
                            or (operation == "block_profile_select" and (n <= 1 or n >= size or size <= 2))

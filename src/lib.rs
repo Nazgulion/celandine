@@ -26,6 +26,8 @@
 //! [`complexity::subword_complexity_profile`] lazily covers lengths zero through L.
 //! [`complexity::lz76_complexity`] counts exhaustive LZ76 production phrases
 //! with overlapping copies and a counted final suffix, without heap allocation.
+//! [`complexity::Lz76Summary`] reuses one parse for phrase density and explicit
+//! asymptotic normalization; the latter can exceed one on finite inputs.
 //! [`complexity::normalized_jensen_shannon_complexity`] combines normalized byte
 //! entropy and departure from uniformity on a caller-declared alphabet.
 //! [`compression`] measures complete encoded byte lengths and ratios through a

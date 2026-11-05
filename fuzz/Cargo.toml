@@ -135,3 +135,10 @@ path = "fuzz_targets/mutual.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+name = "lz76_normalized"
+path = "fuzz_targets/lz76_normalized.rs"
+test = false
+doc = false
+bench = false

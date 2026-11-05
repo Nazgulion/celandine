@@ -7,7 +7,7 @@ miss. Celandine uses LLVM's [libFuzzer](https://llvm.org/docs/LibFuzzer.html),
 through the Rust Fuzz project's [cargo-fuzz](https://rust-fuzz.github.io/book/cargo-fuzz/tutorial.html).
 It complements the independent high-precision fixtures and property tests.
 
-The seventeen test-only targets live in a separate `fuzz/` Cargo workspace. Their
+The eighteen test-only targets live in a separate `fuzz/` Cargo workspace. Their
 dependencies and nightly compiler requirements do not affect the public library
 or its Rust 1.90 minimum. The fuzz workspace explicitly enables the optional
 compression backend; ordinary consumers retain their own feature selection.
@@ -22,6 +22,7 @@ compression backend; ordinary consumers retain their own feature selection.
 | `total_variation` | Mode byte: remainder mod 3 selects byte pairs (0), raw counts (1), or bounded counts (2); details below | Empty errors, byte/count equivalence, overflow validation, bounds, exact symmetry/identity, overlap-complement and half-L1 references |
 | `jensen_shannon` | Same three-mode layout as total variation | All four APIs, empty errors, count overflow, symmetry/identity, disjoint support, square-root equivalence, TV bounds, independent pairwise entropy-mixture oracle |
 | `subword` | One little-endian 64-bit length, then up to 64 bytes (72 total) | Scalar and complete profile against sorted explicit slices; empty word, oversized lengths, reversal/relabeling, forward/reverse iteration |
+| `lz76_normalized` | u64 alphabet plus up to 128 bytes | Novelty oracle, explicit alphabet errors, both scales, cached agreement and monotonicity in K |
 | `lz76` | Up to 128 raw bytes, no header | Exhaustive count against substring-novelty parsing, integer bounds, bijective renaming, one-symbol extension |
 | `compression` | Up to 65,536 raw bytes, no header | Complete zlib length against materialized encoding, round-trip decoding, ratio formula, and empty error |
 | `ncd` | Three u64 sizes, a u16 split, up to 1024 bytes | Signed normalization, zero denominator, materialized ordered streams |
@@ -33,6 +34,8 @@ compression backend; ordinary consumers retain their own feature selection.
 | `conditional_order` | Mode byte, u64 order, up to 1025 bytes | Matched-sample chain-rule oracle, bounds, boundary zeros, order-zero Shannon, renaming and reuse |
 | `block_entropy` | Mode byte, u64 block length, up to 1024 bytes | Sorted-block entropy oracle, errors, bounds, empty zeros, reuse, reversal and byte renaming |
 | `statistical_complexity` | Mode byte, u64 alphabet size, up to 4096 bytes or 256 u64 counts | Error precedence, overflow, endpoints, positivity, byte/reuse agreement, direct entropy-mixture oracle |
+
+Normalized LZ76 uses at most 136 bytes and 18 seeds. See [the campaign](fuzzing/lz76_normalized.md).
 
 Mutual information uses at most 1033 bytes and 18 seeds. See [the campaign](fuzzing/mutual.md).
 
@@ -125,7 +128,7 @@ The [Rust Fuzz setup guide](https://rust-fuzz.github.io/book/cargo-fuzz/setup.ht
 explains the nightly/sanitizer requirement. The committed fuzz lockfile pins
 `libfuzzer-sys` and transitive dependencies separately from the library lockfile.
 
-Replay the 263 generated seeds plus one retained oracle regression seed with the supported stable compiler:
+Replay the 281 generated seeds plus one retained oracle regression seed with the supported stable compiler:
 
 ```sh
 python3 scripts/fuzz_seeds.py --check

@@ -3015,6 +3015,16 @@ near-independence numerical behavior independently, test identities and reuse,
 run fuzzing and performance measurements, review, commit and push. Named
 normalized LZ76 and later information APIs remain separate increments.
 
+**Next normalized-LZ76 increment (2026-11-05, owner-authorized):** implement
+explicit phrase density c/N and asymptotic c*log_K(N)/N with declared alphabet
+cardinality K, including allocation-free summary reuse. Preserve exhaustive
+LZ76 parsing and document finite-size overshoot and empty/singleton conventions.
+Complete independent references, tests, runnable explanations, fuzzing, measured
+performance, review, commit and push. This completes the agreed ten-item list;
+finite-maximum/shuffled normalization, further metrics and application layers
+remain deferred pending authorization.
+
+
 Do not develop in the order that sounds most exciting.
 
 Use this dependency order:

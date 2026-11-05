@@ -51,4 +51,13 @@ class MemoryWorkloadTests(unittest.TestCase):
         self.assertEqual(operations, {'joint_input','joint_counts','joint_entropy','joint_reuse','joint_marginals'})
 
 
+    def test_lz76_normalization_preserves_mutual_workloads(self):
+        self.assertEqual({case[0] for case in measure_memory.mutual_cases()}, {'mutual_input','mutual','mutual_reuse'})
+
+    def test_normalized_lz76_bounds_diverse_workloads(self):
+        cases = list(measure_memory.lz76_normalized_cases())
+        self.assertEqual(len(cases), 90)
+        self.assertTrue(all(size <= 65536 for _, shape, size, _ in cases if shape == 'mixed'))
+        self.assertEqual({case[0] for case in cases}, {'input','lz76_density','lz76_asymptotic','lz76_summary','lz76_normalized_reuse'})
+
 if __name__ == '__main__': unittest.main()

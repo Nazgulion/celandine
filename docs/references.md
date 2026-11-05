@@ -144,3 +144,9 @@ section 6, aligned-pair conventions, exact marginals and independent fixtures.
 
 See [mutual information references and verification](references/mutual.md):
 Shannon's transmission-rate identities, empirical conventions and stable evaluation.
+
+## Explicit LZ76 scales
+
+See [normalization references and verification](references/lz76_normalized.md):
+Lempel–Ziv (1976), Estevez-Rams et al. (2013), explicit alphabets and finite-size
+overshoot, with separate density and asymptotic formulas.

@@ -128,3 +128,7 @@ harness = false
 [[bench]]
 name = "mutual"
 harness = false
+
+[[bench]]
+name = "lz76_normalized"
+harness = false

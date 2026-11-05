@@ -9,7 +9,7 @@ Entropy, information, complexity, and distance for finite sequences.
 The library implements **empirical Shannon, Hartley, Rényi, collision, min-entropy,
 and Tsallis entropy over bytes**, plus **fixed byte blocks, sliding byte windows, overlapping byte n-grams, counts, and
 empirical joint byte laws, joint entropy, mutual information, block probabilities, block entropy, block-entropy profiles and conditional entropy by order**, and **total variation distance between byte
-distributions**, plus **Jensen–Shannon divergence and distance**, and **subword complexity and LZ76 complexity**, plus **normalized Jensen–Shannon statistical complexity**, and **optional compression measurements and ordered normalized compression distance**.
+distributions**, plus **Jensen–Shannon divergence and distance**, and **subword complexity and raw/normalized LZ76 complexity**, plus **normalized Jensen–Shannon statistical complexity**, and **optional compression measurements and ordered normalized compression distance**.
 It is one Rust library crate, with no runtime dependencies by default and
 no unsafe library code. Feature `compression-deflate` adds a pinned pure-Rust
 zlib encoder; the compressor interface itself stays dependency-free. Single-byte entropy, implemented distribution comparisons, and n-gram
@@ -42,6 +42,7 @@ The broader project plan describes future work, not currently available APIs.
 | [Subword complexity](docs/complexity/subword.md) | Counts distinct contiguous blocks at a chosen byte length, with a lazy profile across lengths. | Reveals order-dependent pattern diversity without a probability model. |
 | [Normalized Jensen–Shannon statistical complexity](docs/complexity/jensen_shannon.md) | Multiplies normalized byte entropy by normalized departure from uniformity on an explicit alphabet. | Distinguishes intermediate frequency laws from point masses and full-alphabet uniformity. |
 | [LZ76 complexity](docs/complexity/lz76.md) | Counts exhaustive production phrases with overlapping copies. | Describes sequential novelty beyond byte frequencies. |
+| [Explicit LZ76 scales](docs/complexity/lz76_normalized.md) | Computes phrase density c/N and asymptotic c·log_K(N)/N with a declared alphabet. | Makes normalization reproducible and supports parsing once for several scales. |
 | [Compression measurements](docs/compression.md) | Counts complete encoded bytes and divides by input length; optional fixed zlib backend. | Measures encoder-specific compressibility, including overhead and sequential repetition. |
 | [Normalized compression distance](docs/compression/ncd.md) | Compares separate and concatenated encoded sizes. | Reveals compressor-detected shared structure with inspectable components and explicit order effects. |
 | [Validation workflow](CONTRIBUTING.md) | Checks known answers, properties, independent references, and allocations. | Detects mathematical mistakes and regressions. |
@@ -446,6 +447,27 @@ It allocates no heap, but its scalar source scan has quadratic worst-case time:
 large diverse inputs can be slow. See the [definition, history, worked examples,
 and limits](docs/complexity/lz76.md) and [measured baseline](docs/benchmarks/lz76.md).
 
+### Explicit LZ76 scales
+
+```rust
+use celandine::complexity::{Lz76Summary, lz76_phrase_density, lz76_complexity_asymptotic};
+assert_eq!(lz76_phrase_density(b"ABAB"), 0.75);
+assert_eq!(lz76_complexity_asymptotic(b"ABAB", 2), Ok(1.5));
+let summary = Lz76Summary::from_bytes(b"ABAB");
+assert_eq!(summary.asymptotic(4), Ok(0.75));
+```
+
+`ABAB` parses as `A | B | AB`: c=3 phrases, N=4 byte symbols. Density is
+`c/N`; the asymptotic scale is `c*log_K(N)/N`, with K possible byte states,
+including unobserved ones. Both are dimensionless. Density lies in [0,1]; the
+asymptotic value can exceed one and is not an exact finite-sample entropy rate.
+Empty input returns zero for valid K; a singleton has density one and asymptotic
+zero. K must be 2..=256 and accommodate observed support. Reusable summaries
+avoid parsing twice; all operations allocate no heap memory. See
+[formulas, history and limits](docs/complexity/lz76_normalized.md),
+[independent verification](docs/references/lz76_normalized.md), and
+[performance](docs/benchmarks/lz76_normalized.md).
+
 ## Try it on sample data
 
 ```sh
@@ -468,6 +490,7 @@ cargo run --locked --example total_variation
 cargo run --locked --example jensen_shannon
 cargo run --locked --example subword
 cargo run --locked --example lz76
+cargo run --locked --example lz76_normalized
 ```
 
 Edit the samples in [examples/shannon.rs](examples/shannon.rs) and rerun to see
@@ -598,6 +621,7 @@ python3 scripts/reference_total_variation.py --check
 python3 scripts/reference_jensen_shannon.py --check
 python3 scripts/reference_subword.py --check
 python3 scripts/reference_lz76.py --check
+python3 scripts/reference_lz76_normalized.py --check
 python3 scripts/reference_compression.py --check
 cargo bench --locked --bench shannon
 cargo bench --locked --bench shannon_base
@@ -611,6 +635,7 @@ cargo bench --locked --bench total_variation
 cargo bench --locked --bench jensen_shannon
 cargo bench --locked --bench subword
 cargo bench --locked --bench lz76
+cargo bench --locked --bench lz76_normalized
 cargo bench --locked --features compression-deflate --bench compression
 ```
 
@@ -678,8 +703,11 @@ and entropy properties, full-alphabet tests, allocation checks and dedicated fuz
 Mutual information adds 1,389 high-precision cases, tiny-value relative checks,
 exact independence tests, properties, allocation checks, fuzzing and measurements.
 
+Explicit LZ76 scales add 7,224 independent cases, alphabet/finite-size properties,
+allocation checks, a runnable example, fuzzing and measured summary reuse.
+
 The six byte entropy measures, mutual information, joint entropy and reusable joint laws, block entropy and its lazy profiles, conditional entropy by order, n-gram primitives, fixed blocks, sliding windows, total variation,
-Jensen–Shannon comparisons, subword complexity, raw LZ76 complexity, normalized Jensen–Shannon statistical complexity, and optional
+Jensen–Shannon comparisons, subword complexity, raw LZ76 complexity and explicit normalization scales, normalized Jensen–Shannon statistical complexity, and optional
 compression measurements and ordered NCD are implemented, including explicit Shannon logarithm bases. The [v0.1 readiness review](docs/releases/v0.1-readiness.md)
 records passing validation and remaining release-scope decisions. Dedicated fuzz
 campaigns, 100 MiB entropy benchmarks, and controlled peak-memory measurements
@@ -689,8 +717,8 @@ Development now prioritizes breadth across categories, with total variation and
 Jensen–Shannon comparisons followed by subword and LZ76 complexity for sequence structure, then optional
 compression length, ratio, ordered NCD, sliding windows, fixed blocks, statistical complexity, and block entropy.
 Conditional entropy by order and block-entropy profiles are implemented. Joint
-distributions, joint entropy and mutual information are implemented; named
-normalized LZ76 variants are the next scoped increment. Other metrics, a
+distributions, joint entropy, mutual information and named normalized LZ76 variants
+are implemented, completing the agreed ten-increment list. Other metrics, a
 CLI, and bindings remain future work.
 
 ## License

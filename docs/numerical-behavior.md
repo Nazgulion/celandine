@@ -342,3 +342,14 @@ Independent 100-digit fixtures check small results relatively; tests also retain
 unit product gaps near 2^120 that would disappear if products were first rounded
 to f64. See [mutual information](information/mutual.md) and
 [verification](references/mutual.md) for the derivation and limits.
+
+## LZ76 normalization
+
+[Explicit scales](complexity/lz76_normalized.md) retain the exact integer parser.
+Density evaluates c/N after f64 conversion; asymptotic normalization evaluates
+(c/N)*(log2(N)/log2(K)) for N>=2. No integer multiplication, subtractive
+cancellation or range clamp is introduced. Empty/singleton asymptotic results
+are positive zero. Valid results are finite for representable byte slices;
+lengths above 2^53 may lose integer precision on conversion. Platform logarithms
+need not be bit-identical across targets. Independent 100-digit reference cases
+use 1e-12 absolute tolerance; cached and direct calls agree bitwise on one target.

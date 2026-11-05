@@ -421,3 +421,14 @@ returns zero; unequal lengths return `LengthMismatch`. A positive joint cell
 always has positive marginals; zero joint cells contribute zero to the defining
 sum. No normalization, smoothing, bias correction or source model is implicit.
 See [the definition](information/mutual.md) for bounds and limitations.
+
+## Explicit LZ76 scales
+
+[Named normalization conventions](complexity/lz76_normalized.md) use the same
+exhaustive count c and length N: density c/N, asymptotic c*log_K(N)/N.
+Both are dimensionless. Empty inputs return zero for valid K; a singleton has
+density one and asymptotic zero. K is a declared cardinality in 2..=256 with
+observed support at most K, not a bound on numeric byte labels. Validate K range
+before support, including empty input. Constant strings retain their raw two
+phrases. Asymptotic results may exceed one; no clamp or inferred alphabet is used.
+A summary owns exact length/count/support and reuses them for O(1) queries.

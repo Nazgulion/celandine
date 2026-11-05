@@ -53,6 +53,25 @@ unsafe impl GlobalAlloc for CountingAllocator {
 static ALLOCATOR: CountingAllocator = CountingAllocator;
 
 fn main() {
+    use celandine::complexity::{Lz76Summary, lz76_complexity_asymptotic, lz76_phrase_density};
+    let large_lz = vec![0u8; 10 * 1024 * 1024];
+    for data in [b"".as_slice(), b"A", b"ABAB", b"ABC", &large_lz] {
+        let before = ALLOCATIONS.load(Ordering::Relaxed);
+        let s = black_box(Lz76Summary::from_bytes(black_box(data)));
+        black_box((
+            s.len(),
+            s.is_empty(),
+            s.phrase_count(),
+            s.support_size(),
+            s.phrase_density(),
+        ));
+        black_box(lz76_phrase_density(black_box(data)));
+        for k in [0, 1, 2, 256, 257, usize::MAX] {
+            let _ = black_box(s.asymptotic(black_box(k)));
+            let _ = black_box(lz76_complexity_asymptotic(black_box(data), black_box(k)));
+        }
+        assert_eq!(ALLOCATIONS.load(Ordering::Relaxed), before);
+    }
     use celandine::distribution::{JointDistribution, joint_counts, joint_probabilities};
     use celandine::entropy::{joint_entropy, joint_entropy_distribution};
     use celandine::information::{mutual_information, mutual_information_distribution};

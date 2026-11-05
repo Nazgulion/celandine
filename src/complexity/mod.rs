@@ -12,6 +12,10 @@ pub use jensen_shannon::{
     StatisticalComplexityError, normalized_jensen_shannon_complexity,
     normalized_jensen_shannon_complexity_distribution,
 };
+mod lz76_normalized;
+pub use lz76_normalized::{
+    Lz76NormalizationError, Lz76Summary, lz76_complexity_asymptotic, lz76_phrase_density,
+};
 mod lz76;
 pub use lz76::lz76_complexity;
 

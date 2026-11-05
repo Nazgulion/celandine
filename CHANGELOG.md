@@ -2,6 +2,12 @@
 
 ## Unreleased — entropy, distance, sequence, and compression foundations
 
+- Add explicit LZ76 phrase density and asymptotic normalization, with declared
+  alphabet validation and reusable allocation-free `Lz76Summary`. Preserve raw
+  parsing, empty conventions and finite values above one without clamping.
+- Add 7,224 independent fixtures, properties, an educational example, allocation
+  checks, fuzzing and measured latency/memory including cached normalization.
+
 - Add `information::mutual_information` and joint-distribution reuse, in bits
   per aligned pair. Preserve length validation and empty conventions; use exact
   count products and a stable divergence calculation near independence.

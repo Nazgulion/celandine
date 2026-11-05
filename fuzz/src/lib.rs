@@ -1091,6 +1091,51 @@ pub fn mutual(input: &[u8]) {
     }
 }
 
+/// Explicit u64 alphabet followed by up to 128 bytes; short headers zero-pad.
+pub fn lz76_normalized(input: &[u8]) {
+    use celandine::complexity::{
+        Lz76NormalizationError as Error, Lz76Summary, lz76_complexity_asymptotic,
+        lz76_phrase_density,
+    };
+    let k = usize::try_from(word(input, 0)).unwrap_or(usize::MAX);
+    let payload = input.get(8..).unwrap_or(&[]);
+    let data = &payload[..payload.len().min(128)];
+    // Reuse the independent substring-novelty and renaming oracle above.
+    lz76(data);
+    let s = Lz76Summary::from_bytes(data);
+    let support = data
+        .iter()
+        .copied()
+        .collect::<std::collections::BTreeSet<_>>()
+        .len();
+    assert_eq!(s.len(), data.len());
+    assert_eq!(s.support_size(), support);
+    assert_eq!(
+        s.phrase_count(),
+        celandine::complexity::lz76_complexity(data)
+    );
+    let d = lz76_phrase_density(data);
+    assert!((0.0..=1.0).contains(&d));
+    assert_eq!(d.to_bits(), s.phrase_density().to_bits());
+    let actual = lz76_complexity_asymptotic(data, k);
+    assert_eq!(actual.map(f64::to_bits), s.asymptotic(k).map(f64::to_bits));
+    if !(2..=256).contains(&k) {
+        assert_eq!(actual, Err(Error::InvalidAlphabetSize));
+    } else if support > k {
+        assert_eq!(actual, Err(Error::AlphabetTooSmall));
+    } else {
+        let reference = if data.len() <= 1 {
+            0.0
+        } else {
+            (s.phrase_count() as f64 * (data.len() as f64).ln())
+                / ((data.len() as f64) * (k as f64).ln())
+        };
+        close(actual.unwrap(), reference);
+    }
+    let valid_k = support.max(2);
+    assert!(s.asymptotic(valid_k).unwrap() >= s.asymptotic(256).unwrap());
+}
+
 #[cfg(test)]
 mod tests {
     #[test]
@@ -1103,6 +1148,7 @@ mod tests {
             ("jensen_shannon", super::jensen_shannon),
             ("subword", super::subword),
             ("lz76", super::lz76),
+            ("lz76_normalized", super::lz76_normalized),
             ("compression", super::compression),
             ("ncd", super::ncd),
             ("windows", super::windows),

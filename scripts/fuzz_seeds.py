@@ -66,6 +66,18 @@ def base_seeds():
 
 
 def seeds():
+    for name, k, data in [
+        ("empty", 2, b""), ("single", 2, b"A"), ("constant", 2, b"A"*128),
+        ("above_one", 2, b"ABAB"), ("larger_alphabet", 4, b"ABAB"),
+        ("byte_alphabet", 256, b"ABAB"), ("zero", 0, b"ABC"),
+        ("one", 1, b""), ("oversized", 257, b"A"), ("maximum", 2**64-1, b""),
+        ("too_small", 2, b"ABC"), ("high_labels", 2, b"\xff\x80"*64),
+        ("diverse", 128, bytes(range(128))), ("mills", 2, b"101101011"),
+        ("estevez", 2, b"010011101101100"), ("late_novelty", 2, b"A"*127+b"B"),
+    ]:
+        yield "lz76_normalized", name, struct.pack("<Q", k)+data
+    yield "lz76_normalized", "raw_empty", b""
+    yield "lz76_normalized", "short", b"\xff"
     for target, name, data in base_seeds():
         yield target, name, data
         if target == "total_variation":

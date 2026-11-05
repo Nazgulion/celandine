@@ -29,6 +29,7 @@ cargo run --locked --example total_variation
 cargo run --locked --example jensen_shannon
 cargo run --locked --example subword
 cargo run --locked --example lz76
+cargo run --locked --example lz76_normalized
 cargo run --locked --features compression-deflate --example compression
 ```
 
@@ -83,6 +84,7 @@ python3 scripts/reference_total_variation.py --check
 python3 scripts/reference_jensen_shannon.py --check
 python3 scripts/reference_subword.py --check
 python3 scripts/reference_lz76.py --check
+python3 scripts/reference_lz76_normalized.py --check
 python3 scripts/reference_compression.py --check
 ```
 
@@ -242,6 +244,7 @@ cargo bench --locked --bench total_variation
 cargo bench --locked --bench jensen_shannon
 cargo bench --locked --bench subword
 cargo bench --locked --bench lz76
+cargo bench --locked --bench lz76_normalized
 cargo bench --locked --features compression-deflate --bench compression
 cargo test --locked --release --test allocations
 ```
@@ -415,3 +418,20 @@ Run `python3 scripts/fuzz_campaign.py --target mutual --runs 100000`, then
 sequentially. The memory-workload regression must protect the existing joint
 case list. See [verification](docs/references/mutual.md),
 [fuzzing](docs/fuzzing/mutual.md) and [performance](docs/benchmarks/mutual.md).
+
+## Explicit LZ76 normalization
+
+Run `cargo run --locked --example lz76_normalized` and
+`python3 scripts/reference_lz76_normalized.py --check`. The 7,224 cases combine
+independent substring-novelty parsing with 100-digit rescaling. Preserve declared
+alphabet validation, finite values above one, empty/singleton conventions,
+label invariance and bitwise scalar/summary agreement. Check allocations for
+construction, cached queries and invalid domains. Run
+`python3 scripts/fuzz_campaign.py --target lz76_normalized --runs 100000`, then
+`python3 scripts/benchmark_lz76_normalized.py` and
+`python3 scripts/measure_memory.py --lz76-normalized` sequentially. Diverse
+inputs are bounded at 64 KiB; periodic workloads extend to 100 MiB. Reuse timings
+exclude construction and must not claim input throughput. See
+[verification](docs/references/lz76_normalized.md),
+[fuzzing](docs/fuzzing/lz76_normalized.md), and
+[performance](docs/benchmarks/lz76_normalized.md).
