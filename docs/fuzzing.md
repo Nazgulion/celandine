@@ -7,7 +7,7 @@ miss. Celandine uses LLVM's [libFuzzer](https://llvm.org/docs/LibFuzzer.html),
 through the Rust Fuzz project's [cargo-fuzz](https://rust-fuzz.github.io/book/cargo-fuzz/tutorial.html).
 It complements the independent high-precision fixtures and property tests.
 
-The fifteen test-only targets live in a separate `fuzz/` Cargo workspace. Their
+The sixteen test-only targets live in a separate `fuzz/` Cargo workspace. Their
 dependencies and nightly compiler requirements do not affect the public library
 or its Rust 1.90 minimum. The fuzz workspace explicitly enables the optional
 compression backend; ordinary consumers retain their own feature selection.
@@ -27,10 +27,13 @@ compression backend; ordinary consumers retain their own feature selection.
 | `ncd` | Three u64 sizes, a u16 split, up to 1024 bytes | Signed normalization, zero denominator, materialized ordered streams |
 | `windows` | Three little-endian u64 values (width, step, skip), 32 operation bytes, up to 256 bytes | Positional oracle, mixed front/back/skips, exact length, borrowed pointers, validation |
 | `blocks` | Two little-endian u64 values (width, skip), 32 operation bytes, up to 256 bytes | Complete partitions, original tail stability, mixed iterator operations, borrowing, errors |
+| `joint` | Mode byte, u64 split, up to 1024 payload bytes | Positional counts, marginals, joint entropy, mismatch errors and identities |
 | `block_profile` | u64 maximum, u64 skip, 16 action bytes, up to 32 input bytes | Independent profile values, exact length, mixed traversal, skips, clones, count, last and fusion |
 | `conditional_order` | Mode byte, u64 order, up to 1025 bytes | Matched-sample chain-rule oracle, bounds, boundary zeros, order-zero Shannon, renaming and reuse |
 | `block_entropy` | Mode byte, u64 block length, up to 1024 bytes | Sorted-block entropy oracle, errors, bounds, empty zeros, reuse, reversal and byte renaming |
 | `statistical_complexity` | Mode byte, u64 alphabet size, up to 4096 bytes or 256 u64 counts | Error precedence, overflow, endpoints, positivity, byte/reuse agreement, direct entropy-mixture oracle |
+
+Joint laws use at most 1033 bytes and 15 seeds. See [the campaign](fuzzing/joint.md).
 
 Block profiles use at most 64 bytes and 15 seeds. See [the campaign](fuzzing/block_profile.md).
 
@@ -119,7 +122,7 @@ The [Rust Fuzz setup guide](https://rust-fuzz.github.io/book/cargo-fuzz/setup.ht
 explains the nightly/sanitizer requirement. The committed fuzz lockfile pins
 `libfuzzer-sys` and transitive dependencies separately from the library lockfile.
 
-Replay the 230 generated seeds plus one retained oracle regression seed with the supported stable compiler:
+Replay the 245 generated seeds plus one retained oracle regression seed with the supported stable compiler:
 
 ```sh
 python3 scripts/fuzz_seeds.py --check

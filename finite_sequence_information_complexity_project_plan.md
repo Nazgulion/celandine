@@ -3001,6 +3001,13 @@ length and skips that avoid discarded entropy calculations. Verify independent
 profile values and stateful traversal, measure bounded work, review, commit and
 push. Joint distributions/entropy and later list items remain separate increments.
 
+**Next joint increment (2026-11-05, owner-authorized):** implement reusable
+aligned byte-pair counts/probabilities with exact marginals and joint entropy
+in bits per pair. Require equal lengths, define empty/empty as an empty
+empirical law with entropy zero, and preserve the independent verification,
+example, fuzz, measurement and review workflow, then commit and push. Mutual
+information and named normalized LZ76 remain separate increments.
+
 Do not develop in the order that sounds most exciting.
 
 Use this dependency order:

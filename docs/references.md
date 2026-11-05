@@ -134,3 +134,8 @@ marginals and explicit order/target conventions.
 
 [Profile references and verification](references/block_profile.md) connect
 Shannon's block entropy to the finite, capped, lazy sequence of scalar values.
+
+## Joint laws and entropy
+
+See [joint references and verification](references/joint.md), including Shannon
+section 6, aligned-pair conventions, exact marginals and independent fixtures.

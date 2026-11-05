@@ -26,6 +26,7 @@ class MemoryWorkloadTests(unittest.TestCase):
                 self.assertNotIn('conditional_order', operations)
                 self.assertNotIn('conditional_order_reuse', operations)
                 self.assertTrue({'block_profile','block_profile_metadata','block_profile_select'}.isdisjoint(operations))
+                self.assertTrue({'joint_input','joint_counts','joint_entropy','joint_reuse','joint_marginals'}.isdisjoint(operations))
                 self.assertIn('input', operations)
 
 
@@ -37,6 +38,11 @@ class MemoryWorkloadTests(unittest.TestCase):
     def test_profiles_do_not_change_conditional_workloads(self):
         operations = {case[0] for case in measure_memory.conditional_order_cases()}
         self.assertEqual(operations, {'input','conditional_order','conditional_order_reuse'})
+
+
+    def test_joint_work_does_not_change_profile_workloads(self):
+        operations = {case[0] for case in measure_memory.block_profile_cases()}
+        self.assertEqual(operations, {'input','block_profile','block_profile_metadata','block_profile_select'})
 
 
 if __name__ == '__main__': unittest.main()

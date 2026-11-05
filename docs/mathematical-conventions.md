@@ -402,3 +402,13 @@ unobserved-length tail. This does not change the scalar empty/oversized zero
 convention. Each value uses the existing scalar byte API exactly. The finite
 profile need not be monotonic or concave, and adjacent differences are not
 generally conditional entropy. See [definition and iterator contract](entropy/block_profile.md).
+
+## Joint byte observations
+
+Joint APIs pair equal-length inputs position by position, without truncation,
+padding or implicit independence. `LengthMismatch` precedes counting when
+lengths differ. N is the number of pairs, not combined byte length; marginals
+sum the same exact joint counts. Empty/empty is an empty empirical state with
+zero query probabilities and entropy zero by convention. Joint entropy uses
+base two, bits per pair, with observed support at most 65,536. See
+[joint distributions](joint-distributions.md) and [joint entropy](entropy/joint.md).

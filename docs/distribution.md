@@ -93,3 +93,10 @@ For the underlying probability and information concepts, see Cover and Thomas
 (2003), *Information Theory, Inference, and Learning Algorithms*, chapter 2.
 The storage layout, import checks, and empty-state behavior are project design
 choices rather than historical definitions.
+
+## Aligned joint laws
+
+`joint_counts`, `joint_probabilities`, `JointCounts` and `JointDistribution`
+retain position-aligned byte pairs and expose both integer-derived marginals.
+Unequal lengths return `LengthMismatch`; owned pair keys can outlive inputs.
+See [the joint guide](joint-distributions.md) for formulas, costs and examples.

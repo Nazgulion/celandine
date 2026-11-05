@@ -318,3 +318,13 @@ tolerance. Construction and metadata operations have no numeric evaluation;
 `nth`, `nth_back` and `last` evaluate only a selected entry. Collecting or summing
 performs the requested scalar evaluations and may add caller-side rounding.
 See [profile semantics and limits](entropy/block_profile.md).
+
+## Joint entropy
+
+Pair counts and marginal sums are exact integers bounded by the input length.
+Joint entropy uses f64 probabilities, compensated summation and the integer
+complement in log1p for a majority pair, matching the block-entropy strategy.
+The byte/reuse paths agree bit-for-bit; coordinate swapping and diagonal
+identity with the existing byte Shannon path are checked within 1e-12 bits,
+not promised bit-for-bit. Empty and constant pair laws return positive zero.
+See [the definition](entropy/joint.md) and [independent checks](references/joint.md).

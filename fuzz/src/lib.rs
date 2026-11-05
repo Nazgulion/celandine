@@ -939,6 +939,80 @@ pub fn block_profile(input: &[u8]) {
     assert_eq!(iter.nth_back(usize::MAX), None);
 }
 
+/// Aligned byte laws checked against sorted encoded pairs and direct marginals.
+pub fn joint(input: &[u8]) {
+    use celandine::distribution::{LengthMismatch, joint_counts, joint_probabilities};
+    let payload = input.get(9..).unwrap_or_default();
+    let split = if input.first().copied().unwrap_or(0) % 2 == 0 {
+        (word(input, 1) % (payload.len() as u64 + 1)) as usize
+    } else {
+        payload.len() / 2
+    };
+    let (x, y) = payload.split_at(split);
+    if x.len() != y.len() {
+        let e = LengthMismatch {
+            x_len: x.len(),
+            y_len: y.len(),
+        };
+        assert_eq!(joint_counts(x, y), Err(e));
+        assert_eq!(joint_probabilities(x, y), Err(e));
+        assert_eq!(joint_entropy(x, y), Err(e));
+        return;
+    }
+    let mut pairs: Vec<u16> = x
+        .iter()
+        .zip(y)
+        .map(|(&a, &b)| (u16::from(a) << 8) | u16::from(b))
+        .collect();
+    pairs.sort_unstable();
+    let mut expected = Vec::new();
+    let mut i = 0;
+    let mut h = 0.0;
+    while i < pairs.len() {
+        let mut end = i + 1;
+        while end < pairs.len() && pairs[end] == pairs[i] {
+            end += 1;
+        }
+        let count = end - i;
+        let p = count as f64 / pairs.len() as f64;
+        h -= p * p.ln() / LN_2;
+        expected.push((((pairs[i] >> 8) as u8, pairs[i] as u8), count));
+        i = end;
+    }
+    let d = joint_probabilities(x, y).unwrap();
+    assert_eq!(d.sample_size(), x.len());
+    assert_eq!(d.is_empty(), x.is_empty());
+    assert_eq!(d.support_size(), expected.len());
+    assert_eq!(d.counts().counts().collect::<Vec<_>>(), expected);
+    let mut mx = [0usize; 256];
+    let mut my = [0usize; 256];
+    for &a in x {
+        mx[a as usize] += 1;
+    }
+    for &b in y {
+        my[b as usize] += 1;
+    }
+    assert_eq!(d.marginal_x().histogram().counts(), &mx);
+    assert_eq!(d.marginal_y().histogram().counts(), &my);
+    for ((a, b), count) in expected {
+        assert_eq!(d.counts().count(a, b), count);
+        close(d.probability(a, b), count as f64 / x.len() as f64);
+    }
+    close(
+        d.probabilities().map(|(_, p)| p).sum(),
+        if x.is_empty() { 0.0 } else { 1.0 },
+    );
+    close(joint_entropy_distribution(&d), h);
+    assert_eq!(
+        joint_entropy(x, y).unwrap().to_bits(),
+        joint_entropy_distribution(&d).to_bits()
+    );
+    close(joint_entropy(y, x).unwrap(), h);
+    close(joint_entropy(x, x).unwrap(), shannon(x));
+    assert!(h >= shannon(x).max(shannon(y)) - 1e-11 && h <= shannon(x) + shannon(y) + 1e-11);
+    assert!((0.0..=16.0 + 1e-11).contains(&h));
+}
+
 #[cfg(test)]
 mod tests {
     #[test]
@@ -959,6 +1033,7 @@ mod tests {
             ("block_entropy", super::block_entropy),
             ("conditional_order", super::conditional_order),
             ("block_profile", super::block_profile),
+            ("joint", super::joint),
         ] {
             let directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
                 .join("seeds")

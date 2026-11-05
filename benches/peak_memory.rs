@@ -1,6 +1,8 @@
 //! Isolated development memory probe; run with scripts/measure_memory.py.
 //! Reports requested peak heap bytes separately from process RSS collected by GNU time.
 
+#[path = "support/joint_input.rs"]
+mod joint_input;
 #[path = "support/peak_allocator.rs"]
 mod peak_allocator;
 
@@ -74,6 +76,33 @@ fn entropy(data: &[u8]) -> usize {
         .unwrap();
     }
     d.support_size()
+}
+
+fn run_joint(operation: &str, x: &[u8], y: &[u8]) -> (usize, usize, usize) {
+    use celandine::distribution::{joint_counts, joint_probabilities};
+    if matches!(operation, "joint_reuse" | "joint_marginals") {
+        let d = joint_probabilities(x, y).unwrap();
+        return peak_allocator::measure(|| {
+            if operation == "joint_reuse" {
+                black_box(joint_entropy_distribution(black_box(&d)));
+            } else {
+                black_box(black_box(&d).marginal_x());
+                black_box(black_box(&d).marginal_y());
+            }
+            d.support_size()
+        });
+    }
+    peak_allocator::measure(|| match operation {
+        "joint_input" => 0,
+        "joint_counts" => {
+            black_box(joint_counts(black_box(x), black_box(y)).unwrap()).support_size()
+        }
+        "joint_entropy" => {
+            black_box(joint_entropy(black_box(x), black_box(y)).unwrap());
+            0
+        }
+        _ => unreachable!(),
+    })
 }
 
 fn run(operation: &str, data: &[u8], n: usize) -> (usize, usize, usize) {
@@ -277,6 +306,12 @@ fn main() {
         assert!(peak > 0 && calls > 0);
         assert_eq!(run("extract", b"ABABA", 2).1, 0);
         assert!(run("block_entropy", b"ABABA", 2).1 > 0);
+        assert_eq!(run_joint("joint_input", b"AB", b"XY"), (0, 0, 0));
+        assert_eq!(run_joint("joint_counts", b"", b""), (0, 0, 0));
+        assert!(run_joint("joint_counts", b"AB", b"XY").1 > 0);
+        assert!(run_joint("joint_entropy", b"AB", b"XY").1 > 0);
+        assert_eq!(run_joint("joint_reuse", b"AB", b"XY"), (2, 0, 0));
+        assert_eq!(run_joint("joint_marginals", b"AB", b"XY"), (2, 0, 0));
         assert!(run("conditional_order", b"AABA", 2).1 > 0);
         assert!(run("block_profile", b"AABB", 4).1 > 0);
         assert_eq!(run("block_profile", b"AABB", 0), (0, 0, 0));
@@ -334,7 +369,12 @@ fn main() {
     let shape = &args[1];
     assert!(matches!(
         operation.as_str(),
-        "input"
+        "joint_input"
+            | "joint_counts"
+            | "joint_entropy"
+            | "joint_reuse"
+            | "joint_marginals"
+            | "input"
             | "entropy"
             | "extract"
             | "counts"
@@ -378,6 +418,22 @@ fn main() {
                     | "block_profile_select"
             )
     );
+    if operation.starts_with("joint_") {
+        let (mut x, mut y) = joint_input::input(size, shape);
+        for data in [&mut x, &mut y] {
+            for byte in data.iter_mut().step_by(4096) {
+                *byte = black_box(*byte);
+            }
+        }
+        let checksum = x
+            .iter()
+            .chain(&y)
+            .fold(0u64, |sum, &b| sum.wrapping_add(u64::from(b)));
+        black_box(checksum);
+        let (support, peak, calls) = run_joint(operation, black_box(&x), black_box(&y));
+        println!("{operation},{shape},{size},{n},{support},{peak},{calls},{checksum}");
+        return;
+    }
     let mut data = input(size, shape);
     // Force writes to each 4 KiB page even for zero-filled buffers, then read all
     // bytes. Input RSS must not be hidden by lazily mapped shared zero pages.

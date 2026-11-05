@@ -23,6 +23,7 @@ cargo run --locked --example statistical_complexity
 cargo run --locked --example block_entropy
 cargo run --locked --example conditional_order
 cargo run --locked --example block_profile
+cargo run --locked --example joint
 cargo run --locked --example total_variation
 cargo run --locked --example jensen_shannon
 cargo run --locked --example subword
@@ -75,6 +76,7 @@ python3 scripts/reference_statistical_complexity.py --check
 python3 scripts/reference_block_entropy.py --check
 python3 scripts/reference_conditional_order.py --check
 python3 scripts/reference_block_profile.py --check
+python3 scripts/reference_joint.py --check
 python3 scripts/reference_total_variation.py --check
 python3 scripts/reference_jensen_shannon.py --check
 python3 scripts/reference_subword.py --check
@@ -387,3 +389,15 @@ allocation checks ensure discarded orders are not evaluated. Run
 workloads stay short; large inputs use bounded prefixes or selected entries.
 See [references](docs/references/block_profile.md),
 [fuzzing](docs/fuzzing/block_profile.md), and [performance](docs/benchmarks/block_profile.md).
+
+## Joint distributions and entropy
+
+Run `cargo run --locked --example joint` and `python3 scripts/reference_joint.py --check`.
+The 1,387 independent fixtures verify aligned counts, boundaries and 100-digit
+joint entropy. Normal tests add both marginals, all 65,536 pairs, rare events,
+identities, permutations, scaling and byte/reuse bit agreement. Preserve empty
+and error allocation checks plus allocation-free queries, marginals and reuse.
+Run `python3 scripts/fuzz_campaign.py --target joint --runs 100000`, then
+`python3 scripts/benchmark_joint.py` and `python3 scripts/measure_memory.py --joint`
+sequentially. See [verification](docs/references/joint.md),
+[fuzzing](docs/fuzzing/joint.md) and [performance](docs/benchmarks/joint.md).

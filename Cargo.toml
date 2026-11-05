@@ -120,3 +120,7 @@ harness = false
 [[bench]]
 name = "block_profile"
 harness = false
+
+[[bench]]
+name = "joint"
+harness = false

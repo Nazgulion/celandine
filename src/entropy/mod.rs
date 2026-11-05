@@ -5,6 +5,7 @@ mod block_profile;
 mod collision;
 mod conditional;
 mod hartley;
+mod joint;
 mod min_entropy;
 mod renyi;
 mod shannon;
@@ -22,3 +23,5 @@ pub use shannon::{
     shannon_with_base,
 };
 pub use tsallis::{InvalidTsallisOrder, tsallis_entropy, tsallis_entropy_distribution};
+
+pub use joint::{joint_entropy, joint_entropy_distribution};

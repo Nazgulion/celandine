@@ -12,6 +12,8 @@
 //! a mixture in bits; [`divergence::jensen_shannon_distance`] returns its square root.
 //! Overlapping byte n-grams are available through [`transforms::ngrams`], with
 //! count-backed n-gram distributions in [`distribution`].
+//! [`distribution::JointDistribution`] retains aligned byte pairs and both marginals.
+//! [`entropy::joint_entropy`] measures their combined uncertainty in bits per pair.
 //! [`entropy::block_entropy`] measures their Shannon entropy in bits per block.
 //! [`entropy::block_entropy_profile`] lazily evaluates a bounded range of block lengths.
 //! [`entropy::conditional_entropy_order`] measures next-byte uncertainty given

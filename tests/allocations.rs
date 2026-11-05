@@ -53,6 +53,38 @@ unsafe impl GlobalAlloc for CountingAllocator {
 static ALLOCATOR: CountingAllocator = CountingAllocator;
 
 fn main() {
+    use celandine::distribution::{JointDistribution, joint_counts, joint_probabilities};
+    use celandine::entropy::{joint_entropy, joint_entropy_distribution};
+    for (x, y) in [(b"".as_slice(), b"".as_slice()), (b"AABB", b"XYXY")] {
+        let counts = joint_counts(x, y).unwrap();
+        let before = ALLOCATIONS.load(Ordering::Relaxed);
+        let d = JointDistribution::from_counts(counts);
+        black_box(d.counts().count(b'A', b'X'));
+        black_box(d.counts().counts().map(|(_, c)| c).sum::<usize>());
+        black_box(d.probability(b'A', b'X'));
+        black_box(d.probabilities().map(|(_, p)| p).sum::<f64>());
+        black_box(d.marginal_x());
+        black_box(d.marginal_y());
+        black_box(joint_entropy_distribution(&d));
+        assert_eq!(
+            ALLOCATIONS.load(Ordering::Relaxed),
+            before,
+            "joint reuse allocated"
+        );
+    }
+    let before = ALLOCATIONS.load(Ordering::Relaxed);
+    black_box(joint_counts(b"", b"")).unwrap();
+    black_box(joint_probabilities(b"", b"")).unwrap();
+    assert_eq!(joint_entropy(b"", b""), Ok(0.0));
+    assert!(black_box(joint_counts(b"AB", b"X")).is_err());
+    assert!(black_box(joint_probabilities(b"", b"X")).is_err());
+    assert!(black_box(joint_entropy(b"X", b"")).is_err());
+    assert_eq!(
+        ALLOCATIONS.load(Ordering::Relaxed),
+        before,
+        "joint empty/error allocated"
+    );
+
     use celandine::entropy::block_entropy_profile;
     for size in [0usize, 1, 16, 64, 65536, 10 * 1024 * 1024] {
         let data: Vec<_> = (0..size).map(|i| i as u8).collect();

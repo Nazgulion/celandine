@@ -121,3 +121,10 @@ path = "fuzz_targets/block_profile.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+name = "joint"
+path = "fuzz_targets/joint.rs"
+test = false
+doc = false
+bench = false

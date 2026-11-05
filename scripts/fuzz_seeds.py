@@ -196,6 +196,17 @@ def seeds():
         yield "block_profile",name,struct.pack("<QQ",maximum,skip)+actions+data
     yield "block_profile","raw_empty",b""
     yield "block_profile","short",b"\xff"
+    for name,x,y in [
+        ("empty",b"",b""),("singleton",b"A",b"X"),("constant",b"AAAA",b"XXXX"),
+        ("independent",b"AABB",b"XYXY"),("dependent",b"AABB",b"XXYY"),
+        ("weighted",b"AAAB",b"XXYX"),("left_empty",b"",b"AB"),("right_empty",b"AB",b""),
+        ("unequal",b"AB",b"X"),("all_bytes",bytes(range(256)),bytes(reversed(range(256)))),
+        ("rare",b"A"*511+b"B",b"X"*512),("binary",b"\0\xff\0",b"\xff\0\0"),
+    ]:
+        yield "joint",name,b"\0"+struct.pack("<Q",len(x))+x+y
+    yield "joint","midpoint",b"\1"+struct.pack("<Q",2**64-1)+b"AABBXYXY"
+    yield "joint","raw_empty",b""
+    yield "joint","short",b"\xff"
     k = 1 << 50
     for offset in [-2, -1, 0, 1, 2]:
         pairs = [(3*k+offset, k), (k, 3*k+offset)]

@@ -2,6 +2,14 @@
 
 ## Unreleased — entropy, distance, sequence, and compression foundations
 
+- Add owned aligned-byte `JointCounts`/`JointDistribution`, count/probability
+  constructors and exact integer-derived marginals. Reject unequal lengths with
+  `LengthMismatch` before counting; retain explicit empty empirical states.
+- Add `joint_entropy` and distribution reuse in bits per paired observation,
+  with compensated summation, references, independent fixtures, runnable examples,
+  properties, allocation checks, fuzzing and measured performance.
+
+
 - Add lazy `block_entropy_profile(data, max_order)` over lengths 1 through
   min(max_order, input length), with empty/zero-limit behavior and no padded tail.
 - Support exact-size, fused, cloneable, double-ended traversal; skipping and
