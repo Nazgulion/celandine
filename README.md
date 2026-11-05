@@ -16,6 +16,11 @@ zlib encoder; the compressor interface itself stays dependency-free. Single-byte
 extraction allocate no heap memory; n-gram count tables allocate storage for observed blocks.
 The broader project plan describes future work, not currently available APIs.
 
+Open the [interactive HTML coverage matrix](docs/project-matrix.html) in a browser
+for a searchable snapshot of implemented capabilities, validation evidence,
+remaining gaps and proposed next increments. Download the HTML to explore it
+offline; evidence links point to the reviewed repository revision.
+
 ## What is implemented and why
 
 | Component | What it does | Why it matters |

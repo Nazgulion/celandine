@@ -1,0 +1,896 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Celandine capability and evidence matrix: implemented Rust APIs, remaining roadmap, and proposed next increments. Repository snapshot f1a43a8.">
+<title>Celandine — Capabilities & coverage</title>
+<style>
+:root{--bg:#f5f5f0;--surface:#fff;--ink:#1e2e32;--muted:#55656b;--line:#d9dfdc;--soft:#edf0ea;--accent:#156b57;--accent-bg:#e0f1e9;--amber:#805600;--amber-bg:#fff2cc;--blue:#325fa3;--blue-bg:#eaf0fc;--research:#73588c;--research-bg:#f0eafa;--nav:#173d35;--shadow:0 12px 36px #203a2910;--mono:ui-monospace,SFMono-Regular,Consolas,monospace}
+:root[data-theme=dark]{--bg:#111c1d;--surface:#1a292b;--ink:#e9f0eb;--muted:#acbdbb;--line:#374a4b;--soft:#233638;--accent:#94dbc2;--accent-bg:#203f35;--amber:#f1ce77;--amber-bg:#493c20;--blue:#acccff;--blue-bg:#293b57;--research:#d0b6ed;--research-bg:#392e49;--nav:#122d27;--shadow:none}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:24px}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input,select{font:inherit}button,a,input,select{touch-action:manipulation}a{color:var(--accent);text-underline-offset:3px}button{cursor:pointer}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible,.table-wrap:focus-visible{outline:3px solid var(--blue);outline-offset:3px}button:disabled{cursor:default;opacity:.5}.wrap{max-width:1440px;margin:auto;padding:0 40px}.skip{position:absolute;left:16px;top:-80px;padding:12px;background:var(--surface);z-index:10}.skip:focus{top:8px}.topbar{border-bottom:1px solid var(--line)}.topbar .wrap{min-height:82px;display:flex;align-items:center;justify-content:space-between;gap:20px}.brand{display:flex;align-items:center;gap:12px;font-weight:750;letter-spacing:-.7px;font-size:22px}.brand span:last-child{font:11px var(--mono);text-transform:uppercase;letter-spacing:1.4px;color:var(--muted);border-left:1px solid var(--line);margin-left:8px;padding-left:20px}.flower{width:30px;height:30px;display:grid;grid-template-columns:1fr 1fr;gap:2px;transform:rotate(-12deg)}.flower i{background:var(--accent);border-radius:70% 70% 25% 70%}.flower i:nth-child(2){transform:rotate(90deg)}.flower i:nth-child(3){transform:rotate(-90deg)}.flower i:nth-child(4){transform:rotate(180deg)}nav{display:flex;gap:22px;align-items:center}nav a{text-decoration:none;color:var(--muted);font-size:13px}.button{border:1px solid var(--line);border-radius:7px;padding:9px 14px;background:var(--surface);color:var(--ink);font-size:13px;font-weight:600;text-decoration:none}.button:hover{background:var(--soft)}.hero{padding:56px 0 38px;display:grid;grid-template-columns:1.45fr 1fr;gap:70px;align-items:end}.eyebrow{color:var(--accent);text-transform:uppercase;letter-spacing:1.7px;font:11px/1.5 var(--mono);font-weight:650}.hero h1{font-size:clamp(34px,4.2vw,58px);line-height:1.06;font-weight:650;letter-spacing:-2.5px;margin:15px 0 20px}.hero p{font-size:17px;color:var(--muted);max-width:600px;margin:0}.snapshot{border-left:2px solid var(--accent);padding-left:24px;font-size:13px}.snapshot strong{display:block;font-size:15px;margin:7px 0}.snapshot p{font-size:13px}.snapshot .pill{margin-top:14px}.stats{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);border-radius:10px;background:var(--surface);margin-bottom:40px;overflow:hidden}.stat{padding:22px 25px}.stat+.stat{border-left:1px solid var(--line)}.stat strong{font-size:33px;line-height:1.15;font-weight:650;letter-spacing:-1.3px;display:block}.stat span{display:block;font-size:12px;color:var(--muted);margin-top:5px}.stat small{display:block;font:11px var(--mono);color:var(--accent);margin-top:10px}.section-head{display:flex;justify-content:space-between;align-items:end;gap:24px;margin:34px 0 18px}.section-head h2{font-size:23px;letter-spacing:-.6px;margin:0}.section-head p{margin:5px 0 0;color:var(--muted);font-size:13px}.section-head .section-number{font:11px var(--mono);color:var(--accent);margin-right:12px}.next-layout{display:grid;grid-template-columns:1fr 1.4fr;gap:16px;margin-bottom:42px}.next-featured{background:var(--nav);color:#f1f7ee;border-radius:10px;padding:27px;position:relative;overflow:hidden}.next-featured .eyebrow{color:#b8e0ca}.next-featured h3{font-size:26px;line-height:1.15;letter-spacing:-.7px;margin:15px 0}.next-featured p{font-size:13px;color:#c9dbd3;max-width:430px}.next-featured .button{background:#d8edb8;color:#173d35;border:0;margin-top:12px}.queue{display:grid;grid-template-columns:1fr 1fr;gap:12px}.queue-item{padding:18px 20px;background:var(--surface);border:1px solid var(--line);border-radius:9px}.queue-item .num{font:11px var(--mono);color:var(--muted)}.queue-item button{display:block;padding:0;border:0;background:transparent;color:var(--ink);font-weight:650;text-align:left;font-size:15px;margin:6px 0}.queue-item button:hover{color:var(--accent);text-decoration:underline}.queue-item p{font-size:12px;color:var(--muted);margin:0}.matrix{background:var(--surface);border:1px solid var(--line);border-radius:11px;box-shadow:var(--shadow);overflow:hidden}.toolbar{padding:22px 24px 18px;border-bottom:1px solid var(--line)}.filter-line{display:flex;gap:12px;flex-wrap:wrap;align-items:end}.field{display:flex;flex-direction:column;gap:6px}.field label{font:10px var(--mono);text-transform:uppercase;letter-spacing:1px;color:var(--muted)}.field.search{flex:1;min-width:220px}.field input,.field select{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:6px;min-height:41px;padding:9px 12px}.field select{min-width:170px}.filters{display:flex;gap:6px;flex-wrap:wrap;margin-top:16px}.filter{background:transparent;color:var(--muted);border:1px solid transparent;border-radius:5px;padding:6px 10px;font-size:12px}.filter[aria-pressed=true]{background:var(--ink);color:var(--surface)}.filter:hover{border-color:var(--line)}.filter b{font:10px var(--mono);margin-left:5px;opacity:.8}.results-line{display:flex;justify-content:space-between;gap:18px;align-items:center;padding:13px 24px;background:var(--bg);font-size:11px;color:var(--muted)}.legend{display:flex;gap:13px;flex-wrap:wrap}.legend span{white-space:nowrap}.dot{display:inline-block;width:7px;height:7px;background:var(--accent);border-radius:50%;margin-right:5px}.dot.partial{background:var(--amber)}.dot.next{background:var(--blue)}.dot.research{background:var(--research)}.table-wrap{overflow:auto;max-height:900px;scrollbar-color:var(--line) transparent}table{width:100%;border-collapse:collapse;table-layout:fixed;min-width:1100px}caption{text-align:left;padding:12px 24px;font-size:11px;color:var(--muted);caption-side:bottom}th,td{text-align:left;padding:15px 12px;border-bottom:1px solid var(--line);vertical-align:top}thead th{position:sticky;top:0;z-index:2;background:var(--surface);font:10px/1.4 var(--mono);text-transform:uppercase;letter-spacing:.5px;color:var(--muted);vertical-align:middle;padding-top:16px;padding-bottom:16px}.feature-col{width:23%}.status-col{width:12%}.purpose-col{width:29%}.evidence-col{width:6%;text-align:center}td.evidence-col{vertical-align:middle}tr.group th{background:var(--soft);font:11px var(--mono);padding:10px 20px;letter-spacing:.3px;color:var(--muted);font-weight:600}tr.group span{float:right;font-weight:400;font-size:10px}tr.feature:hover{background:var(--bg)}.feature-name{display:block;cursor:pointer;border:0;background:transparent;color:var(--ink);padding:0;font-weight:650;text-align:left;line-height:1.35;font-size:13px}.feature-name:hover{color:var(--accent)}.feature-name .chevron{display:inline-block;color:var(--muted);margin-right:7px}.feature-name[aria-expanded=true] .chevron{transform:rotate(90deg)}.feature-hint{display:block;margin:5px 0 0 17px;font:10px var(--mono);color:var(--muted)}.purpose{font-size:12px;color:var(--muted);line-height:1.6}.pill{display:inline-block;white-space:nowrap;border-radius:4px;font-size:10px;font-weight:650;padding:4px 7px;background:var(--soft);color:var(--muted)}.pill.implemented{color:var(--accent);background:var(--accent-bg)}.pill.next{color:var(--blue);background:var(--blue-bg)}.pill.partial{color:var(--amber);background:var(--amber-bg)}.pill.research{color:var(--research);background:var(--research-bg)}.proof{display:inline-flex;align-items:center;justify-content:center;width:27px;height:27px;background:var(--accent-bg);color:var(--accent);border-radius:6px;text-decoration:none;font-size:13px}.proof:hover{outline:1px solid var(--accent)}.dash{color:var(--muted);font-size:14px}.detail-row td{background:var(--bg);padding:20px 26px}.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px 35px;font-size:12px}.detail-grid h4{font:10px var(--mono);letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin:0 0 8px}.detail-grid p{margin:0;line-height:1.8}.detail-grid code{font:11px/1.8 var(--mono);overflow-wrap:anywhere}.detail-grid .full{grid-column:1/-1}.detail-links{display:flex;gap:18px;flex-wrap:wrap;margin-top:18px;font-size:12px}.empty{padding:55px 24px;text-align:center;color:var(--muted)}[hidden]{display:none!important}.notes{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin:18px 0 42px}.note{font-size:12px;padding:18px 20px;border-left:2px solid var(--line)}.note strong{display:block;margin-bottom:6px}.note p{margin:0;color:var(--muted)}.delivery{display:grid;grid-template-columns:1fr 1fr;gap:18px}.delivery article{border:1px solid var(--line);padding:24px;border-radius:10px;background:var(--surface)}.delivery h3{margin:0 0 15px;font-size:16px}.check-list{padding:0;margin:0;list-style:none}.check-list li{display:flex;gap:10px;margin:11px 0;font-size:13px;color:var(--muted)}.check-list .tick{color:var(--accent);font-weight:700}.check-list .todo{color:var(--amber);font-weight:700}.delivery a{font-size:12px}.milestones{display:flex;flex-wrap:wrap;gap:8px;margin:17px 0}.milestones span{font-size:11px;border:1px solid var(--line);border-radius:5px;padding:6px 9px;color:var(--muted)}footer{border-top:1px solid var(--line);margin-top:45px;padding:24px 0 35px;font-size:11px;color:var(--muted)}footer .wrap{display:flex;justify-content:space-between;gap:30px}footer p{margin:0;max-width:720px}.footer-links{display:flex;gap:18px;flex-wrap:wrap;align-items:start}.muted{color:var(--muted)}.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.notice{padding:20px;border:1px solid var(--amber);background:var(--amber-bg)}
+@media(min-width:1600px){.table-wrap{max-height:1000px}}@media(max-width:1000px){.wrap{padding:0 24px}.hero{gap:30px;grid-template-columns:1.2fr 1fr}.hero h1{font-size:43px}.next-layout{grid-template-columns:1fr 1fr}.queue{grid-template-columns:1fr}.queue-item{padding:11px 16px}.notes{gap:6px}.stat{padding:20px}.topbar nav a{display:none}}@media(max-width:680px){.wrap{padding:0 18px}.topbar .wrap{min-height:68px}.brand{font-size:19px}.brand span:last-child{display:none}.hero{padding:32px 0 25px;display:block}.hero h1{font-size:40px;letter-spacing:-1.5px}.hero p{font-size:15px}.snapshot{margin-top:25px;padding-left:15px}.stats{grid-template-columns:1fr 1fr;margin-bottom:28px}.stat{padding:18px}.stat:nth-child(3){border-left:0;border-top:1px solid var(--line)}.stat:nth-child(4){border-top:1px solid var(--line)}.stat strong{font-size:28px}.next-layout,.delivery{grid-template-columns:1fr}.queue{grid-template-columns:1fr 1fr}.queue-item{padding:15px}.section-head{align-items:start;flex-direction:column;gap:12px}.section-head h2{font-size:21px}.toolbar{padding:17px}.field.search{min-width:100%;width:100%}.field{flex:1}.field select{min-width:0;width:100%}.filter-line .button{min-height:41px}.results-line{align-items:start;flex-direction:column;padding:12px 17px;gap:7px}.legend{gap:10px}.table-wrap{max-height:680px}.detail-grid,.detail-links{max-width:calc(100vw - 110px)}.notes{grid-template-columns:1fr;gap:0;margin-bottom:24px}.note{padding:13px 15px}.detail-grid{grid-template-columns:1fr}.detail-grid .full{grid-column:auto}.footer-links{gap:12px}footer .wrap{flex-direction:column;gap:18px}.button{padding:9px 11px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}@media print{:root,:root[data-theme=dark]{--bg:#fff;--surface:#fff;--ink:#111;--muted:#444;--line:#ccc;--soft:#eee;--accent:#16553b;--accent-bg:#edf7f0;--nav:#fff;--shadow:none}body{font-size:11px}.wrap{max-width:none;padding:0}.topbar,nav,.toolbar,.next-layout,.notes,.section-head .button,.footer-links{display:none}.hero{padding:0 0 20px;gap:20px}.hero h1{font-size:30px}.hero p{font-size:13px}.stats{margin-bottom:20px}.stat{padding:12px}.stat strong{font-size:23px}.table-wrap{max-height:none;overflow:visible}table{min-width:0;table-layout:auto}thead th{position:static;font-size:8px}.purpose{font-size:10px}th,td{padding:9px 6px}.feature-name{font-size:11px}.pill{font-size:8px}.proof{background:none;width:auto;height:auto}.evidence-col{width:auto}.detail-row[hidden]{display:table-row!important}.detail-grid{font-size:10px}.detail-grid code{font-size:10px}.detail-row td{padding:12px}tr{break-inside:avoid}caption{font-size:9px}.matrix{border-radius:0}.delivery{display:block}.delivery article{margin-bottom:15px;break-inside:avoid}.section-head{margin-top:25px}footer{margin-top:20px}.next-featured{color:#111}.results-line{font-size:10px}.legend{display:none}.feature-hint{display:none}a{color:inherit}.feature-name .chevron{display:none}@page{size:landscape;margin:12mm}}
+</style>
+</head>
+<body>
+<a class="skip" href="#matrix-heading">Skip to coverage matrix</a>
+<header class="topbar"><div class="wrap"><div class="brand"><span class="flower" aria-hidden="true"><i></i><i></i><i></i><i></i></span>Celandine<span>Project atlas</span></div><nav aria-label="Page navigation"><a href="#next">Next increments</a><a href="#matrix-heading">Coverage</a><a href="#delivery">Release status</a><button class="button" id="theme" aria-label="Switch to dark theme">Dark theme</button></nav></div></header>
+<main class="wrap">
+<section class="hero" aria-labelledby="page-title"><div><div class="eyebrow">Finite sequences. Explicit mathematics.</div><h1 id="page-title">Capabilities<br>&amp; coverage.</h1><p>What Celandine can measure today, the evidence behind it, and the gaps to close next.</p></div><aside class="snapshot"><div class="eyebrow">Repository snapshot · 05 Nov 2026</div><strong>Rust library · bytes first · MIT</strong><p>Based on <a data-source="src/lib.rs">f1a43a8</a> and the authoritative project plan. All ten agreed breadth increments are implemented. Future priorities below are proposals.</p><span class="pill partial">v0.1.0 manifest · publishing disabled</span></aside></section>
+<section class="stats" aria-label="Snapshot summary"><div class="stat"><strong id="implemented-count">28</strong><span>Implemented capability groups</span><small>Grouped APIs, not function counts</small></div><div class="stat"><strong>10 / 10</strong><span>Agreed breadth increments complete</span><small>Does not mean the full roadmap is done</small></div><div class="stat"><strong>18</strong><span>Dedicated fuzz targets</span><small>281 generated + 1 retained seed</small></div><div class="stat"><strong>0</strong><span>Default runtime dependencies</span><small>Optional fixed zlib backend</small></div></section>
+<section id="next" aria-labelledby="next-heading"><div class="section-head"><div><h2 id="next-heading"><span class="section-number">01</span>A proposed next sequence</h2><p>Build on the current foundations. Each increment still needs its own definition, validation and review.</p></div><span class="pill next">Proposed · not yet scheduled</span></div><div class="next-layout"><article class="next-featured"><div class="eyebrow">01 / Recommended next increment</div><h3>Conditional entropy<br>of aligned pairs</h3><p>Measure uncertainty in X after observing Y. Joint distributions and marginals are already available; this fills a core information-theory gap.</p><p>Distinct from the existing next-byte conditional entropy by sequence order.</p><button class="button" data-open="conditional-pair">See scope in the matrix ↗</button></article><div class="queue" id="queue"></div></div></section>
+<section aria-labelledby="matrix-heading"><div class="section-head"><div><h2 id="matrix-heading"><span class="section-number">02</span>The capability matrix</h2><p>Expand a capability for its API, formula, worked example and limits. Scroll the table sideways on smaller screens to see all evidence columns.</p></div><div style="display:flex;gap:8px"><button class="button" id="export">Export visible CSV</button><button class="button" id="print">Print / PDF</button></div></div>
+<div class="matrix"><div class="toolbar"><div class="filter-line"><div class="field search"><label for="search">Find a capability</label><input type="search" id="search" placeholder="Search metrics, APIs, examples or limitations…" autocomplete="off"></div><div class="field"><label for="category">Category</label><select id="category"><option value="all">All categories</option></select></div><button class="button" id="reset">Reset filters</button></div><div class="filters" id="filters" role="group" aria-label="Filter by implementation status"></div></div><div class="results-line"><span id="results" role="status" aria-live="polite"></span><div class="legend"><span><i class="dot"></i>Implemented</span><span><i class="dot partial"></i>Partial</span><span><i class="dot next"></i>Proposed next</span><span><i class="dot research"></i>Research</span></div></div>
+<div class="table-wrap" tabindex="0" role="region" aria-label="Capability matrix; scroll horizontally on small screens"><table><caption>✓ = linked evidence exists for the implemented scope; evidence may be shared across related APIs. — = no implementation evidence claimed. This is a capability inventory, not a line-coverage percentage.</caption><thead><tr><th class="feature-col" scope="col">Capability / scope</th><th class="status-col" scope="col">Status</th><th class="purpose-col" scope="col">What it lets you do</th><th class="evidence-col" scope="col"><abbr title="Canonical, property, or regression tests">Tests</abbr></th><th class="evidence-col" scope="col"><abbr title="Independent reference verification">Ref.</abbr></th><th class="evidence-col" scope="col">Example</th><th class="evidence-col" scope="col">Fuzz</th><th class="evidence-col" scope="col"><abbr title="Recorded performance measurements">Perf.</abbr></th><th class="evidence-col" scope="col">Docs</th></tr></thead><tbody id="matrix-body"></tbody></table><div class="empty" id="empty" hidden><strong>No matching capabilities.</strong><p>Try another term or reset the filters.</p><button class="button" id="empty-reset">Reset filters</button></div></div></div>
+<noscript><p class="notice">Enable JavaScript to explore the matrix. The library currently includes six byte entropy families, joint and block entropy, mutual information, TV/JS comparisons, sequence complexity, byte transforms and optional compression. See the README and project plan for the full inventory.</p></noscript>
+<div class="notes"><div class="note"><strong>Empirical quantities ≠ source guarantees</strong><p>Frequency-based metrics describe the observed law. LZ and compressor scores do not certify randomness or compute true Kolmogorov complexity.</p></div><div class="note"><strong>Context support is only partial</strong><p>Order-based conditional entropy uses context counts internally. A general public context transform or conditional-distribution API is still missing.</p></div><div class="note"><strong>Coverage has practical limits</strong><p>Linux x86-64 is the tested runtime baseline. Diverse-input LZ parsing remains quadratic; high-order profiles can be costly.</p></div></div></section>
+<section id="delivery" aria-labelledby="delivery-heading"><div class="section-head"><div><h2 id="delivery-heading"><span class="section-number">03</span>Delivery &amp; release readiness</h2><p>Feature breadth and package publication are separate milestones.</p></div></div><div class="delivery"><article><h3>Established development coverage</h3><ul class="check-list"><li><span class="tick">✓</span><span>Rust 1.90, edition 2024; no unsafe code in the library.</span></li><li><span class="tick">✓</span><span>Default / all-feature debug and release tests; Clippy, rustdoc and runnable examples.</span></li><li><span class="tick">✓</span><span>Independent references, retained fuzz campaigns and measured performance evidence.</span></li><li><span class="tick">✓</span><span>Isolated allocation checks, heap/RSS probes and package verification.</span></li><li><span class="tick">✓</span><span>MIT-only license, mathematical conventions and support policy.</span></li></ul><p><a data-source="CONTRIBUTING.md">Validation workflow ↗</a> &nbsp; <a data-source="docs/support.md">Support boundaries ↗</a></p><p class="muted" style="font-size:12px">Evidence is historical and scoped to linked revisions and workloads. This page does not fetch live CI status.</p></article><article><h3>Still needed before a formal release</h3><ul class="check-list"><li><span class="todo">○</span><span>Refresh the historical readiness audit: joint laws and later breadth features are now implemented.</span></li><li><span class="todo">○</span><span>Resolve foundation scope: probability-vector imports, public context APIs and generic counts versus a byte/count-only release.</span></li><li><span class="todo">○</span><span>Finalize the release changelog and verify a clean release commit and its CI results.</span></li><li><span class="todo">○</span><span>Authorize tagging and publishing separately. Cargo still declares publish = false.</span></li></ul><p><a data-source="docs/releases/v0.1-readiness.md">Historical readiness audit ↗</a> &nbsp; <a data-source="Cargo.toml">Current manifest ↗</a></p><p class="muted" style="font-size:12px">Windows/macOS runtime validation, broader platform support, CLI and bindings remain future work. Roadmap versions are planning labels, not shipped releases.</p></article></div>
+<div class="milestones" aria-label="Completed agreed increments"><span>✓ NCD</span><span>✓ Windows</span><span>✓ Fixed blocks</span><span>✓ JS complexity</span><span>✓ Block entropy</span><span>✓ Conditional order</span><span>✓ Block profiles</span><span>✓ Joint laws / entropy</span><span>✓ Mutual information</span><span>✓ LZ76 scales</span></div></section>
+</main>
+<footer><div class="wrap"><p>Snapshot of Celandine at f1a43a8 · 05 Nov 2026. The matrix groups related public APIs and selected roadmap families; it is not an exhaustive count of every future metric. Works offline; source and evidence links require network access. No external scripts, fonts or tracking.</p><div class="footer-links"><a data-source="README.md">README</a><a data-source="finite_sequence_information_complexity_project_plan.md">Project plan</a><a data-source="docs/mathematical-conventions.md">Conventions</a></div></div></footer>
+<script type="application/json" id="capability-data">[
+  {
+    "id": "counts",
+    "category": "Foundations",
+    "name": "Byte counts & distributions",
+    "status": "implemented",
+    "purpose": "Count byte frequencies once and reuse the empirical law across metrics.",
+    "api": "ByteHistogram · Distribution",
+    "formula": "p(b) = count(b)/N; b is a byte label and N the sample size. Probabilities are dimensionless.",
+    "example": "AAAB → A:3, B:1 → probabilities 0.75, 0.25; support size 2.",
+    "limits": "Checked integer-count import; no arbitrary floating probability-vector constructor. Empty state is explicit.",
+    "evidence": {
+      "docs": "docs/distribution.md",
+      "tests": "tests/canonical.rs",
+      "reference": "scripts/reference_shannon.py",
+      "example": "examples/shannon.rs",
+      "fuzz": "docs/fuzzing/initial-campaign.md",
+      "benchmark": "docs/benchmarks.md"
+    }
+  },
+  {
+    "id": "ngram-law",
+    "category": "Foundations",
+    "name": "N-gram counts & laws",
+    "status": "implemented",
+    "purpose": "Measure the frequency of overlapping patterns, preserving local order.",
+    "api": "ngram_counts · ngram_probabilities · NgramDistribution",
+    "formula": "Count each length-n byte block starting at positions 0 through L−n; divide by L−n+1 when n≤L.",
+    "example": "ABABA, n=2 → AB:2, BA:2 → each probability 1/2.",
+    "limits": "Positive n; count tables allocate and borrow input. This is not a public conditional-law object.",
+    "evidence": {
+      "docs": "docs/ngrams.md",
+      "tests": "tests/ngrams.rs",
+      "reference": "scripts/reference_ngrams.py",
+      "example": "examples/ngrams.rs",
+      "fuzz": "docs/fuzzing/initial-campaign.md",
+      "benchmark": "docs/benchmarks/ngrams.md"
+    }
+  },
+  {
+    "id": "joint-law",
+    "category": "Foundations",
+    "name": "Joint laws & marginals",
+    "status": "implemented",
+    "purpose": "Count aligned byte pairs and retrieve each coordinate’s marginal distribution.",
+    "api": "joint_counts · joint_probabilities · JointDistribution",
+    "formula": "p(a,b) = paired_count(a,b)/N; sum over one coordinate to obtain the other marginal.",
+    "example": "AABB paired with XYXY → AX, AY, BX, BY each have probability 1/4.",
+    "limits": "Equal input lengths required. Supports byte pairs, not arbitrary tuples.",
+    "evidence": {
+      "docs": "docs/joint-distributions.md",
+      "tests": "tests/joint.rs",
+      "reference": "scripts/reference_joint.py",
+      "example": "examples/joint.rs",
+      "fuzz": "docs/fuzzing/joint.md",
+      "benchmark": "docs/benchmarks/joint.md"
+    }
+  },
+  {
+    "id": "shannon",
+    "category": "Byte entropy",
+    "name": "Shannon entropy",
+    "status": "implemented",
+    "purpose": "Measure average symbol uncertainty from observed frequencies.",
+    "api": "shannon · shannon_distribution",
+    "formula": "H = −Σ pᵢ log₂ pᵢ, in bits per symbol; pᵢ is a nonzero observed symbol probability.",
+    "example": "ABCD → four probabilities 1/4 → H=2 bits/symbol.",
+    "limits": "Ignores ordering; exact empirical quantity evaluated with f64, not exact source entropy. Empty input returns zero.",
+    "evidence": {
+      "docs": "docs/entropy/shannon.md",
+      "tests": "tests/canonical.rs",
+      "reference": "scripts/reference_shannon.py",
+      "example": "examples/shannon.rs",
+      "fuzz": "docs/fuzzing/initial-campaign.md",
+      "benchmark": "docs/benchmarks.md"
+    }
+  },
+  {
+    "id": "bases",
+    "category": "Byte entropy",
+    "name": "Explicit Shannon log bases",
+    "status": "implemented",
+    "purpose": "Choose bits, nats or decimal information units without changing the empirical law.",
+    "api": "shannon_with_base · shannon_distribution_with_base",
+    "formula": "H_b = H₂/log₂(b); b is a finite logarithm base greater than one.",
+    "example": "ABCD → 2 bits, or 2 ln(2) ≈ 1.386294 nats per symbol.",
+    "limits": "This changes units; it does not normalize entropy to [0,1].",
+    "evidence": {
+      "docs": "docs/entropy/shannon_base.md",
+      "tests": "tests/shannon_base.rs",
+      "reference": "scripts/reference_shannon_base.py",
+      "example": "examples/shannon.rs",
+      "fuzz": "docs/fuzzing/initial-campaign.md",
+      "benchmark": "docs/benchmarks/shannon_base.md"
+    }
+  },
+  {
+    "id": "hartley",
+    "category": "Byte entropy",
+    "name": "Hartley entropy",
+    "status": "implemented",
+    "purpose": "Measure observed support diversity regardless of frequency imbalance.",
+    "api": "hartley_entropy · hartley_entropy_distribution",
+    "formula": "H₀ = log₂(k), where k is the number of observed distinct symbols; bits/symbol.",
+    "example": "AAAB → support {A,B}, k=2 → H₀=1 bit/symbol.",
+    "limits": "Observed support only; empty input returns zero by convention.",
+    "evidence": {
+      "docs": "docs/entropy/hartley.md",
+      "tests": "tests/hartley.rs",
+      "reference": "scripts/reference_hartley.py",
+      "example": "examples/hartley.rs",
+      "fuzz": "docs/fuzzing/initial-campaign.md",
+      "benchmark": "docs/benchmarks/hartley.md"
+    }
+  },
+  {
+    "id": "renyi",
+    "category": "Byte entropy",
+    "name": "Rényi entropy",
+    "status": "implemented",
+    "purpose": "Tune sensitivity to common or rare observed symbols using an explicit order.",
+    "api": "renyi_entropy · renyi_entropy_distribution",
+    "formula": "Hα = log₂(Σ pᵢ^α)/(1−α), in bits/symbol; α=1 uses Shannon, α=∞ uses min-entropy.",
+    "example": "ABAB → p=(1/2,1/2) → Hα=1 bit/symbol for every supported order.",
+    "limits": "Nonnegative orders, including +∞; invalid orders error. Stable treatment near one.",
+    "evidence": {
+      "docs": "docs/entropy/renyi.md",
+      "tests": "tests/renyi.rs",
+      "reference": "scripts/reference_renyi.py",
+      "example": "examples/renyi.rs",
+      "fuzz": "docs/fuzzing/initial-campaign.md",
+      "benchmark": "docs/benchmarks/renyi.md"
+    }
+  },
+  {
+    "id": "collision",
+    "category": "Byte entropy",
+    "name": "Collision entropy",
+    "status": "implemented",
+    "purpose": "Quantify the chance that two draws from the empirical law agree.",
+    "api": "collision_entropy · collision_entropy_distribution",
+    "formula": "H₂ = −log₂(Σ pᵢ²), in bits/symbol. The sum is the collision probability.",
+    "example": "AAAB → (3/4)²+(1/4)²=5/8 → H₂≈0.678072 bits/symbol.",
+    "limits": "Dedicated Rényi order-two API; not a cryptographic security certificate.",
+    "evidence": {
+      "docs": "docs/entropy/collision.md",
+      "tests": "tests/collision.rs",
+      "reference": "scripts/reference_collision.py",
+      "example": "examples/collision.rs",
+      "fuzz": "docs/fuzzing/initial-campaign.md",
+      "benchmark": "docs/benchmarks/collision.md"
+    }
+  },
+  {
+    "id": "min-entropy",
+    "category": "Byte entropy",
+    "name": "Min-entropy",
+    "status": "implemented",
+    "purpose": "Measure uncertainty governed by the most frequent symbol.",
+    "api": "min_entropy · min_entropy_distribution",
+    "formula": "H∞ = −log₂(max pᵢ), in bits/symbol.",
+    "example": "AAAB → maximum probability 3/4 → H∞≈0.415037 bits/symbol.",
+    "limits": "An empirical concentration measure; no claim about adversarial source entropy.",
+    "evidence": {
+      "docs": "docs/entropy/min_entropy.md",
+      "tests": "tests/min_entropy.rs",
+      "reference": "scripts/reference_min_entropy.py",
+      "example": "examples/min_entropy.rs",
+      "fuzz": "docs/fuzzing/initial-campaign.md",
+      "benchmark": "docs/benchmarks/min_entropy.md"
+    }
+  },
+  {
+    "id": "tsallis",
+    "category": "Byte entropy",
+    "name": "Tsallis entropy",
+    "status": "implemented",
+    "purpose": "Explore a generalized entropy family with an explicit order and scale.",
+    "api": "tsallis_entropy · tsallis_entropy_distribution",
+    "formula": "S_q = (1−Σ pᵢ^q)/((q−1) ln 2); q=1 uses Shannon. Fixed Shannon-bit scaling.",
+    "example": "ABAB, q=2 → (1−1/2)/ln 2≈0.721348 in the documented scale.",
+    "limits": "Finite q≥0; not generally an additive information length or a normalized score.",
+    "evidence": {
+      "docs": "docs/entropy/tsallis.md",
+      "tests": "tests/tsallis.rs",
+      "reference": "scripts/reference_tsallis.py",
+      "example": "examples/tsallis.rs",
+      "fuzz": "docs/fuzzing/initial-campaign.md",
+      "benchmark": "docs/benchmarks/tsallis.md"
+    }
+  },
+  {
+    "id": "joint-entropy",
+    "category": "Information",
+    "name": "Joint entropy",
+    "status": "implemented",
+    "purpose": "Measure combined uncertainty in two aligned byte observations.",
+    "api": "joint_entropy · joint_entropy_distribution",
+    "formula": "H(X,Y) = −Σ p(a,b) log₂ p(a,b), in bits per pair.",
+    "example": "AABB and XYXY produce four equally likely pairs → 2 bits/pair.",
+    "limits": "Equal lengths required; empty/empty returns zero. Does not imply independence.",
+    "evidence": {
+      "docs": "docs/entropy/joint.md",
+      "tests": "tests/joint.rs",
+      "reference": "scripts/reference_joint.py",
+      "example": "examples/joint.rs",
+      "fuzz": "docs/fuzzing/joint.md",
+      "benchmark": "docs/benchmarks/joint.md"
+    }
+  },
+  {
+    "id": "mutual",
+    "category": "Information",
+    "name": "Mutual information",
+    "status": "implemented",
+    "purpose": "Measure shared information between two aligned byte sequences.",
+    "api": "mutual_information · mutual_information_distribution",
+    "formula": "I(X;Y) = Σ p(a,b) log₂[p(a,b)/(p_X(a)p_Y(b))], in bits per pair.",
+    "example": "ABAB paired with ABAB → 1 bit/pair; AABB with XYXY → 0.",
+    "limits": "Stable count-based evaluation near independence. Empirical dependence is not causation.",
+    "evidence": {
+      "docs": "docs/information/mutual.md",
+      "tests": "tests/mutual.rs",
+      "reference": "scripts/reference_mutual.py",
+      "example": "examples/mutual.rs",
+      "fuzz": "docs/fuzzing/mutual.md",
+      "benchmark": "docs/benchmarks/mutual.md"
+    }
+  },
+  {
+    "id": "tv",
+    "category": "Divergence & distance",
+    "name": "Total variation distance",
+    "status": "implemented",
+    "purpose": "Compare how different two byte-frequency laws are.",
+    "api": "total_variation_distance · total_variation_distance_distribution",
+    "formula": "TV(P,Q) = ½Σ |pᵢ−qᵢ|; dimensionless, from zero to one.",
+    "example": "AAAA versus BBBB → disjoint support → distance 1.",
+    "limits": "Nonempty distributions required. Same frequencies give zero even when order differs.",
+    "evidence": {
+      "docs": "docs/divergence/total_variation.md",
+      "tests": "tests/total_variation.rs",
+      "reference": "scripts/reference_total_variation.py",
+      "example": "examples/total_variation.rs",
+      "fuzz": "docs/fuzzing/total-variation.md",
+      "benchmark": "docs/benchmarks/total_variation.md"
+    }
+  },
+  {
+    "id": "jsd",
+    "category": "Divergence & distance",
+    "name": "Jensen–Shannon divergence",
+    "status": "implemented",
+    "purpose": "Compare two laws through an equal-weight mixture.",
+    "api": "jensen_shannon_divergence · …_distribution",
+    "formula": "J(P,Q) = H((P+Q)/2) − [H(P)+H(Q)]/2; base-two units are bits.",
+    "example": "AAAA versus BBBB → mixture (1/2,1/2) → divergence 1 bit.",
+    "limits": "Equal weights, nonempty laws, range [0,1] up to rounding. Distinct from its square-root distance.",
+    "evidence": {
+      "docs": "docs/divergence/jensen_shannon.md",
+      "tests": "tests/jensen_shannon.rs",
+      "reference": "scripts/reference_jensen_shannon.py",
+      "example": "examples/jensen_shannon.rs",
+      "fuzz": "docs/fuzzing/jensen-shannon.md",
+      "benchmark": "docs/benchmarks/jensen_shannon.md"
+    }
+  },
+  {
+    "id": "js-distance",
+    "category": "Divergence & distance",
+    "name": "Jensen–Shannon distance",
+    "status": "implemented",
+    "purpose": "Use the square root of JS divergence as a symmetric distribution distance.",
+    "api": "jensen_shannon_distance · …_distribution",
+    "formula": "d_JS(P,Q) = √J(P,Q); units are square-root bits for the base-two convention.",
+    "example": "AAAA versus BBBB → √1=1; identical empirical laws → 0.",
+    "limits": "Nonempty laws required. A frequency comparison, not an order-sensitive sequence comparison.",
+    "evidence": {
+      "docs": "docs/divergence/jensen_shannon_distance.md",
+      "tests": "tests/jensen_shannon.rs",
+      "reference": "scripts/reference_jensen_shannon.py",
+      "example": "examples/jensen_shannon.rs",
+      "fuzz": "docs/fuzzing/jensen-shannon.md",
+      "benchmark": "docs/benchmarks/jensen_shannon.md"
+    }
+  },
+  {
+    "id": "block-entropy",
+    "category": "Sequence information",
+    "name": "Block entropy",
+    "status": "implemented",
+    "purpose": "Measure uncertainty of observed overlapping byte patterns.",
+    "api": "block_entropy · block_entropy_distribution",
+    "formula": "H_n = −Σ p(g) log₂ p(g), in bits per n-byte block; g ranges over distinct blocks.",
+    "example": "ABABA, n=2 → AB and BA each appear twice → 1 bit/block.",
+    "limits": "Positive block length. Not divided by n; finite overlapping observations may be biased as source estimates.",
+    "evidence": {
+      "docs": "docs/entropy/block.md",
+      "tests": "tests/block_entropy.rs",
+      "reference": "scripts/reference_block_entropy.py",
+      "example": "examples/block_entropy.rs",
+      "fuzz": "docs/fuzzing/block_entropy.md",
+      "benchmark": "docs/benchmarks/block_entropy.md"
+    }
+  },
+  {
+    "id": "conditional-order",
+    "category": "Sequence information",
+    "name": "Conditional entropy by order",
+    "status": "implemented",
+    "purpose": "Measure next-byte uncertainty after the preceding k bytes are known.",
+    "api": "conditional_entropy_order · …_distribution",
+    "formula": "−Σ [N(c,a)/m] log₂[N(c,a)/N(c)], in bits per predicted byte; c is a k-byte context.",
+    "example": "ABABAB, k=1 → A always leads to B, B to A → zero bits/predicted byte.",
+    "limits": "Uses matched contexts and targets. This is not conditional_entropy(x,y) for two aligned sequences.",
+    "evidence": {
+      "docs": "docs/entropy/conditional_order.md",
+      "tests": "tests/conditional_order.rs",
+      "reference": "scripts/reference_conditional_order.py",
+      "example": "examples/conditional_order.rs",
+      "fuzz": "docs/fuzzing/conditional_order.md",
+      "benchmark": "docs/benchmarks/conditional_order.md"
+    }
+  },
+  {
+    "id": "block-profile",
+    "category": "Sequence information",
+    "name": "Block-entropy profiles",
+    "status": "implemented",
+    "purpose": "Inspect how empirical block uncertainty changes with block length.",
+    "api": "block_entropy_profile(data, max_order)",
+    "formula": "Lazily yield H₁,…,H_min(max_order,L), each in bits per block; L is byte length.",
+    "example": "ABAB, cap=2 → [1, 0.918296…] because its pairs occur with probabilities 2/3 and 1/3.",
+    "limits": "Capped lazy iterator. Finite boundary effects matter; differences are not automatically source entropy rates.",
+    "evidence": {
+      "docs": "docs/entropy/block_profile.md",
+      "tests": "tests/block_profile.rs",
+      "reference": "scripts/reference_block_profile.py",
+      "example": "examples/block_profile.rs",
+      "fuzz": "docs/fuzzing/block_profile.md",
+      "benchmark": "docs/benchmarks/block_profile.md"
+    }
+  },
+  {
+    "id": "subword",
+    "category": "Sequence complexity",
+    "name": "Subword complexity & profiles",
+    "status": "implemented",
+    "purpose": "Count distinct contiguous patterns at each selected length.",
+    "api": "subword_complexity · subword_complexity_profile",
+    "formula": "p_x(n) = number of distinct length-n substrings; units are distinct blocks.",
+    "example": "ABABA → profile for n=0…5: [1,2,2,2,2,1].",
+    "limits": "Empty word counts as one. Full profiles can be expensive and need not increase with length.",
+    "evidence": {
+      "docs": "docs/complexity/subword.md",
+      "tests": "tests/subword.rs",
+      "reference": "scripts/reference_subword.py",
+      "example": "examples/subword.rs",
+      "fuzz": "docs/fuzzing/subword.md",
+      "benchmark": "docs/benchmarks/subword.md"
+    }
+  },
+  {
+    "id": "lz76",
+    "category": "Sequence complexity",
+    "name": "Raw LZ76 complexity",
+    "status": "implemented",
+    "purpose": "Count sequential novelty through exhaustive production phrases.",
+    "api": "lz76_complexity",
+    "formula": "c₇₆(x) = number of exhaustive phrases, allowing overlapping copying and counting a final reproducible suffix.",
+    "example": "AAAA → A | AAA → 2 phrases; ABAB → A | B | AB → 3.",
+    "limits": "Allocation-free scalar parser; O(N²) worst-case work. Not LZ78 or Kolmogorov complexity.",
+    "evidence": {
+      "docs": "docs/complexity/lz76.md",
+      "tests": "tests/lz76.rs",
+      "reference": "scripts/reference_lz76.py",
+      "example": "examples/lz76.rs",
+      "fuzz": "docs/fuzzing/lz76.md",
+      "benchmark": "docs/benchmarks/lz76.md"
+    }
+  },
+  {
+    "id": "lz-normalized",
+    "category": "Sequence complexity",
+    "name": "Explicit LZ76 normalization",
+    "status": "implemented",
+    "purpose": "Compare phrase density and a declared-alphabet asymptotic scale, reusing one parse.",
+    "api": "lz76_phrase_density · lz76_complexity_asymptotic · Lz76Summary",
+    "formula": "Density=c/N; asymptotic=c·log_K(N)/N. N is byte length, c phrase count, K declared alphabet size. Both dimensionless.",
+    "example": "ABAB → c=3, N=4 → density 0.75; K=2 asymptotic score 1.5.",
+    "limits": "K=2…256 must accommodate observed support. Asymptotic values can exceed one. Not an exact source entropy rate.",
+    "evidence": {
+      "docs": "docs/complexity/lz76_normalized.md",
+      "tests": "tests/lz76_normalized.rs",
+      "reference": "scripts/reference_lz76_normalized.py",
+      "example": "examples/lz76_normalized.rs",
+      "fuzz": "docs/fuzzing/lz76_normalized.md",
+      "benchmark": "docs/benchmarks/lz76_normalized.md"
+    }
+  },
+  {
+    "id": "js-complexity",
+    "category": "Statistical complexity",
+    "name": "Normalized JS statistical complexity",
+    "status": "implemented",
+    "purpose": "Combine byte-frequency diversity with departure from uniformity.",
+    "api": "normalized_jensen_shannon_complexity · …_distribution",
+    "formula": "C=(H(P)/log₂K)·(J(P,U_K)/J_max(K)); U_K is uniform over K possible byte states. Dimensionless.",
+    "example": "AAAB with K=2 → C≈0.127173; constant or full-alphabet uniform laws → zero.",
+    "limits": "K is explicit. Operates on byte frequencies, not ordinal patterns or temporal organization.",
+    "evidence": {
+      "docs": "docs/complexity/jensen_shannon.md",
+      "tests": "tests/statistical_complexity.rs",
+      "reference": "scripts/reference_statistical_complexity.py",
+      "example": "examples/statistical_complexity.rs",
+      "fuzz": "docs/fuzzing/statistical_complexity.md",
+      "benchmark": "docs/benchmarks/statistical_complexity.md"
+    }
+  },
+  {
+    "id": "ngrams",
+    "category": "Transforms",
+    "name": "Overlapping n-grams",
+    "status": "implemented",
+    "purpose": "Borrow every complete pattern of a positive byte length.",
+    "api": "transforms::ngrams",
+    "formula": "Slide a length-n slice by one byte; no padding or wrapping.",
+    "example": "ABCD, n=2 → AB, BC, CD.",
+    "limits": "Borrowed zero-copy extraction; n=0 errors. Large n gives no complete windows.",
+    "evidence": {
+      "docs": "docs/ngrams.md",
+      "tests": "tests/ngrams.rs",
+      "reference": "scripts/reference_ngrams.py",
+      "example": "examples/ngrams.rs",
+      "fuzz": "docs/fuzzing/initial-campaign.md",
+      "benchmark": "docs/benchmarks/ngrams.md"
+    }
+  },
+  {
+    "id": "windows",
+    "category": "Transforms",
+    "name": "Sliding windows",
+    "status": "implemented",
+    "purpose": "Compose existing metrics over byte windows with an explicit stride.",
+    "api": "transforms::windows",
+    "formula": "Borrow complete width-w windows starting at 0,s,2s,…; w and stride s are positive byte counts.",
+    "example": "ABCDE, width=3, step=2 → ABC, CDE.",
+    "limits": "No partial tails. Window extraction is implemented; callers compose metrics through iteration.",
+    "evidence": {
+      "docs": "docs/transforms/windows.md",
+      "tests": "tests/windows.rs",
+      "reference": "scripts/reference_windows.py",
+      "example": "examples/windows.rs",
+      "fuzz": "docs/fuzzing/windows.md",
+      "benchmark": "docs/benchmarks/windows.md"
+    }
+  },
+  {
+    "id": "blocks",
+    "category": "Transforms",
+    "name": "Fixed blocks & remainder",
+    "status": "implemented",
+    "purpose": "Partition input into complete adjacent blocks and retain the unfinished tail.",
+    "api": "transforms::blocks",
+    "formula": "Borrow non-overlapping blocks of positive width w; keep the original remainder separately.",
+    "example": "ABCDE, width=2 → AB, CD; remainder E.",
+    "limits": "No padding; remainder remains inspectable during mixed-direction traversal.",
+    "evidence": {
+      "docs": "docs/transforms/blocks.md",
+      "tests": "tests/blocks.rs",
+      "reference": "scripts/reference_blocks.py",
+      "example": "examples/blocks.rs",
+      "fuzz": "docs/fuzzing/blocks.md",
+      "benchmark": "docs/benchmarks/blocks.md"
+    }
+  },
+  {
+    "id": "compression",
+    "category": "Compression",
+    "name": "Compressor interface, length & ratio",
+    "status": "implemented",
+    "purpose": "Measure backend-specific encoded size and size relative to input.",
+    "api": "Compressor · compressed_length · compression_ratio",
+    "formula": "C(x) is fresh complete stream bytes; ratio R=C(x)/|x| is dimensionless.",
+    "example": "A literal encoder with one header byte gives C(AB)=3 bytes and R=3/2=1.5.",
+    "limits": "Custom backends need no feature. Ratio errors on empty input; framing is retained. A compression proxy, not true K(x).",
+    "evidence": {
+      "docs": "docs/compression.md",
+      "tests": "tests/compression.rs",
+      "reference": "scripts/reference_compression.py",
+      "example": "examples/compression.rs",
+      "fuzz": "docs/fuzzing/compression.md",
+      "benchmark": "docs/benchmarks/compression.md"
+    }
+  },
+  {
+    "id": "zlib",
+    "category": "Compression",
+    "name": "Optional zlib / DEFLATE",
+    "status": "implemented",
+    "purpose": "Use the supplied deterministic pure-Rust compression backend.",
+    "api": "Zlib; feature compression-deflate",
+    "formula": "Encode a complete fresh zlib stream at fixed level 6; return its byte length.",
+    "example": "The empty input encodes to 8 bytes with this fixed backend.",
+    "limits": "Opt-in pinned miniz_oxide backend; core remains dependency-free by default. Short-stream overhead matters.",
+    "evidence": {
+      "docs": "docs/compression.md",
+      "tests": "tests/compression.rs",
+      "reference": "scripts/reference_compression.py",
+      "example": "examples/compression.rs",
+      "fuzz": "docs/fuzzing/compression.md",
+      "benchmark": "docs/benchmarks/compression.md"
+    }
+  },
+  {
+    "id": "ncd",
+    "category": "Compression",
+    "name": "Ordered normalized compression distance",
+    "status": "implemented",
+    "purpose": "Compare separate and concatenated stream sizes with inspectable components.",
+    "api": "normalized_compression_distance · compression_distance_components",
+    "formula": "NCD=[C(xy)−min(C(x),C(y))]/max(C(x),C(y)); dimensionless; xy is ordered raw concatenation.",
+    "example": "Literal encoder with one header byte: C(AB)=C(CD)=3, C(ABCD)=5 → NCD=2/3.",
+    "limits": "May be asymmetric, negative or above one. No general metric guarantee; symmetric variant is not implemented.",
+    "evidence": {
+      "docs": "docs/compression/ncd.md",
+      "tests": "tests/ncd.rs",
+      "reference": "scripts/reference_ncd.py",
+      "example": "examples/ncd.rs",
+      "fuzz": "docs/fuzzing/ncd.md",
+      "benchmark": "docs/benchmarks/ncd.md"
+    }
+  },
+  {
+    "id": "conditional-pair",
+    "category": "Information",
+    "name": "Conditional entropy of aligned pairs",
+    "status": "next",
+    "purpose": "Measure uncertainty in X after an aligned Y observation is known.",
+    "next_step": "Reuse JointDistribution; define direction, length/empty behavior, stable evaluation and chain-rule tests.",
+    "section": "8 · 7.2",
+    "priority": 1,
+    "why": "The joint-law and marginal foundations already exist. This closes a named core-information gap without new input machinery."
+  },
+  {
+    "id": "surprisal",
+    "category": "Information",
+    "name": "Self-information & surprisal",
+    "status": "next",
+    "purpose": "Measure the surprise of one probability or one symbol under a supplied law.",
+    "next_step": "Define probability validation, p=0 → infinity, p=1 → zero, units and absent-symbol behavior.",
+    "section": "8 · 7.3",
+    "priority": 2,
+    "why": "Adds an interpretable low-level building block that the existing entropy documentation already explains."
+  },
+  {
+    "id": "kl",
+    "category": "Divergence & distance",
+    "name": "KL divergence",
+    "status": "next",
+    "purpose": "Measure directed discrepancy from a reference distribution.",
+    "next_step": "Specify P versus Q; preserve infinite results for unsupported positive mass; no silent smoothing.",
+    "section": "9 · 8.1",
+    "priority": 3,
+    "why": "Extends the existing distribution-comparison family using reusable byte laws."
+  },
+  {
+    "id": "hellinger",
+    "category": "Divergence & distance",
+    "name": "Hellinger distance",
+    "status": "next",
+    "purpose": "Compare laws using square-root probabilities and a bounded distance.",
+    "next_step": "Implement the declared 1/√2 convention, zero handling, symmetry and range tests.",
+    "section": "9 · 8.4",
+    "priority": 4,
+    "why": "Adds a complementary bounded comparison with a small, explicit API surface."
+  },
+  {
+    "id": "pmi",
+    "category": "Information",
+    "name": "Pointwise mutual information",
+    "status": "next",
+    "purpose": "Inspect which individual symbol pairs contribute association.",
+    "next_step": "Use paired laws and marginals; settle zero-probability cases, negative results and symbol lookup.",
+    "section": "8 · 7.6",
+    "priority": 5,
+    "why": "Builds on the existing joint law and aggregate mutual information."
+  },
+  {
+    "id": "prob-vectors",
+    "category": "Foundations",
+    "name": "Validated probability-vector import",
+    "status": "planned",
+    "purpose": "Construct a law directly from probabilities rather than integer observations.",
+    "next_step": "Decide finite/nonnegative checks, explicit tolerance and whether count-only v0.1 scope is retained.",
+    "section": "6 · 5.2"
+  },
+  {
+    "id": "conditional-law",
+    "category": "Foundations",
+    "name": "Public conditional distributions",
+    "status": "planned",
+    "purpose": "Expose reusable P(next|context) or P(X|Y) laws.",
+    "next_step": "Define query/ownership contracts; reuse joint and context machinery without hidden normalization.",
+    "section": "3 / 6 · 5.5"
+  },
+  {
+    "id": "contexts",
+    "category": "Transforms",
+    "name": "Public context extraction & counts",
+    "status": "partial",
+    "purpose": "Context counts already power conditional entropy internally; reusable public context APIs are missing.",
+    "next_step": "Expose a documented context/target transform and count representation; define boundaries and reuse.",
+    "section": "6 · 5.5 / 15 · 14.4"
+  },
+  {
+    "id": "normalized-shannon",
+    "category": "Byte entropy",
+    "name": "Standalone normalized Shannon entropy",
+    "status": "planned",
+    "purpose": "Scale uncertainty against a deliberately chosen alphabet.",
+    "next_step": "Choose observed versus declared alphabet semantics; do not confuse log-base conversion or the JS product with this API.",
+    "section": "7 · 6.1"
+  },
+  {
+    "id": "cmi",
+    "category": "Information",
+    "name": "Conditional mutual information",
+    "status": "planned",
+    "purpose": "Measure shared information after a third variable is known.",
+    "next_step": "Add triple/tuple laws, then define sampling and stable nonnegative evaluation.",
+    "section": "8 · 7.5"
+  },
+  {
+    "id": "total-correlation",
+    "category": "Information",
+    "name": "Total correlation",
+    "status": "planned",
+    "purpose": "Measure dependence shared across several variables.",
+    "next_step": "Establish multivariate joint distributions before implementing the aggregate.",
+    "section": "8 · 7.7"
+  },
+  {
+    "id": "bhattacharyya",
+    "category": "Divergence & distance",
+    "name": "Bhattacharyya coefficient & distance",
+    "status": "planned",
+    "purpose": "Compare distribution overlap through square-root products.",
+    "next_step": "Select the precise distance/log convention and disjoint-support behavior.",
+    "section": "9 · 8.6"
+  },
+  {
+    "id": "rate",
+    "category": "Sequence information",
+    "name": "Named entropy-rate estimators",
+    "status": "research",
+    "purpose": "Estimate a generating process’s rate under explicit assumptions.",
+    "next_step": "Select block, Markov or LZ estimator conventions; evaluate finite-size bias and source assumptions.",
+    "section": "10 · 9.3"
+  },
+  {
+    "id": "excess",
+    "category": "Sequence information",
+    "name": "Excess-entropy estimator",
+    "status": "research",
+    "purpose": "Estimate stored or predictive structure beyond a per-symbol rate.",
+    "next_step": "Resolve the precise finite estimator and truncation; independently verify the plan’s conceptual formula before implementation.",
+    "section": "10 · 9.5"
+  },
+  {
+    "id": "linguistic",
+    "category": "Sequence complexity",
+    "name": "Linguistic complexity",
+    "status": "research",
+    "purpose": "Compare observed substring diversity with an explicit finite maximum.",
+    "next_step": "Choose the literature variant, finite-length denominator, alphabet and empty conventions.",
+    "section": "11 · 10.4"
+  },
+  {
+    "id": "topological",
+    "category": "Sequence complexity",
+    "name": "Topological-entropy estimate",
+    "status": "research",
+    "purpose": "Estimate pattern-growth behavior over a chosen length range.",
+    "next_step": "Choose fitting/range conventions and document why a finite string cannot determine the exact asymptotic quantity.",
+    "section": "11 · 10.5"
+  },
+  {
+    "id": "lz-alternatives",
+    "category": "Sequence complexity",
+    "name": "Additional LZ76 normalizations",
+    "status": "research",
+    "purpose": "Explore finite-maximum or shuffled-surrogate reference scales.",
+    "next_step": "Select a specific method; require explicit seed/RNG for stochastic references. Existing density/asymptotic APIs remain distinct.",
+    "section": "11 · 10.2 / 36"
+  },
+  {
+    "id": "backends",
+    "category": "Compression",
+    "name": "Additional compression backends",
+    "status": "planned",
+    "purpose": "Compare results across optional zstd, LZ4 or Brotli engines.",
+    "next_step": "Define deterministic settings and feature boundaries; add independent stream checks and measurements.",
+    "section": "12 · 11.1"
+  },
+  {
+    "id": "symmetric-ncd",
+    "category": "Compression",
+    "name": "Symmetric NCD variant",
+    "status": "planned",
+    "purpose": "Combine both concatenation orders with a declared convention.",
+    "next_step": "Choose averaging/min/max semantics explicitly; do not silently alter the ordered API.",
+    "section": "13 · 12.2"
+  },
+  {
+    "id": "compression-proxies",
+    "category": "Compression",
+    "name": "Calibrated compression proxies",
+    "status": "research",
+    "purpose": "Explore overhead, dictionary effects and explicitly named complexity proxies.",
+    "next_step": "Study framing/context calibration before offering additional scalings; avoid implicit overhead subtraction.",
+    "section": "12 · 11.4–11.5"
+  },
+  {
+    "id": "approximate",
+    "category": "Statistical complexity",
+    "name": "Approximate & sample entropy",
+    "status": "research",
+    "purpose": "Explore time-series regularity measures outside the current byte-frequency model.",
+    "next_step": "Decide numeric versus symbolic input domain, distance/tolerance and self-match conventions first.",
+    "section": "14 · 13.1–13.2"
+  },
+  {
+    "id": "permutation",
+    "category": "Statistical complexity",
+    "name": "Permutation entropy",
+    "status": "research",
+    "purpose": "Measure patterns of order in numeric observations.",
+    "next_step": "Set numeric-sequence scope, embedding and tie handling; do not infer ordinal semantics from arbitrary byte labels.",
+    "section": "14 · 13.3"
+  },
+  {
+    "id": "streaming",
+    "category": "Infrastructure & ecosystem",
+    "name": "Incremental counts & streaming",
+    "status": "planned",
+    "purpose": "Accumulate observations across chunks without retaining the whole sample.",
+    "next_step": "Start with checked count accumulation/merge; test chunk boundaries before adding streaming n-grams.",
+    "section": "22"
+  },
+  {
+    "id": "generic",
+    "category": "Infrastructure & ecosystem",
+    "name": "Generic discrete symbols",
+    "status": "planned",
+    "purpose": "Support characters, token IDs and other finite symbol types.",
+    "next_step": "Keep the optimized byte path; define generic counts and test their equivalence.",
+    "section": "23"
+  },
+  {
+    "id": "performance",
+    "category": "Infrastructure & ecosystem",
+    "name": "Further performance optimization",
+    "status": "planned",
+    "purpose": "Improve measured bottlenecks while retaining scalar reference behavior.",
+    "next_step": "Profile first; prioritize expensive diverse-input LZ parsing. SIMD/parallelism need workload evidence.",
+    "section": "21"
+  },
+  {
+    "id": "analysis",
+    "category": "Infrastructure & ecosystem",
+    "name": "Analysis context, batches & metadata",
+    "status": "planned",
+    "purpose": "Reuse work across multi-metric profiles and batch/distance-matrix analysis.",
+    "next_step": "Design convenience APIs after lower-level contracts stabilize; keep each metric independently callable.",
+    "section": "16 / 17 / 27 / 30 · v0.8"
+  },
+  {
+    "id": "bindings",
+    "category": "Infrastructure & ecosystem",
+    "name": "CLI, Python, C ABI & WASM",
+    "status": "planned",
+    "purpose": "Expose the Rust library through separate interfaces.",
+    "next_step": "Select a consumer layer after Rust contracts stabilize; isolate dependencies and preserve mathematical semantics.",
+    "section": "28–29"
+  },
+  {
+    "id": "estimators",
+    "category": "Research backlog",
+    "name": "Finite-sample entropy corrections",
+    "status": "research",
+    "purpose": "Study source-entropy bias on short observations.",
+    "next_step": "Evaluate explicitly named Miller–Madow, Bayesian or other estimators against independent references.",
+    "section": "31 · 30.1"
+  },
+  {
+    "id": "extended",
+    "category": "Research backlog",
+    "name": "Further information & complexity families",
+    "status": "research",
+    "purpose": "Cross entropy, Rényi/Tsallis divergences, transfer entropy, grammar complexity and related research.",
+    "next_step": "Select one mathematically justified quantity and supported input domain before implementation; the backlog is not an implementation commitment.",
+    "section": "32"
+  }
+]
+</script>
+<script>
+'use strict';
+const SNAPSHOT = 'f1a43a8aac6f928bea7408b3f39d5a11e573ece4';
+const REPO = `https://github.com/Nazgulion/celandine/blob/${SNAPSHOT}/`;
+const rows = JSON.parse(document.getElementById('capability-data').textContent);
+const categories = [...new Set(rows.map(row => row.category))];
+const statuses = {all:'All capabilities',implemented:'Implemented',next:'Proposed next',partial:'Partial',planned:'Planned',research:'Research'};
+const columns = {tests:'Automated tests',reference:'Independent reference',example:'Runnable example',fuzz:'Fuzz campaign',benchmark:'Performance evidence',docs:'Definition, history and limits'};
+const state = {status:'all',category:'all',search:'',expanded:new Set()};
+const $ = id => document.getElementById(id);
+const esc = value => String(value).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+const url = path => REPO + path.split('/').map(encodeURIComponent).join('/');
+const link = (path,label,cls='') => `<a href="${url(path)}" target="_blank" rel="noopener noreferrer" class="${cls}">${esc(label)}</a>`;
+document.querySelectorAll('[data-source]').forEach(a => {a.href=url(a.dataset.source);a.target='_blank';a.rel='noopener noreferrer';});
+$('implemented-count').textContent=rows.filter(r=>r.status==='implemented').length;
+$('category').insertAdjacentHTML('beforeend', categories.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join(''));
+$('filters').innerHTML=Object.entries(statuses).map(([key,label])=>`<button type="button" class="filter" data-status="${key}" aria-pressed="${key===state.status}">${label}<b>${key==='all'?rows.length:rows.filter(r=>r.status===key).length}</b></button>`).join('');
+$('queue').innerHTML=rows.filter(r=>r.priority>1).sort((a,b)=>a.priority-b.priority).map(r=>`<article class="queue-item"><span class="num">0${r.priority} / PROPOSED</span><button data-open="${r.id}">${esc(r.name)} ↗</button><p>${esc(r.purpose)}</p></article>`).join('');
+function visibleRows(){const query=state.search.trim().toLocaleLowerCase();return rows.filter(r=>(state.status==='all'||r.status===state.status)&&(state.category==='all'||r.category===state.category)&&(!query||[r.name,r.category,r.purpose,r.api,r.formula,r.example,r.limits,r.next_step,r.section].filter(Boolean).join(' ').toLocaleLowerCase().includes(query))).sort((a,b)=>categories.indexOf(a.category)-categories.indexOf(b.category));}
+function detail(r){
+ if(r.status==='implemented')return `<div class="detail-grid"><div><h4>Public API</h4><p><code>${esc(r.api)}</code></p></div><div><h4>Formula / operation & units</h4><p>${esc(r.formula)}</p></div><div><h4>Worked example</h4><p>${esc(r.example)}</p></div><div><h4>Boundaries</h4><p>${esc(r.limits)}</p></div></div><div class="detail-links">${link(r.evidence.docs,'Read definition & cited history ↗')}${link(r.evidence.example,'Open runnable example ↗')}</div>`;
+ return `<div class="detail-grid"><div><h4>What remains</h4><p>${esc(r.next_step)}</p></div><div><h4>${r.why?'Why this is proposed next':'Scope & dependency'}</h4><p>${esc(r.why||'Listed in the project plan; implementation scope and conventions still need a separate increment.')} Plan section ${esc(r.section)}.</p></div></div><div class="detail-links">${link('finite_sequence_information_complexity_project_plan.md','Read authoritative plan ↗')}${r.id==='contexts'?link('docs/entropy/conditional_order.md','See existing internal context use ↗'):''}</div>`;
+}
+function render(){
+ const visible=visibleRows();
+ let previous='';
+ $('matrix-body').innerHTML=visible.map(r=>{
+  let group='';if(r.category!==previous){const siblings=visible.filter(v=>v.category===r.category);group=`<tr class="group"><th colspan="9" scope="row">${esc(r.category)}<span>${siblings.filter(v=>v.status==='implemented').length} implemented / ${siblings.length} shown</span></th></tr>`;previous=r.category;}
+  const expanded=state.expanded.has(r.id);
+  const hint=r.status==='implemented'?'API · formula · example':r.priority?`Proposed increment 0${r.priority}`:'Scope · remaining work';
+  const evidence=Object.entries(columns).map(([key,label])=>`<td class="evidence-col">${r.evidence?.[key]?`<a class="proof" href="${url(r.evidence[key])}" target="_blank" rel="noopener noreferrer" aria-label="${esc(label+' for '+r.name)}" title="${esc(label+' — '+r.evidence[key])}"><span aria-hidden="true">✓</span></a>`:'<span class="dash" aria-label="No implementation evidence claimed">—</span>'}</td>`).join('');
+  return `${group}<tr class="feature" id="row-${r.id}" data-feature="${r.id}"><th scope="row"><button class="feature-name" data-toggle="${r.id}" aria-expanded="${expanded}" aria-controls="detail-${r.id}"><span class="chevron" aria-hidden="true">›</span>${esc(r.name)}</button><span class="feature-hint">${hint}</span></th><td><span class="pill ${r.status}">${statuses[r.status]}</span></td><td class="purpose">${esc(r.purpose)}</td>${evidence}</tr><tr class="detail-row" id="detail-${r.id}" ${expanded?'':'hidden'}><td colspan="9">${detail(r)}</td></tr>`;
+ }).join('');
+ $('empty').hidden=visible.length>0;
+ $('results').textContent=`${visible.length} of ${rows.length} capability groups · ${visible.filter(r=>r.status==='implemented').length} implemented in this view`;
+ document.querySelectorAll('[data-status]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.status===state.status)));
+ $('export').disabled=visible.length===0;
+}
+function reset(){state.status='all';state.category='all';state.search='';$('category').value='all';$('search').value='';render();}
+$('search').addEventListener('input',e=>{state.search=e.target.value;render();});
+$('category').addEventListener('change',e=>{state.category=e.target.value;render();});
+$('filters').addEventListener('click',e=>{const button=e.target.closest('[data-status]');if(button){state.status=button.dataset.status;render();}});
+$('reset').addEventListener('click',reset);$('empty-reset').addEventListener('click',reset);
+$('matrix-body').addEventListener('click',e=>{const b=e.target.closest('[data-toggle]');if(!b)return;const id=b.dataset.toggle;const opened=state.expanded.has(id);if(opened)state.expanded.delete(id);else state.expanded.add(id);b.setAttribute('aria-expanded',String(!opened));$('detail-'+id).hidden=opened;});
+document.addEventListener('click',e=>{const button=e.target.closest('[data-open]');if(!button)return;reset();state.expanded.add(button.dataset.open);state.search=rows.find(r=>r.id===button.dataset.open).name;$('search').value=state.search;render();$('matrix-heading').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});document.querySelector(`[data-toggle="${button.dataset.open}"]`).focus({preventScroll:true});});
+$('export').addEventListener('click',()=>{
+ const fields=['Capability','Category','Status','What it does','API','Formula / operation','Worked example','Limits / next step',...Object.values(columns),'Snapshot'];
+ const csv=[fields,...visibleRows().map(r=>[r.name,r.category,statuses[r.status],r.purpose,r.api||'',r.formula||'',r.example||'',r.limits||r.next_step,...Object.keys(columns).map(k=>r.evidence?.[k]?url(r.evidence[k]):''),SNAPSHOT])].map(row=>row.map(cell=>'"'+String(cell??'').replace(/^[=+@-]/,"'$&").replace(/"/g,'""')+'"').join(',')).join('\r\n');
+ const objectURL=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}));const a=document.createElement('a');a.href=objectURL;a.download='celandine-coverage-f1a43a8.csv';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(objectURL),1000);
+});
+$('print').addEventListener('click',()=>window.print());
+function setTheme(theme){document.documentElement.dataset.theme=theme;$('theme').textContent=theme==='dark'?'Light theme':'Dark theme';$('theme').setAttribute('aria-label',`Switch to ${theme==='dark'?'light':'dark'} theme`);}
+let initialTheme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';try{const saved=localStorage.getItem('celandine-matrix-theme');if(['light','dark'].includes(saved))initialTheme=saved;}catch{}setTheme(initialTheme);
+$('theme').addEventListener('click',()=>{const theme=document.documentElement.dataset.theme==='dark'?'light':'dark';setTheme(theme);try{localStorage.setItem('celandine-matrix-theme',theme);}catch{}});
+render();
+</script>
+</body>
+</html>
