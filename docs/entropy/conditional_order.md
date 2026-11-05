@@ -97,3 +97,7 @@ Counts above `2^53` may round on conversion to `f64`. Order-zero reuse can diffe
 from the byte Shannon path in final rounding bits. Results are not clamped.
 Independent 100-digit fixtures use `1e-12` absolute bit tolerance; this is a
 validation threshold, not a universal numerical error guarantee.
+
+For a target and conditioning variable in two aligned sequences, use
+[`crate::entropy::conditional_entropy`]. It computes H(first | second); it does
+not extract preceding sequence contexts automatically.

@@ -25,6 +25,7 @@ cargo run --locked --example conditional_order
 cargo run --locked --example block_profile
 cargo run --locked --example joint
 cargo run --locked --example mutual
+cargo run --locked --example conditional_pair
 cargo run --locked --example total_variation
 cargo run --locked --example jensen_shannon
 cargo run --locked --example subword
@@ -80,6 +81,7 @@ python3 scripts/reference_conditional_order.py --check
 python3 scripts/reference_block_profile.py --check
 python3 scripts/reference_joint.py --check
 python3 scripts/reference_mutual.py --check
+python3 scripts/reference_conditional_pair.py --check
 python3 scripts/reference_total_variation.py --check
 python3 scripts/reference_jensen_shannon.py --check
 python3 scripts/reference_subword.py --check
@@ -435,3 +437,19 @@ exclude construction and must not claim input throughput. See
 [verification](docs/references/lz76_normalized.md),
 [fuzzing](docs/fuzzing/lz76_normalized.md), and
 [performance](docs/benchmarks/lz76_normalized.md).
+
+## Aligned-pair conditional entropy
+
+Run `cargo run --locked --example conditional_pair` and
+`python3 scripts/reference_conditional_pair.py --check`. The 1,397 fixtures use
+100-digit H(X,Y)-H(Y), independently of the direct conditional-count evaluator.
+Preserve direction, weighted groups, positive deterministic zeros, rare-context
+relative checks, chain rules, and first-order matched-observation agreement.
+Check allocation-free reuse and empty/error byte calls. Run
+`python3 scripts/fuzz_campaign.py --target conditional_pair --runs 100000`, then
+`python3 scripts/benchmark_conditional_pair.py` and
+`python3 scripts/measure_memory.py --conditional-pair` sequentially. Historical
+mutual and normalized-LZ76 workloads must remain intact. See
+[verification](docs/references/conditional_pair.md),
+[fuzzing](docs/fuzzing/conditional_pair.md), and
+[performance](docs/benchmarks/conditional_pair.md).

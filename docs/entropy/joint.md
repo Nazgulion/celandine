@@ -69,3 +69,7 @@ majority pair. Independent 100-digit fixtures use 1e-12 absolute bit tolerance;
 this is a test threshold, not a universal error bound. Finite samples can miss
 possible pairs and bias source-entropy estimates. Joint entropy does not
 establish causation, independence of a source, or its future behavior.
+
+For uncertainty of the first coordinate after the second is observed, see
+[`crate::entropy::conditional_entropy`]. It evaluates conditional contributions
+directly instead of subtracting joint and marginal entropies.

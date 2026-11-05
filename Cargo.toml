@@ -132,3 +132,7 @@ harness = false
 [[bench]]
 name = "lz76_normalized"
 harness = false
+
+[[bench]]
+name = "conditional_pair"
+harness = false

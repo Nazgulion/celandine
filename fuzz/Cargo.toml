@@ -142,3 +142,10 @@ path = "fuzz_targets/lz76_normalized.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+name = "conditional_pair"
+path = "fuzz_targets/conditional_pair.rs"
+test = false
+doc = false
+bench = false

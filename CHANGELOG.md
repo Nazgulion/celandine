@@ -2,6 +2,12 @@
 
 ## Unreleased — entropy, distance, sequence, and compression foundations
 
+- Add aligned-pair `conditional_entropy(x,y)` and reusable joint-law evaluation
+  of H(X|Y), with explicit direction, group weighting, stable near-certainty
+  arithmetic and allocation-free reuse. Preserve length errors and empty zeros.
+- Add 1,397 independent fixtures, numerical/identity tests, a runnable example,
+  allocation checks, fuzzing and measured paired-input/reuse performance.
+
 - Add explicit LZ76 phrase density and asymptotic normalization, with declared
   alphabet validation and reusable allocation-free `Lz76Summary`. Preserve raw
   parsing, empty conventions and finite values above one without clamping.

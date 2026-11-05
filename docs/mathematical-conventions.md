@@ -432,3 +432,16 @@ observed support at most K, not a bound on numeric byte labels. Validate K range
 before support, including empty input. Constant strings retain their raw two
 phrases. Asymptotic results may exceed one; no clamp or inferred alphabet is used.
 A summary owns exact length/count/support and reuses them for O(1) queries.
+
+## Conditional entropy of aligned pairs
+
+`entropy::conditional_entropy(x,y)` is H(X|Y), targeting the first coordinate
+and conditioning on the second, in bits per target-byte observation. For pair
+counts c(a,b), total N and second marginal m(b), sum
+`-(c(a,b)/N)*log2(c(a,b)/m(b))` over observed pairs. The reused joint law preserves
+its construction order. Equal lengths are required; mismatch errors precede
+counting, and empty/empty returns positive zero. Deterministic X-given-Y groups
+contribute zero, while nonempty groups receive their empirical frequency weights.
+The quantity is generally asymmetric and bounded by H(X), mathematically at
+most 8 bits. See [the definition](entropy/conditional.md); this is separate from
+next-byte conditional entropy by sequence order.

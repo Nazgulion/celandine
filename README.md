@@ -8,7 +8,7 @@ Entropy, information, complexity, and distance for finite sequences.
 
 The library implements **empirical Shannon, Hartley, Rényi, collision, min-entropy,
 and Tsallis entropy over bytes**, plus **fixed byte blocks, sliding byte windows, overlapping byte n-grams, counts, and
-empirical joint byte laws, joint entropy, mutual information, block probabilities, block entropy, block-entropy profiles and conditional entropy by order**, and **total variation distance between byte
+empirical joint byte laws, joint entropy, aligned-pair conditional entropy, mutual information, block probabilities, block entropy, block-entropy profiles and conditional entropy by order**, and **total variation distance between byte
 distributions**, plus **Jensen–Shannon divergence and distance**, and **subword complexity and raw/normalized LZ76 complexity**, plus **normalized Jensen–Shannon statistical complexity**, and **optional compression measurements and ordered normalized compression distance**.
 It is one Rust library crate, with no runtime dependencies by default and
 no unsafe library code. Feature `compression-deflate` adds a pinned pure-Rust
@@ -31,6 +31,7 @@ offline; evidence links point to the reviewed repository revision.
 | [Fixed blocks](docs/transforms/blocks.md) | Partitions bytes into complete adjacent slices and exposes the incomplete tail. | Enables disjoint local measurements with explicit tail handling. |
 | [Sliding windows](docs/transforms/windows.md) | Borrows complete byte slices at a positive width and stride. | Composes existing metrics into local measurements without copying data. |
 | [Conditional entropy by order](docs/entropy/conditional_order.md) | Measures next-byte uncertainty given the preceding k bytes, using matched observations. | Reveals local predictability beyond frequency balance. |
+| [Aligned-pair conditional entropy](docs/entropy/conditional.md) | Measures uncertainty in the first byte sequence given aligned observations from the second. | Reveals empirical predictability with explicit direction and group weighting. |
 | [Mutual information](docs/information/mutual.md) | Measures shared information in aligned byte observations, in bits per pair. | Detects empirical dependence using stable joint/marginal counts. |
 | [Joint distributions and entropy](docs/entropy/joint.md) | Counts position-aligned byte pairs, exposes both marginals and measures their joint uncertainty. | Distinguishes pairings hidden by separate histograms; rejects unequal lengths. |
 | [Block-entropy profiles](docs/entropy/block_profile.md) | Lazily yields block entropy across positive lengths up to a caller-selected maximum, capped at input length. | Compares observed patterns at different scales while allowing bounded work. |
@@ -284,6 +285,24 @@ zero by convention. For reuse, pass `(order+1)`-grams. The first `order` bytes
 provide context and are excluded as targets. See [definition and history](docs/entropy/conditional_order.md),
 [verification](docs/references/conditional_order.md), and [performance](docs/benchmarks/conditional_order.md).
 
+### Conditional entropy of aligned pairs
+
+```rust
+use celandine::entropy::conditional_entropy;
+assert_eq!(conditional_entropy(b"ABCD", b"XXYY").unwrap(), 1.0);
+assert_eq!(conditional_entropy(b"XXYY", b"ABCD").unwrap(), 0.0);
+```
+
+`conditional_entropy(x,y)` measures H(X|Y), in bits per first-coordinate byte.
+For `ABCD`/`XXYY`, either conditioning value leaves two equally likely targets,
+giving one bit. Reversing the inputs gives zero. The formula is
+`-sum (c(a,b)/N)*log2(c(a,b)/c_y(b))`, where c counts aligned pairs, N counts
+observations and c_y is the second marginal. It weights groups by frequency.
+Equal lengths are required; empty/empty returns zero by convention.
+`conditional_entropy_distribution` reuses a joint law without new allocation.
+This differs from sequence-order conditioning and does not establish causation
+or a source entropy rate. See [definition, history and limits](docs/entropy/conditional.md).
+
 ### Mutual information
 
 ```rust
@@ -491,6 +510,7 @@ cargo run --locked --example conditional_order
 cargo run --locked --example block_profile
 cargo run --locked --example joint
 cargo run --locked --example mutual
+cargo run --locked --example conditional_pair
 cargo run --locked --example total_variation
 cargo run --locked --example jensen_shannon
 cargo run --locked --example subword
@@ -622,6 +642,7 @@ python3 scripts/reference_collision.py --check
 python3 scripts/reference_min_entropy.py --check
 python3 scripts/reference_tsallis.py --check
 python3 scripts/reference_ngrams.py --check
+python3 scripts/reference_conditional_pair.py --check
 python3 scripts/reference_total_variation.py --check
 python3 scripts/reference_jensen_shannon.py --check
 python3 scripts/reference_subword.py --check
@@ -636,6 +657,7 @@ cargo bench --locked --bench collision
 cargo bench --locked --bench min_entropy
 cargo bench --locked --bench tsallis
 cargo bench --locked --bench ngrams
+cargo bench --locked --bench conditional_pair
 cargo bench --locked --bench total_variation
 cargo bench --locked --bench jensen_shannon
 cargo bench --locked --bench subword
@@ -711,7 +733,10 @@ exact independence tests, properties, allocation checks, fuzzing and measurement
 Explicit LZ76 scales add 7,224 independent cases, alphabet/finite-size properties,
 allocation checks, a runnable example, fuzzing and measured summary reuse.
 
-The six byte entropy measures, mutual information, joint entropy and reusable joint laws, block entropy and its lazy profiles, conditional entropy by order, n-gram primitives, fixed blocks, sliding windows, total variation,
+Aligned-pair conditional entropy adds 1,397 independent fixtures, direction and
+weighted-group tests, tiny-value checks, allocation-free reuse, fuzzing and measurements.
+
+The six byte entropy measures, aligned-pair conditional entropy, mutual information, joint entropy and reusable joint laws, block entropy and its lazy profiles, conditional entropy by order, n-gram primitives, fixed blocks, sliding windows, total variation,
 Jensen–Shannon comparisons, subword complexity, raw LZ76 complexity and explicit normalization scales, normalized Jensen–Shannon statistical complexity, and optional
 compression measurements and ordered NCD are implemented, including explicit Shannon logarithm bases. The [v0.1 readiness review](docs/releases/v0.1-readiness.md)
 records passing validation and remaining release-scope decisions. Dedicated fuzz
@@ -723,7 +748,8 @@ Jensen–Shannon comparisons followed by subword and LZ76 complexity for sequenc
 compression length, ratio, ordered NCD, sliding windows, fixed blocks, statistical complexity, and block entropy.
 Conditional entropy by order and block-entropy profiles are implemented. Joint
 distributions, joint entropy, mutual information and named normalized LZ76 variants
-are implemented, completing the agreed ten-increment list. Other metrics, a
+are implemented, completing the agreed ten-increment list. Aligned-pair conditional
+entropy is also implemented. Other metrics, a
 CLI, and bindings remain future work.
 
 ## License

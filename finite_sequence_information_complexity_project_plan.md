@@ -3024,6 +3024,16 @@ performance, review, commit and push. This completes the agreed ten-item list;
 finite-maximum/shuffled normalization, further metrics and application layers
 remain deferred pending authorization.
 
+**Next aligned-conditional increment (2026-11-05, owner-authorized):** implement
+`conditional_entropy(x,y)` as H(first|second), plus existing-joint-law reuse.
+Keep it distinct from sequence-order conditioning. Preserve equal-length and
+empty conventions; use weighted conditional contributions and stable arithmetic.
+Verify direction, chain rules, near-deterministic values, reuse and allocations;
+complete examples, references, fuzzing, performance, review, commit and push.
+Self-information/surprisal, KL and subsequent proposed matrix items remain
+separate increments.
+
+
 
 Do not develop in the order that sounds most exciting.
 

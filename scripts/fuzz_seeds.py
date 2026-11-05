@@ -215,8 +215,14 @@ def seeds():
         ("unequal",b"AB",b"X"),("all_bytes",bytes(range(256)),bytes(reversed(range(256)))),
         ("rare",b"A"*511+b"B",b"X"*512),("binary",b"\0\xff\0",b"\xff\0\0"),
     ]:
+        yield "conditional_pair",name,b"\0"+struct.pack("<Q",len(x))+x+y
         yield "joint",name,b"\0"+struct.pack("<Q",len(x))+x+y
         yield "mutual",name,b"\0"+struct.pack("<Q",len(x))+x+y
+    yield "conditional_pair","midpoint",b"\1"+struct.pack("<Q",2**64-1)+b"AABBXYXY"
+    yield "conditional_pair","raw_empty",b""
+    yield "conditional_pair","short",b"\xff"
+    for name,x,y in [("direction",b"ABCD",b"XXYY"),("reverse",b"XXYY",b"ABCD"),("unequal_weights",b"AAAABC",b"XXXXYY"),("rare_context",b"AB"+b"C"*510,b"XX"+b"Y"*510)]:
+        yield "conditional_pair",name,b"\0"+struct.pack("<Q",len(x))+x+y
     yield "joint","midpoint",b"\1"+struct.pack("<Q",2**64-1)+b"AABBXYXY"
     yield "joint","raw_empty",b""
     yield "joint","short",b"\xff"

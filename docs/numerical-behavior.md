@@ -353,3 +353,16 @@ are positive zero. Valid results are finite for representable byte slices;
 lengths above 2^53 may lose integer precision on conversion. Platform logarithms
 need not be bit-identical across targets. Independent 100-digit reference cases
 use 1e-12 absolute tolerance; cached and direct calls agree bitwise on one target.
+
+## Aligned-pair conditional entropy
+
+[Conditional entropy](entropy/conditional.md) evaluates nonnegative conditional
+contributions directly, avoiding cancellation in H(X,Y)-H(Y) or H(X)-I(X;Y).
+For pair count c and second marginal m, the logarithm uses log1p(-(m-c)/m)
+when c>m/2, with the complement formed in integers; otherwise it uses log2(c/m).
+Weights are c/N and summation is compensated. Deterministic groups are skipped,
+so empty and deterministic results are positive zero. No threshold or clamp
+hides small uncertainty. Tests check 100-digit entropy-difference references,
+relative accuracy of small nonzero values and an unmaterializable near-certain
+count scale in the private arithmetic kernel. Counts from public laws remain
+slice-derived; this does not introduce a joint-count import API.

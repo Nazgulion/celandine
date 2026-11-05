@@ -1136,6 +1136,88 @@ pub fn lz76_normalized(input: &[u8]) {
     assert!(s.asymptotic(valid_k).unwrap() >= s.asymptotic(256).unwrap());
 }
 
+/// Aligned conditional entropy checked by independent marginal and sorted-pair entropies.
+pub fn conditional_pair(input: &[u8]) {
+    use celandine::{
+        distribution::{LengthMismatch, joint_probabilities},
+        entropy::{conditional_entropy, conditional_entropy_distribution},
+    };
+    let payload = input.get(9..).unwrap_or_default();
+    let payload = &payload[..payload.len().min(1024)];
+    let split = if input.first().copied().unwrap_or(0) % 2 == 0 {
+        (word(input, 1) % (payload.len() as u64 + 1)) as usize
+    } else {
+        payload.len() / 2
+    };
+    let (x, y) = payload.split_at(split);
+    if x.len() != y.len() {
+        assert_eq!(
+            conditional_entropy(x, y),
+            Err(LengthMismatch {
+                x_len: x.len(),
+                y_len: y.len()
+            })
+        );
+        return;
+    }
+    let mut mx = [0usize; 256];
+    let mut my = [0usize; 256];
+    for &a in x {
+        mx[a as usize] += 1;
+    }
+    for &b in y {
+        my[b as usize] += 1;
+    }
+    let entropy = |counts: &[usize]| {
+        counts
+            .iter()
+            .filter(|&&c| c > 0)
+            .map(|&c| {
+                let p = c as f64 / x.len() as f64;
+                -p * p.ln() / LN_2
+            })
+            .sum::<f64>()
+    };
+    let mut pairs: Vec<_> = x
+        .iter()
+        .zip(y)
+        .map(|(&a, &b)| (u16::from(a) << 8) | u16::from(b))
+        .collect();
+    pairs.sort_unstable();
+    let mut frequencies = Vec::new();
+    let mut i = 0;
+    while i < pairs.len() {
+        let mut end = i + 1;
+        while end < pairs.len() && pairs[i] == pairs[end] {
+            end += 1;
+        }
+        frequencies.push(end - i);
+        i = end;
+    }
+    let hx = entropy(&mx);
+    let hy = entropy(&my);
+    let expected = entropy(&frequencies) - hy;
+    let d = joint_probabilities(x, y).unwrap();
+    let actual = conditional_entropy_distribution(&d);
+    close(actual, expected);
+    assert!(actual >= 0.0 && actual <= hx + 1e-11);
+    assert_eq!(
+        actual.to_bits(),
+        conditional_entropy(x, y).unwrap().to_bits()
+    );
+    close(actual - conditional_entropy(y, x).unwrap(), hx - hy);
+    assert_eq!(
+        conditional_entropy(x, x).unwrap().to_bits(),
+        0.0_f64.to_bits()
+    );
+    if x.is_empty()
+        || mx.iter().filter(|&&c| c > 0).count() <= 1
+        || frequencies.len() == my.iter().filter(|&&c| c > 0).count()
+    {
+        assert_eq!(actual.to_bits(), 0.0f64.to_bits());
+    }
+}
+
 #[cfg(test)]
 mod tests {
     #[test]
@@ -1159,6 +1241,7 @@ mod tests {
             ("block_profile", super::block_profile),
             ("joint", super::joint),
             ("mutual", super::mutual),
+            ("conditional_pair", super::conditional_pair),
         ] {
             let directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
                 .join("seeds")

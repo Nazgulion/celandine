@@ -150,3 +150,9 @@ Shannon's transmission-rate identities, empirical conventions and stable evaluat
 See [normalization references and verification](references/lz76_normalized.md):
 Lempel–Ziv (1976), Estevez-Rams et al. (2013), explicit alphabets and finite-size
 overshoot, with separate density and asymptotic formulas.
+
+## Conditional entropy of aligned pairs
+
+[Definition and independent verification](references/conditional_pair.md) cover
+Shannon (1948), section 6 property 5, explicit first-given-second direction and
+weighted conditional contributions with stable near-certainty evaluation.

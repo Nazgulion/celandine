@@ -60,4 +60,11 @@ class MemoryWorkloadTests(unittest.TestCase):
         self.assertTrue(all(size <= 65536 for _, shape, size, _ in cases if shape == 'mixed'))
         self.assertEqual({case[0] for case in cases}, {'input','lz76_density','lz76_asymptotic','lz76_summary','lz76_normalized_reuse'})
 
+    def test_conditional_pair_preserves_existing_workloads(self):
+        self.assertEqual({c[0] for c in measure_memory.mutual_cases()}, {'mutual_input','mutual','mutual_reuse'})
+        self.assertEqual({c[0] for c in measure_memory.lz76_normalized_cases()}, {'input','lz76_density','lz76_asymptotic','lz76_summary','lz76_normalized_reuse'})
+        cases = list(measure_memory.conditional_pair_cases())
+        self.assertEqual(len(cases), 51)
+        self.assertEqual({c[0] for c in cases}, {'conditional_pair_input','conditional_pair','conditional_pair_reuse'})
+
 if __name__ == '__main__': unittest.main()

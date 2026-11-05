@@ -81,13 +81,16 @@ fn entropy(data: &[u8]) -> usize {
 
 fn run_joint(operation: &str, x: &[u8], y: &[u8]) -> (usize, usize, usize) {
     use celandine::distribution::{joint_counts, joint_probabilities};
+    use celandine::entropy::{conditional_entropy, conditional_entropy_distribution};
     if matches!(
         operation,
-        "joint_reuse" | "joint_marginals" | "mutual_reuse"
+        "joint_reuse" | "joint_marginals" | "mutual_reuse" | "conditional_pair_reuse"
     ) {
         let d = joint_probabilities(x, y).unwrap();
         return peak_allocator::measure(|| {
-            if operation == "mutual_reuse" {
+            if operation == "conditional_pair_reuse" {
+                black_box(conditional_entropy_distribution(black_box(&d)));
+            } else if operation == "mutual_reuse" {
                 black_box(mutual_information_distribution(black_box(&d)));
             } else if operation == "joint_reuse" {
                 black_box(joint_entropy_distribution(black_box(&d)));
@@ -99,7 +102,11 @@ fn run_joint(operation: &str, x: &[u8], y: &[u8]) -> (usize, usize, usize) {
         });
     }
     peak_allocator::measure(|| match operation {
-        "joint_input" | "mutual_input" => 0,
+        "joint_input" | "mutual_input" | "conditional_pair_input" => 0,
+        "conditional_pair" => {
+            black_box(conditional_entropy(black_box(x), black_box(y)).unwrap());
+            0
+        }
         "mutual" => {
             black_box(mutual_information(black_box(x), black_box(y)).unwrap());
             0
@@ -335,6 +342,10 @@ fn main() {
         assert_eq!(run("extract", b"ABABA", 2).1, 0);
         assert!(run("block_entropy", b"ABABA", 2).1 > 0);
         assert_eq!(run_joint("joint_input", b"AB", b"XY"), (0, 0, 0));
+        assert_eq!(run_joint("conditional_pair_input", b"AB", b"XY"), (0, 0, 0));
+        assert_eq!(run_joint("conditional_pair", b"", b""), (0, 0, 0));
+        assert!(run_joint("conditional_pair", b"AB", b"XX").1 > 0);
+        assert_eq!(run_joint("conditional_pair_reuse", b"AB", b"XX"), (2, 0, 0));
         assert_eq!(run_joint("mutual_input", b"AB", b"XY"), (0, 0, 0));
         assert_eq!(run_joint("mutual", b"", b""), (0, 0, 0));
         assert!(run_joint("mutual", b"AB", b"XY").1 > 0);
@@ -414,6 +425,9 @@ fn main() {
         "mutual"
             | "mutual_input"
             | "mutual_reuse"
+            | "conditional_pair"
+            | "conditional_pair_input"
+            | "conditional_pair_reuse"
             | "joint_input"
             | "joint_counts"
             | "joint_entropy"
@@ -470,7 +484,12 @@ fn main() {
     if operation.starts_with("joint_")
         || matches!(
             operation.as_str(),
-            "mutual" | "mutual_input" | "mutual_reuse"
+            "mutual"
+                | "mutual_input"
+                | "mutual_reuse"
+                | "conditional_pair"
+                | "conditional_pair_input"
+                | "conditional_pair_reuse"
         )
     {
         let (mut x, mut y) = joint_input::input(size, shape);
